@@ -21,5 +21,5 @@ This project is interesting because Ray envisions the users interacting more wit
 Write about technical consideration like platform choice etc. Expenses are important. For example will the client have to pay for a server?
 We choose to develop an Android app on Android tablets. We intend to use Amazon web services for storage of data. The client will give us Amazon developer accounts and provide financial support for servers. He will also secure android tablets for our testing uses. 
 
-Make a rough sketch of the GUI of your application.
-In another jpg file. 
+Make a rough sketch of the GUI of your application
+	In another jpg file with file name gui_sketch.jpg in the same directory
