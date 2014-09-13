@@ -1,25 +1,21 @@
+Team Name: Senior Panda
+Team Members: Justin (Zihao) Zhang, Sanmay Jain, Steve (Siyang) Wang
+
 Project Executive Summary
-Team: Justin (Zihao) Zhang, Sanmay Jain, Steve (Siyang) Wang
-Project: mHealth Seniors
 
-WHAT is the application going to do. Overview.
-The application facilitates interaction among patients and doctors. It records senior patients’ levels of symptoms and reminds them to take medicine as their doctors ask on a daily basis. It also display health information of the senior patients in a more convenience and user-friendly way to doctors. 
+Overview
+The application facilitates interaction among patients and doctors. It records senior patients’ symptoms and reminds them to take medicine as their doctors ask at appropriate times. It also displays health information of the senior patients in a more convenience and user-friendly way to doctors. Moreover, this app attracts seniors patients by displaying family photos and weather information continuously throughout the day so that the patients will look at the apps frequently. Furthermore, this app will allow users to send messages to each other including family members and doctors with clean and easy-to-use tile interface. Overall, Senior Panda strives to be the go-to app for seniors users by providing cleaner and easier-to-access interface and encapsulates unnecessarily complicated and cluttered Android functionalities. 
 
-WHY is your application important. Describe the purpose.
-The application is important because it is (probably?) going to be used for patients with Parkinson’s disease. In the end, it will benefit the patients and also benefit their care providers with communication.
-The use cases would target:
-	A) senior citizen patient impacted by Parkinson's disease
-	B) Simplicity and "hands off" orientation would be primary usability goals
-	C) Device would be dedicated to kitchen countertop installation
-	D) App would enable the device to perform 2 functions:
-		1) Consumer content delivery (either family photos, weather, or other entertainment)
-		2) medical query delivery and reponse capture to populate a server side database related to medication and/or symptoms
+Purpose
+The app would target primarily to senior citizen patients impacted by Parkinson’s disease. There clearly exists inefficiencies in terms of how seniors patients communicate with their doctors. Most of the patients meet with their doctors once per 3 to 4 months. Usually the doctors ask for their health information during their meetings, but the patients do not remember any details about their past symptoms. It thus becomes harder and harder to track the patients’ health status and to check whether the medicine actually works. By using this app, patients can record their health information and inform their doctors consistently. On the other hand, it makes it easier for doctors to view their patients’ health information easily and drive medicine decisions accordingly. This app aims to facilitate communication among patients and doctors. 
 
-Describe the functionality.
-This project is interesting because Ray envisions the users interacting more with their tablet than they do with a mobile application. For example, a remote person close to the patient might be able to update their tablet display by uploading pictures. The tablet would then also serve the useful function of notifying patients when they need to be notified. We would also work with amazon web services on the back end to consolidate the information. Ray has told us of quite a few tentative ideas and projects. The details of the functionality will be clearer in the near future when we make a more final decision.
+The primary usability goals would be simplicity and “hands off” orientation. We expect users to put their devices as kitchen countertop installation. We will primarily focus on two areas. The first one is consumer content delivery. We will incorporate family photo streaming service, weather and news daily updates, and possibly other forms of entertainment for senior people. By doing so, we encourage senior people to use the app consistently. The second one is medical query delivery and response capture to populate a server side database related to medication and symptom information. 
 
-Write about technical consideration like platform choice etc. Expenses are important. For example will the client have to pay for a server?
-We choose to develop an Android app on Android tablets. We intend to use Amazon web services for storage of data. The client will give us Amazon developer accounts and provide financial support for servers. He will also secure android tablets for our testing uses. 
+Functionality
+This android app is specifically designed for tablet use. The app itself will cycle through pictures on the main screen as it is meant for “tabletop” use. There will be other buttons on the bottom of the app to accomplish various other functions such as sending medical information to a database, looking up weather, and viewing news. We will work with MySQL, dream factory, and amazon web services on the back end database. The user’s doctor and loved ones will be able to upload pictures to the app. This will be done through dropbox. The user’s doctor will also be able to push notifications to the app. Initially, we want to implement medical notification functionality. We envision adding functionality for further notifications from loved ones later on.
 
-Make a rough sketch of the GUI of your application
-	In another jpg file with file name gui_sketch.jpg in the same directory
+Technical consideration 
+We choose to develop an Android app on tablets. We chose Android platform because the devices are relatively at low cost, and the platform outnumbers iOS’s market share by nearly 20% in the US market. It is also far easier to deploy in the Google’s app store GoolgePlay, a fact very crucial to startups that targets distribution to many users fast. We chose tablets because the tablets comes with bigger screen, therefore is more suitable for senior users that we target to. The version of Android Development API that we use is API 16 (Jelly Bean), as that version is supported by 72% of the android devices worldwide. We also intend to use Amazon web services for storage of data. The client will provide Amazon developer accounts and financial support for the database and servers to be used. 
+
+Sketch of the GUI of your application
+In another jpg file in the directory
