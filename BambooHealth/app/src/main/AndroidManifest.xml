@@ -12,14 +12,6 @@
             android:label="@string/app_name"
             android:windowSoftInputMode="adjustResize|stateVisible" >
         </activity>
-        <activity
-            android:name=".ViewData"
-            android:label="@string/title_activity_view_data"
-            android:parentActivityName=".LoginActivity" >
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.example.main.bamboohealth.LoginActivity" />
-        </activity>
     </application>
 
     <!-- To auto-complete the email text field in the login form with the user's emails -->
