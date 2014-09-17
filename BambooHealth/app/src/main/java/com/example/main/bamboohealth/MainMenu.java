@@ -47,6 +47,11 @@ public class MainMenu extends Activity {
         startActivity(intent);
     }
 
+    public void createPhotoFlip(View view) {
+        Intent intent = new Intent(this, PhotoFlipActivity.class);
+        startActivity(intent);
+    }
+
     public void notify(View vobj){
         id++;
         NM=(NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
@@ -56,6 +61,7 @@ public class MainMenu extends Activity {
                 getApplicationContext(),0, new Intent(),0);
         notify.setLatestEventInfo(getApplicationContext(),"Notify Subject: " + id, "Notify Body: " + id,pending);
         NM.notify(id, notify);
+
     }
 
 }

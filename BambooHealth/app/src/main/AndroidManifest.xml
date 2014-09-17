@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.main.bamboohealth" >
+    <uses-sdk android:minSdkVersion="16"
+        android:targetSdkVersion="20"/>
 
     <application
         android:allowBackup="true"
@@ -20,6 +22,14 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.example.main.bamboohealth.LoginActivity" />
         </activity>
+        <activity android:name=".PhotoFlipActivity"
+            android:label="@string/photo_flip"
+            android:parentActivityName=".MainMenu" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.example.main.bamboohealth.MainMenu" />
+            </activity>
+
         <activity
             android:name=".SummaryListActivity"
             android:label="@string/title_summary_list"
