@@ -6,12 +6,24 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     android:paddingBottom="@dimen/activity_vertical_margin"
-    tools:context="com.example.main.bamboohealth.MainMenu">
+    tools:context="com.example.main.bamboohealth.MainMenu"
+    android:id="@+id/layout">
 
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/view_health"
-        android:onClick="createViewHealth"/>
+        android:onClick="createViewHealth"
+        android:id="@+id/button" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/photo_flip"
+        android:onClick="createPhotoFlip"
+        android:id="@+id/slide_show_button"
+        android:layout_centerVertical="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
 
 </RelativeLayout>

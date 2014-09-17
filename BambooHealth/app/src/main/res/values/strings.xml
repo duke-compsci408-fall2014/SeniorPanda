@@ -8,5 +8,6 @@
     <string name="view_health">Health Info</string>
     <string name="title_summary_list">Summaries</string>
     <string name="title_summary_detail">Summary Detail</string>
+    <string name="photo_flip">Photo Slide Show</string>
 
 </resources>

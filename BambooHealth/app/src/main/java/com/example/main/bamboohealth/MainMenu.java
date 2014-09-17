@@ -41,4 +41,9 @@ public class MainMenu extends Activity {
         startActivity(intent);
     }
 
+    public void createPhotoFlip(View view){
+        Intent intent = new Intent(this, PhotoFlipActivity.class);
+        startActivity(intent);
+    }
+
 }
