@@ -3,9 +3,9 @@
 
     <string name="app_name">BambooHealth</string>
     <string name="title_activity_view_data">View Health Information</string>
-    <string name="title_section1">Section 1</string>
-    <string name="title_section2">Section 2</string>
-    <string name="title_section3">Section 3</string>
+    <string name="title_section1">Daily</string>
+    <string name="title_section2">Weekly</string>
+    <string name="title_section3">Monthly</string>
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
 
