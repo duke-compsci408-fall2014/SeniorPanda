@@ -6,9 +6,15 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.app.NotificationManager;
+import android.app.Notification;
+import android.content.Context;
+import android.app.PendingIntent;
 
 
 public class MainMenu extends Activity {
+    NotificationManager NM;
+    int id = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,6 +45,17 @@ public class MainMenu extends Activity {
     public void createViewHealth(View view){
         Intent intent = new Intent(this, SummaryListActivity.class);
         startActivity(intent);
+    }
+
+    public void notify(View vobj){
+        id++;
+        NM=(NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
+        Notification notify=new Notification(android.R.drawable.
+                stat_notify_more, "Test Notification: " + id,System.currentTimeMillis());
+        PendingIntent pending=PendingIntent.getActivity(
+                getApplicationContext(),0, new Intent(),0);
+        notify.setLatestEventInfo(getApplicationContext(),"Notify Subject: " + id, "Notify Body: " + id,pending);
+        NM.notify(id, notify);
     }
 
 }
