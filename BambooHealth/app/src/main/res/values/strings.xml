@@ -6,5 +6,7 @@
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
     <string name="view_health">Health Info</string>
+    <string name="title_summary_list">Summaries</string>
+    <string name="title_summary_detail">Summary Detail</string>
 
 </resources>

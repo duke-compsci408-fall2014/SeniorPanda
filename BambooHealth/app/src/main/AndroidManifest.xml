@@ -20,6 +20,22 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.example.main.bamboohealth.LoginActivity" />
         </activity>
+        <activity
+            android:name=".SummaryListActivity"
+            android:label="@string/title_summary_list"
+            android:parentActivityName=".MainMenu" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.example.main.bamboohealth.MainMenu" />
+        </activity>
+        <activity
+            android:name=".SummaryDetailActivity"
+            android:label="@string/title_summary_detail"
+            android:parentActivityName=".SummaryListActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.example.main.bamboohealth.SummaryListActivity" />
+        </activity>
     </application>
 
     <!-- To auto-complete the email text field in the login form with the user's emails -->
