@@ -67,7 +67,6 @@ public class SummaryListActivity extends Activity
             // http://developer.android.com/design/patterns/navigation.html#up-vs-back
             //
             this.navigateUpTo(this.getIntent());
-//            navigateUpFromSameTask(this);
             return true;
         }
         return super.onOptionsItemSelected(item);
