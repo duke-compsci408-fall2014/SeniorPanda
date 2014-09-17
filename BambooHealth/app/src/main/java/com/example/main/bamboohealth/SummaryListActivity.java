@@ -1,9 +1,8 @@
 package com.example.main.bamboohealth;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.app.Activity;
-
 import android.view.MenuItem;
 
 
@@ -67,6 +66,7 @@ public class SummaryListActivity extends Activity
             //
             // http://developer.android.com/design/patterns/navigation.html#up-vs-back
             //
+            this.navigateUpTo(this.getIntent());
 //            navigateUpFromSameTask(this);
             return true;
         }
