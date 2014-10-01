@@ -1,0 +1,85 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:tools="http://schemas.android.com/tools"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                tools:context="com.bmh.ms101.PopUpActivity"
+                android:gravity="center_horizontal" >
+
+    <TextView android:id="@+id/popup_title"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="4dp"
+            android:text="@string/tec_dose_reported_title"
+            style="@android:style/TextAppearance.Holo.DialogWindowTitle"/>
+
+    <View android:id="@+id/popup_title_divider"
+          android:layout_width="fill_parent"
+          android:layout_height="2dip"
+          android:layout_below="@id/popup_title"
+          android:background="@android:color/holo_blue_light" />
+
+    <TextView android:id="@+id/popup_text"
+              android:layout_width="fill_parent"
+              android:layout_height="wrap_content"
+              android:layout_below="@id/popup_title_divider"
+              android:layout_margin="4dp"
+              android:text="@string/tec_dose_reported_text"
+              style="@android:style/TextAppearance.Medium" />
+
+    <RadioGroup android:id="@+id/popup_miss_reason"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_below="@id/popup_text"
+                android:visibility="gone" >
+
+        <RadioButton android:id="@+id/popup_rad_yes"
+                     android:layout_width="fill_parent"
+                     android:layout_height="wrap_content"
+                     android:text="Yes"
+                     android:checked="true" />
+
+        <RadioButton android:id="@+id/popup_rad_forgot"
+                     android:layout_width="fill_parent"
+                     android:layout_height="wrap_content"
+                     android:text="Skipped - Forgot"/>
+
+        <RadioButton android:id="@+id/popup_rad_side_effects"
+                     android:layout_width="fill_parent"
+                     android:layout_height="wrap_content"
+                     android:text="Skipped - Side Effects"/>
+
+        <RadioButton android:id="@+id/popup_rad_no_meds"
+                     android:layout_width="fill_parent"
+                     android:layout_height="wrap_content"
+                     android:text="Skipped - No medication"/>
+
+    </RadioGroup>
+
+    <View android:id="@+id/popup_divider2"
+          android:layout_width="fill_parent"
+          android:layout_height="1dip"
+          android:layout_below="@id/popup_miss_reason"
+          android:background="?android:attr/dividerHorizontal" />
+
+    <LinearLayout style="?android:attr/buttonBarStyle"
+                  android:layout_width="fill_parent"
+                  android:layout_height="wrap_content"
+                  android:layout_below="@id/popup_divider2"
+                  android:orientation="horizontal"
+                  android:paddingTop="0dip"
+                  android:paddingLeft="2dip"
+                  android:paddingRight="2dip"
+                  android:measureWithLargestChild="true" >
+
+        <Button android:id="@+id/popup_dismiss"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                style="?android:attr/buttonBarButtonStyle"
+                android:text="@string/okay" />
+
+    </LinearLayout>
+
+
+
+</RelativeLayout>

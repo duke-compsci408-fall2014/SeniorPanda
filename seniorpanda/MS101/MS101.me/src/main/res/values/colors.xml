@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="green_filter">#FF00FF00</color>
+    <color name="red_filter">#FFFF0000</color>
+    <color name="blue_filter">#FF00FFFF</color>
+    <color name="yellow_filter">#FFFFFF00</color>
+    <color name="font">#333</color>
+    <color name="app_green">#7FBC7F</color>
+    <color name="black">#000000</color>
+</resources>
