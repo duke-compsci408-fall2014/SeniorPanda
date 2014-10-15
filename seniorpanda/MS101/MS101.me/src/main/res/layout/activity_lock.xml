@@ -1,0 +1,55 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:tools="http://schemas.android.com/tools"
+                android:id="@+id/lock_screen"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:paddingLeft="@dimen/activity_horizontal_margin"
+                android:paddingRight="@dimen/activity_horizontal_margin"
+                android:paddingTop="@dimen/activity_vertical_margin"
+                android:paddingBottom="@dimen/activity_vertical_margin"
+                tools:context="com.bmh.ms101.LockActivity">
+
+    <TextView android:id="@+id/lock_prompt"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:layout_alignParentTop="true"
+              android:layout_centerHorizontal="true"
+              android:gravity="center_horizontal"
+              android:text="@string/unlock_instructions"
+              style="@android:style/TextAppearance.Medium" />
+
+    <LinearLayout android:id="@+id/pin_and_button"
+                  android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:orientation="horizontal"
+                  android:layout_below="@id/lock_prompt"
+                  android:layout_centerHorizontal="true"
+                  android:layout_marginTop="16dp" >
+
+        <EditText android:id="@+id/pin"
+                  android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:digits="0123456789"
+                  android:maxLength="4"
+                  android:gravity="center_horizontal"
+                  android:hint="@string/pin_hint"
+                  android:inputType="numberPassword"
+                  android:singleLine="true"
+                  android:textAppearance="@android:style/TextAppearance.Medium" />
+
+        <Button android:id="@+id/confirm_pin"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/unlock"
+                android:textAppearance="@android:style/TextAppearance.Medium"
+                android:enabled="false" />
+    </LinearLayout>
+
+    <TextView android:id="@+id/legal"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:layout_below="@id/pin_and_button"
+              android:layout_marginTop="4dp"
+              android:gravity="center_horizontal"
+              android:text="@string/legal" />
+</RelativeLayout>

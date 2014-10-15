@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="0dp"
+              android:layout_weight="1"
+              android:orientation="vertical" >
+
+    <TextView android:id="@+id/med_label"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:textAppearance="?android:attr/textAppearanceMedium" />
+
+    <RadioGroup android:id="@+id/med_doses"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal" >
+
+        <RadioButton android:id="@+id/radioNS"
+                     android:layout_width="0dp"
+                     android:layout_height="wrap_content"
+                     android:checked="true"
+                     android:tag="-1"
+                     android:text="@string/dosage_NS"
+                     android:layout_weight="1.2"
+                     android:singleLine="true" />
+
+        <RadioButton android:id="@+id/radio0"
+                     android:layout_width="0dp"
+                     android:layout_height="wrap_content"
+                     android:tag="0"
+                     android:text="@string/dosage_0"
+                     android:layout_weight="1" />
+
+        <RadioButton android:id="@+id/radio1"
+                     android:layout_width="0dp"
+                     android:layout_height="wrap_content"
+                     android:tag="1"
+                     android:text="@string/dosage_1"
+                     android:layout_weight="1" />
+
+        <RadioButton android:id="@+id/radio2"
+                     android:layout_width="0dp"
+                     android:layout_height="wrap_content"
+                     android:tag="2"
+                     android:text="@string/dosage_2"
+                     android:layout_weight="1" />
+
+        <RadioButton android:id="@+id/radio3"
+                     android:layout_width="0dp"
+                     android:layout_height="wrap_content"
+                     android:tag="3"
+                     android:text="@string/dosage_3"
+                     android:layout_weight="1" />
+
+        <RadioButton android:id="@+id/radio4Plus"
+                     android:layout_width="0dp"
+                     android:layout_height="wrap_content"
+                     android:tag="4"
+                     android:text="@string/dosage_4_plus"
+                     android:layout_weight="1.1"
+                     android:singleLine="true" />
+    </RadioGroup>
+
+</LinearLayout>
