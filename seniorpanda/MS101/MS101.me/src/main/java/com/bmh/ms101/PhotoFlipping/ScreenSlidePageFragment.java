@@ -5,6 +5,7 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bmh.ms101.R;
@@ -37,7 +38,7 @@ public class ScreenSlidePageFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mPageNumber = getArguments().getInt(ARG_PAGE);
+        mPageNumber = getArguments() != null ? getArguments().getInt(ARG_PAGE) : 1;
     }
 
     @Override
@@ -49,10 +50,20 @@ public class ScreenSlidePageFragment extends Fragment {
 
         // Set the title view to show the page number.
         ((TextView) rootView.findViewById(android.R.id.text1)).setText(
-                getString(R.string.title_photo, mPageNumber + 1));
+                getString(R.string.title_photo) + getString(mPageNumber + 1));
+
+
+        if(mPageNumber == 0){
+            ((ImageView) rootView.findViewById(android.R.id.widget_frame)).setImageDrawable(getResources().getDrawable(R.drawable.steve));
+        } else if(mPageNumber == 1){
+            ((ImageView) rootView.findViewById(android.R.id.widget_frame)).setImageDrawable(getResources().getDrawable(R.drawable.sanmay_dog));
+        } else {
+            ((ImageView) rootView.findViewById(android.R.id.widget_frame)).setImageDrawable(getResources().getDrawable(R.drawable.null_pointer));
+        }
 
         return rootView;
     }
+
     /**
      * Returns the page number represented by this fragment object.
      */

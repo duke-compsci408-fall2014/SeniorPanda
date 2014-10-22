@@ -37,12 +37,6 @@ public class ScreenSlidePagerActivity extends FragmentActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_screen_slide_pager);
-        System.out.println("photo flipping activity created");
-//        if (savedInstanceState == null) {
-//            getFragmentManager().beginTransaction()
-//                    .add(R.id.container, new PlaceholderFragment())
-//                    .commit();
-//        }
 
         // Instantiate a ViewPager and a PagerAdapter.
         mPager = (ViewPager) findViewById(R.id.pager);
