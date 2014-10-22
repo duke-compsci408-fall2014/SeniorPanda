@@ -48,18 +48,24 @@ public class ScreenSlidePageFragment extends Fragment {
         ViewGroup rootView = (ViewGroup) inflater
                 .inflate(R.layout.fragment_screen_slide_page, container, false);
 
+        int currentPageNum = mPageNumber + 1;
         // Set the title view to show the page number.
         ((TextView) rootView.findViewById(android.R.id.text1)).setText(
-                getString(R.string.title_photo) + getString(mPageNumber + 1));
+                getString(R.string.title_photo, mPageNumber + 1) + " " + currentPageNum);
 
-
-        if(mPageNumber == 0){
-            ((ImageView) rootView.findViewById(android.R.id.widget_frame)).setImageDrawable(getResources().getDrawable(R.drawable.steve));
-        } else if(mPageNumber == 1){
-            ((ImageView) rootView.findViewById(android.R.id.widget_frame)).setImageDrawable(getResources().getDrawable(R.drawable.sanmay_dog));
-        } else {
-            ((ImageView) rootView.findViewById(android.R.id.widget_frame)).setImageDrawable(getResources().getDrawable(R.drawable.null_pointer));
+        int resId = 0;
+        switch (mPageNumber) {
+            case 0:
+                resId = R.drawable.steve;
+                break;
+            case 1:
+                resId = R.drawable.sanmay_dog;
+                break;
+            default:
+                resId = R.drawable.null_pointer;
+                break;
         }
+        ((ImageView) rootView.findViewById(android.R.id.widget_frame)).setImageDrawable(getResources().getDrawable(resId));
 
         return rootView;
     }
