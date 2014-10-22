@@ -30,35 +30,35 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="1" />
+                android:text="1-30" />
 
         <RadioButton
                 android:id="@+id/radio2"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="2" />
+                android:text="31-60" />
 
         <RadioButton
                 android:id="@+id/radio3"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="3" />
+                android:text="61-120" />
 
         <RadioButton
                 android:id="@+id/radio4"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="4" />
+                android:text="121-360" />
 
         <RadioButton
                 android:id="@+id/radio5"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="5" />
+                android:text=">360" />
     </RadioGroup>
 
 </LinearLayout>
