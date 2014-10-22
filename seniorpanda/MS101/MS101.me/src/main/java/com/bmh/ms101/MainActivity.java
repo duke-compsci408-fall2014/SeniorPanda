@@ -8,6 +8,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
 
+import com.bmh.ms101.PhotoFlipping.ScreenSlidePagerActivity;
 import com.bmh.ms101.events.DFLoginResponseEvent;
 import com.bmh.ms101.ex.DFNotAddedException;
 import com.bmh.ms101.ex.UserMedsNotAddedException;
@@ -172,11 +173,11 @@ public class MainActivity extends Activity {
         ImageButton buttonMeds = (ImageButton) findViewById(R.id.buttonMeds);
         ImageButton buttonSymptoms = (ImageButton) findViewById(R.id.buttonSymptoms);
         ImageButton buttonProgress = (ImageButton) findViewById(R.id.buttonLog);
-        ImageButton buttonHelp = (ImageButton) findViewById(R.id.buttonHelp);
+        ImageButton buttonPhotoFlipping = (ImageButton) findViewById(R.id.buttonPhotoFlipping);
         Util.makeGreen(buttonMeds, this);
         Util.makeRed(buttonSymptoms, this);
         Util.makeBlue(buttonProgress, this);
-        Util.makeYellow(buttonHelp, this);
+        Util.makeYellow(buttonPhotoFlipping, this);
         buttonMeds.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View arg0) {
@@ -203,10 +204,12 @@ public class MainActivity extends Activity {
                 startActivity(new Intent(MainActivity.this, LogActivity.class));
             }
         });
-        buttonHelp.setOnClickListener(new View.OnClickListener() {
+        buttonPhotoFlipping.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View arg0) {
-
+                Util.trackUiEvent("click_main_button_photo", MainActivity.this);
+                System.out.println("start slide show activity");//to delete this
+                startActivity(new Intent(MainActivity.this, ScreenSlidePagerActivity.class));
             }
         });
     }

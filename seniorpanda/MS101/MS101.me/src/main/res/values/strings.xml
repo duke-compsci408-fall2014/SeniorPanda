@@ -73,6 +73,11 @@
     <string name="toast_changes_saved">Changes saved.</string>
     <string name="toast_must_select_med">Please select medication.</string>
 
+    <!-- Manage PhotoFlipping Activity -->
+    <string name="title_activity_photo_slideshow">Photo SlideShow</string>
+    <string name="photo">Photo here</string>
+    <string name="title_photo">Photo</string>
+
     <!-- Lock Activity -->
     <string name="title_activity_unlock">Enter PIN</string>
     <string name="title_activity_create_pin">Create PIN</string>
@@ -254,5 +259,6 @@
     <string name="title_activity_pop_up">PopUpActivity</string>
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
+    <string name="title_activity_screen_slide_pager">ScreenSlidePagerActivity</string>
 
 </resources>

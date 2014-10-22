@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="com.bmh.ms101" >
+    package="com.bmh.ms101" >
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -13,100 +13,100 @@
     <uses-permission android:name="com.google.android.providers.gsf.permission.READ_GSERVICES" />
 
     <application
-            android:name=".MS101"
-            android:allowBackup="true"
-            android:icon="@drawable/ic_launcher"
-            android:label="@string/app_name"
-            android:theme="@style/AppTheme" >
+        android:name=".MS101"
+        android:allowBackup="true"
+        android:icon="@drawable/ic_launcher"
+        android:label="@string/app_name"
+        android:theme="@style/AppTheme" >
 
         <!-- Main Activity -->
         <activity
-                android:name=".MainActivity"
-                android:label="@string/app_name"
-                android:launchMode="singleTop" >
+            android:name=".MainActivity"
+            android:label="@string/app_name"
+            android:launchMode="singleTop" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
         <!-- Medication Activity -->
         <activity
-                android:name=".MedicationActivity"
-                android:exported="true"
-                android:label="@string/title_activity_medication_alarm"
-                android:parentActivityName=".MainActivity" >
+            android:name=".MedicationActivity"
+            android:exported="true"
+            android:label="@string/title_activity_medication_alarm"
+            android:parentActivityName=".MainActivity" >
             <meta-data
-                    android:name="android.support.PARENT_ACTIVITY"
-                    android:value=".MainActivity" />
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".MainActivity" />
         </activity>
         <!-- Symptoms/Stress Factors Activity -->
         <activity
-                android:name=".SymptomsActivity"
-                android:exported="true"
-                android:label="@string/title_activity_symptoms"
-                android:parentActivityName=".MainActivity" >
+            android:name=".SymptomsActivity"
+            android:exported="true"
+            android:label="@string/title_activity_symptoms"
+            android:parentActivityName=".MainActivity" >
             <meta-data
-                    android:name="android.support.PARENT_ACTIVITY"
-                    android:value=".MainActivity" />
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".MainActivity" />
         </activity>
         <!-- Record Audio Activity -->
         <activity
-                android:name=".RecordAudioActivity"
-                android:label="@string/title_activity_record_audio" >
+            android:name=".RecordAudioActivity"
+            android:label="@string/title_activity_record_audio" >
         </activity>
         <!-- Log Activity -->
         <activity
-                android:name=".LogActivity"
-                android:label="@string/title_activity_log"
-                android:parentActivityName=".MainActivity" >
+            android:name=".LogActivity"
+            android:label="@string/title_activity_log"
+            android:parentActivityName=".MainActivity" >
             <meta-data
-                    android:name="android.support.PARENT_ACTIVITY"
-                    android:value=".MainActivity" />
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".MainActivity" />
         </activity>
         <!-- Setup Medication Activity -->
         <activity
-                android:name=".SetupMedsActivity"
-                android:label="@string/title_activity_add_meds"
-                android:parentActivityName=".MainActivity" >
+            android:name=".SetupMedsActivity"
+            android:label="@string/title_activity_add_meds"
+            android:parentActivityName=".MainActivity" >
             <meta-data
-                    android:name="android.support.PARENT_ACTIVITY"
-                    android:value=".MainActivity" />
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".MainActivity" />
         </activity>
         <!-- Setup MD Widget Activity -->
         <activity
-                android:name="com.bmh.ms101.SetupMDWidgetActivity"
-                android:label="@string/title_activity_setup_md_widget" >
+            android:name=".SetupMDWidgetActivity"
+            android:label="@string/title_activity_setup_md_widget" >
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
             </intent-filter>
         </activity>
         <!-- Pop Up Activity -->
         <activity
-                android:name=".PopUpActivity"
-                android:launchMode="singleInstance"
-                android:excludeFromRecents="true"
-                android:theme="@android:style/Theme.Holo.Dialog"
-                android:label="@string/title_activity_pop_up" >
+            android:name=".PopUpActivity"
+            android:excludeFromRecents="true"
+            android:label="@string/title_activity_pop_up"
+            android:launchMode="singleInstance"
+            android:theme="@android:style/Theme.Holo.Dialog" >
         </activity>
         <!-- Login Activity -->
         <activity
-                android:name=".LoginActivity"
-                android:label="@string/title_activity_login" >
+            android:name=".LoginActivity"
+            android:label="@string/title_activity_login" >
         </activity>
         <!-- PIN Lock Activity -->
         <activity
-                android:name=".LockActivity"
-                android:label="@string/title_activity_unlock" >
+            android:name=".LockActivity"
+            android:label="@string/title_activity_unlock" >
         </activity>
         <!-- Test Activity -->
         <activity
-                android:name=".TestActivity"
-                android:label="@string/title_activity_test" >
+            android:name=".TestActivity"
+            android:label="@string/title_activity_test" >
         </activity>
 
         <!-- MS101 Receiver -->
-        <receiver
-                android:name=".MS101Receiver" >
+        <receiver android:name=".MS101Receiver" >
             <intent-filter>
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
@@ -116,20 +116,29 @@
         </receiver>
         <!-- Widget Provider -->
         <receiver
-                android:name=".WidgetProvider"
-                android:label="MS101.me" >
+            android:name=".WidgetProvider"
+            android:label="MS101.me" >
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
 
             <meta-data
-                    android:name="android.appwidget.provider"
-                    android:resource="@xml/widget_md_info" />
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_md_info" />
         </receiver>
 
         <meta-data
-                android:name="com.google.android.gms.version"
-                android:value="@integer/google_play_services_version" />
+            android:name="com.google.android.gms.version"
+            android:value="@integer/google_play_services_version" />
+
+        <activity
+            android:name=".PhotoFlipping.ScreenSlidePagerActivity"
+            android:label="@string/title_activity_screen_slide_pager"
+            android:parentActivityName=".MainActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.bmh.ms101.MainActivity" />
+        </activity>
     </application>
 
 </manifest>
