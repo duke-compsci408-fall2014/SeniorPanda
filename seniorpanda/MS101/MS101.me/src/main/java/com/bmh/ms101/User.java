@@ -31,6 +31,8 @@ public class User {
     public static final int SYMP = 1;
     public static final int STRESS = 2;
 
+    public static final int SYMP_DATA_TYPE = 11;
+
     // Key strings to get values from the pref file
     private static final String PREF_MEDS = "key_meds";
     private static final String PREF_PIN = "key_pin";
@@ -62,6 +64,8 @@ public class User {
         mCtx = context;
         mPrefsUtil = new PrefsUtil(mCtx);
         mDevList.add("9076224588@ms101.me");
+        mDevList.add("8284541964@ms101.me");
+        mDevList.add("test1@pd101.me");
         // Populate an array with the list of meds at indices corresponding to their ID numbers
         if (MED_NAMES == null) {
             String[] meds = mCtx.getResources().getStringArray(R.array.medications);

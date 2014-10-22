@@ -16,6 +16,7 @@ import com.bmh.ms101.models.LoginModel;
 import com.bmh.ms101.models.MedRecordModel;
 import com.bmh.ms101.models.StressFactorRecordModel;
 import com.bmh.ms101.models.SymptomRecordModel;
+import com.bmh.ms101.models.SymptomDataModel;
 
 import org.droidparts.net.http.HTTPException;
 import org.droidparts.net.http.HTTPResponse;
@@ -36,11 +37,38 @@ import java.util.Date;
  */
 public class Backend {
 
-    // For the Dreamfactory Backend
+/*    // For the Dreamfactory Backend
     public static final String DF_APP_NAME = "ms101-android";
     public static final String DF_URL = "http://54.210.77.98:80/rest";
     public static final String DF_SESSION_SUFIX = "/user/session";
     public static final String DF_DB_SUFIX = "/db";
+    public static final String DF_MEDS_TABLE = "ms_medication";
+    public static final String DF_SYMP_TABLE = "ms_symptom";
+    public static final String DF_STRESS_TABLE = "ms_stress_factor";
+    public static final String DF_LATEST_DATA_TABLE = "ms_latest_data";
+    public static final String DF_GET_DATA_SUFFIX = DF_DB_SUFIX + "/%s?filter=uid%%3D\"%s\"%%20AND%%20date_created%%20BETWEEN%%20\"%s%%2000%%3A00%%3A00\"%%20AND%%20\"%s%%2023%%3A59%%3A59\"&order=date_created%%20DESC&fields=*";
+    public static final String DF_POST_DATA_SUFIX = DF_DB_SUFIX + "/%s?fields=*";
+    public static final String VER_MED = "MS101:med:1";
+    public static final String VER_SYMP = "MS101:symp:1";
+    public static final String VER_STRESS = "MS101:env:1";
+
+    // Support contacts. Tel # is used by widget
+    public static final String SUPPORT_PHONE = "9282882430";
+    public static final String SUPPORT_EMAIL = "help@ms101.me";*/
+
+    // For the Dreamfactory Backend
+    public static final String DF_APP_NAME = "DukeSeniorPanda";
+    public static final String DF_URL = "http://54.86.181.99:80/rest";
+    public static final String DF_SESSION_SUFIX = "/user/session";
+    public static final String DF_DB_SUFIX = "/db";
+    public static final String DF_USER_TABLE = "user";
+    public static final String DF_SUBSCRIBE_TABLE = "subscribe";
+    public static final String DF_SYMPTOM_TABLE = "symptom";
+    public static final String DF_MEDICATION_TABLE = "medication";
+    public static final String DF_TAKEN_TABLE = "taken";
+    public static final String DF_HAS_TABLE = "has";
+    public static final String DF_AUDIO_RECORD_TABLE = "audio_record";
+
     public static final String DF_MEDS_TABLE = "ms_medication";
     public static final String DF_SYMP_TABLE = "ms_symptom";
     public static final String DF_STRESS_TABLE = "ms_stress_factor";
@@ -294,6 +322,18 @@ public class Backend {
                     stressFactorRecordRequest.setDataVer(VER_STRESS);
                     stressFactorRecordRequest.setStressFactors(data);
                     recordToCreate = new JSONSerializer<>(StressFactorRecordModel.class, mCtx).serialize(stressFactorRecordRequest);
+                    break;
+                case User.SYMP_DATA_TYPE:
+                    postURL += String.format(DF_POST_DATA_SUFIX, DF_SYMPTOM_TABLE);
+
+                    /*SymptomDataModel symptomDataModel = new SymptomDataModel();
+
+                    JSONObject json = symptomDataModel.getJsonData(SymptomDataModel.SYMPTOM_TYPE_RIGIDITY,
+                                                       "right foot", "55", 1, time);
+                    recordToCreate = json;
+*/
+                    recordToCreate = new JSONObject(data);
+                  //  recordToCreate = new JSONSerializer<>(SymptomRecordModel.class, mCtx).serialize(symptomRecordRequest);
                     break;
             }
         } catch (Exception e) {

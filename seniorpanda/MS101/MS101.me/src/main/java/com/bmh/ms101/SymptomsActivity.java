@@ -12,11 +12,15 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.NavUtils;
 import android.support.v4.view.ViewPager;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
+import android.widget.LinearLayout;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 
 import com.bmh.ms101.events.DFLoginResponseEvent;
 import com.bmh.ms101.events.SendStressDFEvent;
@@ -24,11 +28,18 @@ import com.bmh.ms101.events.SendSympDFEvent;
 import com.bmh.ms101.ex.DFCredentialsInvalidException;
 import com.bmh.ms101.jobs.DreamFactoryLoginJob;
 import com.bmh.ms101.jobs.DreamFactorySendJob;
+import com.bmh.ms101.models.SymptomDataModel;
 import com.path.android.jobqueue.JobManager;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.json.JSONArray;
 
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Locale;
+import java.util.List;
+
 
 import de.greenrobot.event.EventBus;
 
@@ -112,6 +123,8 @@ public class SymptomsActivity extends FragmentActivity implements ActionBar.TabL
         if ((requestCode == MainActivity.REQUEST_UNLOCK || requestCode == MainActivity.REQUEST_CREATE_PIN) &&
                 resultCode == RESULT_OK) {
             mIsUnlocked = true;
+            // TODO - check this
+            finish();
         } else {
             if (jobsRunning.isEmpty()) finish();
         }
@@ -246,9 +259,9 @@ public class SymptomsActivity extends FragmentActivity implements ActionBar.TabL
     /**
      * Sends symptoms and stress factors to the backends
      */
-    private void sendSympStress() {
+  /*  private void sendSympStress() {
         // Change UI
-        setProgressBarIndeterminateVisibility(true);
+  *//*      setProgressBarIndeterminateVisibility(true);
         mSendSympStressButton.setText(R.string.sending);
         mSendSympStressButton.setEnabled(false);
         setRadioOptionsEnabled(false);
@@ -262,13 +275,90 @@ public class SymptomsActivity extends FragmentActivity implements ActionBar.TabL
         jobsRunning.add("DF_SYMP");
         jobsRunning.add("DF_STRESS");
         // Start the symptom jobs, which will then call the stress jobs when they complete
-        mJobManager.addJobInBackground(new DreamFactorySendJob(User.SYMP, lastReportedSympData, lastReportedTime));
+        mJobManager.addJobInBackground(new DreamFactorySendJob(User.SYMP, lastReportedSympData, lastReportedTime));*//*
+    }*/
+
+    /**
+     * Sends symptoms and stress factors to the backends
+     */
+    private void sendSympStress() {
+        // Change UI
+        setProgressBarIndeterminateVisibility(true);
+        mSendSympStressButton.setText(R.string.sending);
+        mSendSympStressButton.setEnabled(false);
+        setRadioOptionsEnabled(false);
+        // Get data
+        SymptomsSectionFragment sympFragment = (SymptomsSectionFragment) mFragMan.findFragmentByTag(getFragTag(R.id.pager, SECTION_SYMP));
+    //    SymptomsSectionFragment stressFragment = (SymptomsSectionFragment) mFragMan.findFragmentByTag(getFragTag(R.id.pager, SECTION_STRESS));
+     //   lastReportedSympData = mBackend.encodeSymptoms(sympFragment.getItems());
+     //   lastReportedStressData = mBackend.encodeSymptoms(stressFragment.getItems());
+    //    lastReportedSympData = getSymptomsData(sympFragment.getItems(), sympFragment.getCheckedBodyLocations());
+        JSONArray jsonArray = getSymptomsData(sympFragment.getItems(), sympFragment.getCheckedBodyLocations());
+        lastReportedTime = Calendar.getInstance().getTimeInMillis();
+        // Store the fact that we're running jobs
+   //     jobsRunning.add("DF_SYMP");
+
+        for (int j = 0; j < jsonArray.length(); j++) {
+            jobsRunning.add("DF_SYMP");
+            //   jobsRunning.add("DF_STRESS");
+            // Start the symptom jobs, which will then call the stress jobs when they complete
+            //    mJobManager.addJobInBackground(new DreamFactorySendJob(User.SYMP_DATA_TYPE, lastReportedSympData, lastReportedTime));
+           String data = "";
+            try {
+                data = jsonArray.get(j).toString();
+                mJobManager.addJobInBackground(new DreamFactorySendJob(User.SYMP_DATA_TYPE, data, lastReportedTime));
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+        }
     }
+
+
+    public JSONArray getSymptomsData(LinearLayout symptomsContainer, List<String> checkedBodyLocations) {
+        List<String> types = new ArrayList<String>();
+        // Loops through each RadioGroup to find which RadioButton is checked
+        List<SymptomDataModel> symptomDataModels = new ArrayList<SymptomDataModel>();
+        JSONArray jsonArray = new JSONArray();
+        for (int i = 0; i < symptomsContainer.getChildCount(); i++) {
+            LinearLayout labelAndSlider = (LinearLayout) symptomsContainer.getChildAt(i);
+            // Get the radio group
+            RadioGroup value = (RadioGroup) labelAndSlider.findViewById(R.id.symptomRatings);
+            // Get the checked RadioButton
+            RadioButton checkedRadio = (RadioButton) labelAndSlider.findViewById(value
+                    .getCheckedRadioButtonId());
+            String duration = checkedRadio.getText().toString();
+            String bodyLocation;
+            switch (i) {
+                case 0:
+                    types.add(i, SymptomDataModel.SYMPTOM_TYPE_TREMOR);
+                    break;
+                case 1:
+                    types.add(i, SymptomDataModel.SYMPTOM_TYPE_SLOW_MOVEMENT);
+                    break;
+                case 2:
+                    types.add(i, SymptomDataModel.SYMPTOM_TYPE_RIGIDITY);
+                    break;
+                case 3:
+                    types.add(i, SymptomDataModel.SYMPTOM_TYPE_FREEZING);
+                    break;
+                default:
+                    break;
+            }
+            SymptomDataModel symptomDataModel = new SymptomDataModel();
+            JSONObject jsonData = symptomDataModel.getJsonData(types.get(i), checkedBodyLocations.get(i), duration, 1, "2014-10-22");
+            jsonArray.put(jsonData);
+
+        }
+        return jsonArray;
+    }
+
 
     /**
      * Called when data has been sent successfully to all servers.
      */
     private void finishedSending() {
+        Log.v("Debug##", "In finishSending");
         // Change UI
         setProgressBarIndeterminateVisibility(false);
         mSendSympStressButton.setText(getString(R.string.symp_stress_sent));
@@ -307,7 +397,7 @@ public class SymptomsActivity extends FragmentActivity implements ActionBar.TabL
                 case "Already Logged In":
                     // This is only gonna happen when we try to report symptoms most likely
                     if (jobsRunning.contains("DF_SYMP")) {
-                        mJobManager.addJobInBackground(new DreamFactorySendJob(User.SYMP, lastReportedSympData, lastReportedTime));
+                        mJobManager.addJobInBackground(new DreamFactorySendJob(User.SYMP_DATA_TYPE, lastReportedSympData, lastReportedTime));
                     } else if (jobsRunning.contains("DF_STRESS")) {
                         // Because of the way we chain these calls normally, it's highly unlikely that we'll ever hit this
                         mJobManager.addJobInBackground(new DreamFactorySendJob(User.STRESS, lastReportedStressData, lastReportedTime));
