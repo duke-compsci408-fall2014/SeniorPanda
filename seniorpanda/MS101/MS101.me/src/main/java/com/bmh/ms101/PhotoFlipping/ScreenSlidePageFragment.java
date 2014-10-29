@@ -10,6 +10,9 @@ import android.widget.TextView;
 
 import com.bmh.ms101.R;
 
+/**
+ * Author: Justin (Zihao) Zhang
+ */
 public class ScreenSlidePageFragment extends Fragment {
     /**
      * The argument key for the page number this fragment represents.

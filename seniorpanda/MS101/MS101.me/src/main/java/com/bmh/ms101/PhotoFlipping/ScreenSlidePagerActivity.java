@@ -14,7 +14,9 @@ import android.view.MenuItem;
 
 import com.bmh.ms101.MainActivity;
 import com.bmh.ms101.R;
-
+/**
+ * Author: Justin (Zihao) Zhang
+ */
 public class ScreenSlidePagerActivity extends FragmentActivity {
 
     /**
