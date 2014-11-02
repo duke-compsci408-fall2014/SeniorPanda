@@ -216,18 +216,20 @@
         \n5: Very Severe - 4+ hours exposure</string>
 
     <!-- String Arrays -->
-    <!--<string-array name="symptoms">
+    <!--
+    <string-array name="symptoms">
         <item>Pain</item>
         <item>Mobility</item>
         <item>Fatigue</item>
         <item>Brain Fog</item>
-    </string-array> -->
+    </string-array>
+    -->
     <string-array name="symptoms">
         <item>Tremors</item>
         <item>Slowness of Movement</item>
         <item>Rigidity</item>
         <item>Freezing</item>
-	</string-array>
+    </string-array>
     <string-array name="stress_factors">
         <item>Family Stress</item>
         <item>Work Stress</item>
@@ -266,5 +268,6 @@
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
     <string name="title_activity_screen_slide_pager">ScreenSlidePagerActivity</string>
+    <string name="title_activity_slide_show">SlideShowActivity</string>
 
 </resources>
