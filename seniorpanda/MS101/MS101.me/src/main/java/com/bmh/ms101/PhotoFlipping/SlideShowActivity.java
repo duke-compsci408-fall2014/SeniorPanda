@@ -23,6 +23,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
     private Button myNextButton;
     private Button myStartButton;
     private Button myPauseButton;
+    private Button myDeleteButton;
     private int myPhotoIndex;
 
     private Animation slide_in_left, slide_in_right, slide_out_left, slide_out_right;
@@ -37,11 +38,13 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         myNextButton = (Button) findViewById(R.id.nextSlideButton);
         myStartButton = (Button) findViewById(R.id.startSlideButton);
         myPauseButton = (Button) findViewById(R.id.pauseSlideButton);
+        myDeleteButton = (Button) findViewById(R.id.deletePhotoButton);
 
         myPauseButton.setOnClickListener(this);
         myNextButton.setOnClickListener(this);
         myStartButton.setOnClickListener(this);
         myPauseButton.setOnClickListener(this);
+        myDeleteButton.setOnClickListener(this);
 
         slide_in_left = AnimationUtils.loadAnimation(this, R.anim.slide_in_left);
         slide_in_right = AnimationUtils.loadAnimation(this, R.anim.silde_in_right);
@@ -64,6 +67,9 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         switch (item.getItemId()) {
+            case R.id.upload_photo:
+                //TODO
+                return true;
             case R.id.action_settings:
                 return true;
             case android.R.id.home:
@@ -93,6 +99,9 @@ public class SlideShowActivity extends Activity implements OnClickListener {
                 break;
             case R.id.pauseSlideButton:
                 myFlipper.stopFlipping();
+                break;
+            case R.id.deletePhotoButton:
+                //TODO
                 break;
         }
     }

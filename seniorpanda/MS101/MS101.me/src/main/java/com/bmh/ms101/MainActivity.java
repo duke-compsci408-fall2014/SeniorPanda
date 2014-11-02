@@ -51,7 +51,8 @@ public class MainActivity extends Activity {
         mBackend = new Backend(this);
         mUser = mBackend.getUser(); // Get User object
         mJobManager = MS101.getInstance().getJobManager();
-        if (savedInstanceState != null) mIsUnlocked = savedInstanceState.getBoolean(IS_UNLOCKED, false);
+        if (savedInstanceState != null)
+            mIsUnlocked = savedInstanceState.getBoolean(IS_UNLOCKED, false);
         eventBus.register(this, 2);
         tryInitMainScreen(false);
     }
@@ -207,8 +208,7 @@ public class MainActivity extends Activity {
         buttonPhotoFlipping.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View arg0) {
-                Util.trackUiEvent("click_main_button_photo", MainActivity.this);
-                System.out.println("start slide show activity");//to delete this
+                Util.trackUiEvent("click_main_button_slide_show", MainActivity.this);
                 startActivity(new Intent(MainActivity.this, SlideShowActivity.class));
             }
         });
@@ -216,6 +216,7 @@ public class MainActivity extends Activity {
 
     /**
      * Called when we get a response from DreamFactory after trying to log in.
+     *
      * @param event DFLoginResponseEvent
      */
     public void onEventMainThread(DFLoginResponseEvent event) {
@@ -247,7 +248,8 @@ public class MainActivity extends Activity {
 
     /**
      * Convenience method for starting activities
-     * @param act Activity to be started
+     *
+     * @param act         Activity to be started
      * @param requestCode Request code to start it with
      */
     private void startNewTask(Class<? extends Activity> act, int requestCode, boolean isSetup) {
