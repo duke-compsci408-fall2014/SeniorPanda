@@ -15,8 +15,8 @@ import android.widget.ViewFlipper;
 
 import com.bmh.ms101.R;
 
-import java.text.DateFormat;
-import java.util.Date;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 
 public class SlideShowActivity extends Activity implements OnClickListener {
 
@@ -45,8 +45,9 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         myPauseButton = (Button) findViewById(R.id.pauseSlideButton);
         myDeleteButton = (Button) findViewById(R.id.deletePhotoButton);
         myDateTime = (TextView) findViewById(R.id.date_time);
-        String dateTimeString = DateFormat.getDateTimeInstance().format(new Date());
-        myDateTime.setText(dateTimeString);
+        DateTimeRunner timeThread = new DateTimeRunner();
+        myDateTime.setVisibility(View.VISIBLE);
+        timeThread.run();
 
         myPauseButton.setOnClickListener(this);
         myNextButton.setOnClickListener(this);
@@ -63,7 +64,6 @@ public class SlideShowActivity extends Activity implements OnClickListener {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         menu.clear();
         getMenuInflater().inflate(R.menu.slide_show, menu);
         return true;
@@ -71,9 +71,6 @@ public class SlideShowActivity extends Activity implements OnClickListener {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         switch (item.getItemId()) {
             case R.id.upload_photo:
                 //TODO
@@ -84,14 +81,11 @@ public class SlideShowActivity extends Activity implements OnClickListener {
                 NavUtils.navigateUpFromSameTask(this);
                 return true;
         }
-
         return super.onOptionsItemSelected(item);
     }
 
     @Override
     public void onClick(View view) {
-        String dateTimeString = DateFormat.getDateTimeInstance().format(new Date());
-        myDateTime.setText(dateTimeString);
         switch (view.getId()) {
             case R.id.nextSlideButton:
                 myFlipper.setInAnimation(slide_in_right);
@@ -113,6 +107,22 @@ public class SlideShowActivity extends Activity implements OnClickListener {
             case R.id.deletePhotoButton:
                 //TODO
                 break;
+        }
+    }
+
+    public class DateTimeRunner implements Runnable {
+        public void run() {
+            while (myFlipper.isShown()) {
+                Calendar c = Calendar.getInstance();
+                SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss a");
+                String formatted = dateFormat.format(c.getTime());
+                myDateTime.setText(formatted);
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }
         }
     }
 }

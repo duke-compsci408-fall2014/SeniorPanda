@@ -22,7 +22,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="850dp"
             android:layout_gravity="center_horizontal"
-            android:text="test" />
+            android:textColor="@color/blue_filter" />
 
     </ViewFlipper>
 
@@ -66,7 +66,7 @@
             android:layout_width="128dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="delete" />
+            android:text="Delete" />
 
     </LinearLayout>
 
