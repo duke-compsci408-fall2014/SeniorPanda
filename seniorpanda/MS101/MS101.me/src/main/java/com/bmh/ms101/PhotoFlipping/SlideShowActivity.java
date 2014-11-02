@@ -2,14 +2,15 @@ package com.bmh.ms101.PhotoFlipping;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.support.v4.app.NavUtils;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.ViewFlipper;
-import android.view.View.OnClickListener;
 
 import com.bmh.ms101.R;
 
@@ -22,6 +23,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
     private Button myNextButton;
     private Button myStartButton;
     private Button myPauseButton;
+    private int myPhotoIndex;
 
     private Animation slide_in_left, slide_in_right, slide_out_left, slide_out_right;
 
@@ -35,6 +37,10 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         myStartButton = (Button) findViewById(R.id.startSlideButton);
         myPauseButton = (Button) findViewById(R.id.pauseSlideButton);
 
+        myPauseButton.setOnClickListener(this);
+        myNextButton.setOnClickListener(this);
+        myStartButton.setOnClickListener(this);
+        myPauseButton.setOnClickListener(this);
 
         slide_in_left = AnimationUtils.loadAnimation(this, R.anim.slide_in_left);
         slide_in_right = AnimationUtils.loadAnimation(this, R.anim.silde_in_right);
@@ -46,6 +52,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
+        menu.clear();
         getMenuInflater().inflate(R.menu.slide_show, menu);
         return true;
     }
@@ -55,16 +62,20 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-        if (id == R.id.action_settings) {
-            return true;
+        switch (item.getItemId()) {
+            case R.id.action_settings:
+                return true;
+            case android.R.id.home:
+                NavUtils.navigateUpFromSameTask(this);
+                return true;
         }
+
         return super.onOptionsItemSelected(item);
     }
 
     @Override
     public void onClick(View view) {
-        switch(view.getId()){
+        switch (view.getId()) {
             case R.id.nextSlideButton:
                 myFlipper.setInAnimation(slide_in_right);
                 myFlipper.setInAnimation(slide_out_left);
