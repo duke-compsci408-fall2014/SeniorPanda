@@ -132,8 +132,8 @@
             android:value="@integer/google_play_services_version" />
 
         <activity
-            android:name=".PhotoFlipping.ScreenSlidePagerActivity"
-            android:label="@string/title_activity_screen_slide_pager"
+            android:name=".PhotoFlipping.SlideShowActivity"
+            android:label="@string/title_activity_slide_show"
             android:parentActivityName=".MainActivity" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"

@@ -8,7 +8,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
 
-import com.bmh.ms101.PhotoFlipping.ScreenSlidePagerActivity;
 import com.bmh.ms101.events.DFLoginResponseEvent;
 import com.bmh.ms101.ex.DFNotAddedException;
 import com.bmh.ms101.ex.UserMedsNotAddedException;

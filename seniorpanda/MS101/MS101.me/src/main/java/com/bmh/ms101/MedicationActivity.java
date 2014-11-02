@@ -82,7 +82,8 @@ public class MedicationActivity extends Activity {
     protected void onStart() {
         super.onStart();
         eventBus.register(this, 3);
-        if (mUser.getDFSessionId().equals("")) mJobManager.addJobInBackground(new DreamFactoryLoginJob());
+        if (mUser.getDFSessionId().equals(""))
+            mJobManager.addJobInBackground(new DreamFactoryLoginJob());
     }
 
     @Override
@@ -179,7 +180,8 @@ public class MedicationActivity extends Activity {
     /**
      * Check to see if there is stored dosage data for this med from today. If there is, checks the
      * appropriate radio button.
-     * @param medID ID of med to check for dosage data
+     *
+     * @param medID   ID of med to check for dosage data
      * @param medItem LinearLayout of the med item
      */
     private void fillInMedDoses(int medID, LinearLayout medItem) {
@@ -193,6 +195,7 @@ public class MedicationActivity extends Activity {
     /**
      * Uses the radio buttons in the layout to encode a medication dosage data string. Also stores
      * latest the reported doses so that we can keep track of it over the course of the day.
+     *
      * @return Encoded medication dosage data string
      */
     private String prepareMedData() {
@@ -248,6 +251,7 @@ public class MedicationActivity extends Activity {
 
     /**
      * Called when we get a response from DreamFactory after trying to log in.
+     *
      * @param event DFLoginResponseEvent
      */
     public void onEventMainThread(DFLoginResponseEvent event) {
@@ -280,6 +284,7 @@ public class MedicationActivity extends Activity {
 
     /**
      * Called when we finish trying to send medication data to Dreamfactory.
+     *
      * @param event SendMedsDFEvent
      */
     public void onEventMainThread(SendMedsDFEvent event) {
@@ -301,10 +306,10 @@ public class MedicationActivity extends Activity {
     /**
      * What to do what the pill on an MD widget is clicked. Is a generic method that works for any
      * med that a widget is tracking.
-     *
+     * <p/>
      * TODO make this use jobs!!
      *
-     * @param context Context to use
+     * @param context  Context to use
      * @param widgetId Widget that was clicked, used to find out what med to work with.
      */
     public static void handleMDWidgetPill(final Context context, int widgetId) {
@@ -344,6 +349,7 @@ public class MedicationActivity extends Activity {
             protected void onPreExecute() {
                 Util.toast(context, R.string.sending);
             }
+
             @Override
             protected Object doInBackground(String... params) {
                 try {
@@ -360,6 +366,7 @@ public class MedicationActivity extends Activity {
                 }
                 return "Success";
             }
+
             @Override
             protected void onPostExecute(Object result) {
                 if (result instanceof String) {
@@ -375,8 +382,9 @@ public class MedicationActivity extends Activity {
 
     /**
      * What to do if the user misses a dose of Tecfidera. Is specific to Tecfidera.
-     * @param context Context to use
-     * @param widgetId Widget that is tied to Tecfidera
+     *
+     * @param context       Context to use
+     * @param widgetId      Widget that is tied to Tecfidera
      * @param isMorningDose True if the morning dose was missed, false if the afternoon dose was missed
      */
     public static void handleMDTecMiss(Context context, int widgetId, boolean isMorningDose) {
