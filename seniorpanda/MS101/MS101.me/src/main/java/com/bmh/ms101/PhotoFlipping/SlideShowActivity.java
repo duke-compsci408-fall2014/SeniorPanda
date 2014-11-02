@@ -10,9 +10,13 @@ import android.view.View.OnClickListener;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.ViewFlipper;
 
 import com.bmh.ms101.R;
+
+import java.text.DateFormat;
+import java.util.Date;
 
 public class SlideShowActivity extends Activity implements OnClickListener {
 
@@ -24,6 +28,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
     private Button myStartButton;
     private Button myPauseButton;
     private Button myDeleteButton;
+    private TextView myDateTime;
     private int myPhotoIndex;
 
     private Animation slide_in_left, slide_in_right, slide_out_left, slide_out_right;
@@ -39,6 +44,9 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         myStartButton = (Button) findViewById(R.id.startSlideButton);
         myPauseButton = (Button) findViewById(R.id.pauseSlideButton);
         myDeleteButton = (Button) findViewById(R.id.deletePhotoButton);
+        myDateTime = (TextView) findViewById(R.id.date_time);
+        String dateTimeString = DateFormat.getDateTimeInstance().format(new Date());
+        myDateTime.setText(dateTimeString);
 
         myPauseButton.setOnClickListener(this);
         myNextButton.setOnClickListener(this);
@@ -82,6 +90,8 @@ public class SlideShowActivity extends Activity implements OnClickListener {
 
     @Override
     public void onClick(View view) {
+        String dateTimeString = DateFormat.getDateTimeInstance().format(new Date());
+        myDateTime.setText(dateTimeString);
         switch (view.getId()) {
             case R.id.nextSlideButton:
                 myFlipper.setInAnimation(slide_in_right);

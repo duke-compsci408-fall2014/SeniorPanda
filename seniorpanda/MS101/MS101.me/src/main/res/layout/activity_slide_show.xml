@@ -14,7 +14,17 @@
         android:layout_centerInParent="true"
         android:layout_above="@id/photoFlipper"
         android:layout_weight="1"
-        android:clipChildren="true"></ViewFlipper>
+        android:clipChildren="true">
+
+        <TextView
+            android:id="@+id/date_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="850dp"
+            android:layout_gravity="center_horizontal"
+            android:text="test" />
+
+    </ViewFlipper>
 
     <LinearLayout
         android:layout_width="match_parent"
