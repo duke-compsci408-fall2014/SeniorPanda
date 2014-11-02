@@ -13,7 +13,8 @@
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
         android:layout_above="@id/photoFlipper"
-        android:layout_weight="1">
+        android:layout_weight="1"
+        android:clipChildren="true">
     </ViewFlipper>
 
     <LinearLayout
@@ -50,6 +51,12 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="Next"/>
+
+        <Button
+            android:id="@+id/deletePhotoButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            />
 
     </LinearLayout>
 

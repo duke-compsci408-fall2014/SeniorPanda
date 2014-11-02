@@ -8,6 +8,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
 
+import com.bmh.ms101.PhotoFlipping.SlideShowActivity;
 import com.bmh.ms101.events.DFLoginResponseEvent;
 import com.bmh.ms101.ex.DFNotAddedException;
 import com.bmh.ms101.ex.UserMedsNotAddedException;
@@ -208,7 +209,7 @@ public class MainActivity extends Activity {
             public void onClick(View arg0) {
                 Util.trackUiEvent("click_main_button_photo", MainActivity.this);
                 System.out.println("start slide show activity");//to delete this
-                startActivity(new Intent(MainActivity.this, ScreenSlidePagerActivity.class));
+                startActivity(new Intent(MainActivity.this, SlideShowActivity.class));
             }
         });
     }
