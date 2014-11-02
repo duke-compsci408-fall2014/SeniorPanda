@@ -32,6 +32,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_slide_show);
         myFlipper = (ViewFlipper) findViewById(R.id.photoFlipper);
+        myFlipper.setAutoStart(true);
         myPreviousButton = (Button) findViewById(R.id.previousSlideButton);
         myNextButton = (Button) findViewById(R.id.nextSlideButton);
         myStartButton = (Button) findViewById(R.id.startSlideButton);
@@ -84,7 +85,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
             case R.id.previousSlideButton:
                 myFlipper.setInAnimation(slide_in_left);
                 myFlipper.setInAnimation(slide_out_right);
-                myFlipper.showNext();
+                myFlipper.showPrevious();
                 break;
             case R.id.startSlideButton:
                 myFlipper.setFlipInterval(FLIP_INTERVAL);
