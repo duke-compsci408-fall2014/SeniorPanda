@@ -64,8 +64,17 @@
                 android:value=".MainActivity" />
         </activity>
         <!-- Setup Medication Activity -->
-        <activity
+        <!-- <activity
             android:name=".SetupMedsActivity"
+            android:label="@string/title_activity_add_meds"
+            android:parentActivityName=".MainActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".MainActivity" />
+        </activity -->
+        <!-- Setup Medication Activity -->
+        <activity
+            android:name=".SetupMedicationActivity"
             android:label="@string/title_activity_add_meds"
             android:parentActivityName=".MainActivity" >
             <meta-data
