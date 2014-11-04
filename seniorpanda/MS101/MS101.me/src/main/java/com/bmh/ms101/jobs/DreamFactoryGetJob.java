@@ -5,15 +5,23 @@ import android.util.Log;
 import com.bmh.ms101.Backend;
 import com.bmh.ms101.MS101;
 import com.bmh.ms101.events.GetDataDFEvent;
+import com.bmh.ms101.events.GetMedsDFEvent;
 import com.bmh.ms101.ex.DFCredentialsInvalidException;
+import com.bmh.ms101.models.BaseDataModel;
 import com.bmh.ms101.models.BaseRecordModel;
+import com.bmh.ms101.models.MedicationDataModel;
 import com.path.android.jobqueue.Job;
 import com.path.android.jobqueue.Params;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import de.greenrobot.event.EventBus;
+
+import com.bmh.ms101.User;
+
+import org.json.JSONObject;
 
 /**
  * Job that handles getting data from the Dreamfactory server.
@@ -22,6 +30,9 @@ public class DreamFactoryGetJob extends Job {
     public static final int PRIORITY = 50;
 
     private Date from, to;
+    private int dataType;
+    private String data;
+    private long timeSent;
 
     /**
      * Create a new job to get data from DreamFactory.
@@ -32,6 +43,12 @@ public class DreamFactoryGetJob extends Job {
         super(new Params(PRIORITY).requireNetwork().persist());
         this.from = from;
         this.to = to;
+        this.dataType = User.USER_RECORD_DATA_TYPE;
+    }
+
+    public DreamFactoryGetJob(int dataType) {
+        super(new Params(PRIORITY).requireNetwork().persist());
+        this.dataType = dataType;
     }
 
     @Override
@@ -42,11 +59,20 @@ public class DreamFactoryGetJob extends Job {
     @Override
     public void onRun() throws Throwable {
         Backend backend = new Backend(MS101.getInstance());
-        ArrayList<BaseRecordModel> userRecords = backend.getFromDF(from, to);
-        if (userRecords != null) {
-            EventBus.getDefault().post(new GetDataDFEvent(true, userRecords));
-        } else {
-            throw new DFCredentialsInvalidException();
+        if (dataType == User.USER_RECORD_DATA_TYPE) {
+            ArrayList<BaseRecordModel> userRecords = backend.getFromDF(from, to);
+            if (userRecords != null) {
+                EventBus.getDefault().post(new GetDataDFEvent(true, userRecords));
+            } else {
+                throw new DFCredentialsInvalidException();
+            }
+        } else if (dataType == User.MEDICATION_DATA_TYPE) {
+            List<BaseDataModel> data = backend.getFromDF(dataType);
+            if (data != null) {
+                EventBus.getDefault().post(new GetMedsDFEvent(true, data));
+            } else {
+                throw new DFCredentialsInvalidException();
+            }
         }
     }
 

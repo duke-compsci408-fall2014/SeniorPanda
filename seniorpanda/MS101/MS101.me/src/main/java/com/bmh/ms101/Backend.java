@@ -11,9 +11,11 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 
 import com.bmh.ms101.ex.DFCredentialsInvalidException;
+import com.bmh.ms101.models.BaseDataModel;
 import com.bmh.ms101.models.BaseRecordModel;
 import com.bmh.ms101.models.LoginModel;
 import com.bmh.ms101.models.MedRecordModel;
+import com.bmh.ms101.models.MedicationDataModel;
 import com.bmh.ms101.models.StressFactorRecordModel;
 import com.bmh.ms101.models.SymptomRecordModel;
 import com.bmh.ms101.models.SymptomDataModel;
@@ -30,6 +32,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Handles interaction with the back end. Currently supports the old Google Sheets backend for everyone
@@ -219,6 +222,30 @@ public class Backend {
             e.printStackTrace();
             return false;
         }
+    }
+
+    public List<BaseDataModel> getFromDF(int dataType) throws HTTPException, JSONException {
+        if (mUser.getDFSessionId().equals("") || !mUser.isDFSessionIdValid()) {
+            if (!tryDFQuickLogin()) return null; // Don't do this if we aren't logged in
+        }
+
+        List<BaseDataModel> data = null;
+        switch (dataType) {
+            case User.MEDICATION_DATA_TYPE:
+                data = new ArrayList<BaseDataModel>();
+                String getURL = DF_URL + DF_DB_SUFIX + "/" + DF_MEDICATION_TABLE;
+                System.out.println("getURL :: " + getURL);
+                JSONArray dataObjectsJson = mDFRestClient.getJSONObject(getURL).getJSONArray("record");
+                System.out.println("medication dataObjects :: " + dataObjectsJson);
+                for (int i = 0; i < dataObjectsJson.length(); i++) {
+                    JSONObject json = dataObjectsJson.getJSONObject(i);
+                    MedicationDataModel dataObject = MedicationDataModel.fromJson(json);
+                    data.add(dataObject);
+                }
+                break;
+        }
+
+        return data;
     }
 
     /**

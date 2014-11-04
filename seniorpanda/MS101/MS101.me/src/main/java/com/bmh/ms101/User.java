@@ -33,6 +33,9 @@ public class User {
 
     public static final int SYMP_DATA_TYPE = 11;
 
+    public static final int MEDICATION_DATA_TYPE = 12;
+    public static final int USER_RECORD_DATA_TYPE = 13;
+
     // Key strings to get values from the pref file
     private static final String PREF_MEDS = "key_meds";
     private static final String PREF_PIN = "key_pin";

@@ -94,7 +94,9 @@ public class MainActivity extends Activity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_manage_meds:
-                startActivity(new Intent(this, SetupMedsActivity.class));
+           //   startActivity(new Intent(this, SetupMedsActivity.class));
+                startActivity(new Intent(this, SetupMedicationActivity.class));
+
                 return true;
             case R.id.action_force_df_relogin:
                 mIsForcingRelogin = true;
@@ -163,7 +165,7 @@ public class MainActivity extends Activity {
             startNewTask(LoginActivity.class, REQUEST_LOGIN, true);
         } catch (UserMedsNotAddedException e) {
             // Start meds setup flow
-            startNewTask(SetupMedsActivity.class, REQUEST_MEDS, true);
+            startNewTask(SetupMedicationActivity.class, REQUEST_MEDS, true);
         }
     }
 
