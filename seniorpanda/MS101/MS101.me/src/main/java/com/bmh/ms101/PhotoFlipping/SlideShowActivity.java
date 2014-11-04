@@ -1,6 +1,7 @@
 package com.bmh.ms101.PhotoFlipping;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
@@ -22,7 +23,7 @@ import java.util.Calendar;
 
 public class SlideShowActivity extends Activity implements OnClickListener {
 
-    private static final Integer FLIP_INTERVAL = 6000;
+    private static final Integer FLIP_INTERVAL = 50000;
 
     private ViewFlipper myFlipper;
     private Button myPreviousButton;
@@ -86,7 +87,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.upload_photo:
-                //TODO
+                uploadPhoto();
                 return true;
             case R.id.action_settings:
                 return true;
@@ -95,6 +96,14 @@ public class SlideShowActivity extends Activity implements OnClickListener {
                 return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void uploadPhoto() {
+        Intent intent = new Intent();
+        intent.setType("image/*");
+        intent.setAction(Intent.ACTION_GET_CONTENT);
+        startActivityForResult(Intent.createChooser(intent, "Select Picture"), 1);
+        //TODO
     }
 
     @Override
