@@ -45,4 +45,11 @@ dependencies {
     compile 'de.greenrobot:eventbus:2.2.1'
     compile 'com.path:android-priority-jobqueue:1.1.2'
     compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile files('libs/aws-android-sdk-2.1.4/lib/release/aws-android-sdk-2.1.4-s3.jar')
+    compile files('libs/aws-android-sdk-2.1.4/lib/release/aws-android-sdk-2.1.4-core.jar')
+    compile files('libs/aws-android-sdk-2.1.4/lib/release/aws-android-sdk-2.1.4-ec2.jar')
+    compile files('libs/aws-android-sdk-2.1.4/lib/debug/aws-android-sdk-2.1.4-core.debug.jar')
+    compile files('libs/aws-android-sdk-2.1.4/lib/debug/aws-android-sdk-2.1.4-ec2.debug.jar')
+    compile files('libs/aws-android-sdk-2.1.4/lib/debug/aws-android-sdk-2.1.4-s3.debug.jar')
+    compile files('libs/aws-android-sdk-2.1.4/lib/debug/aws-android-sdk-2.1.4-sdb.debug.jar')
 }
