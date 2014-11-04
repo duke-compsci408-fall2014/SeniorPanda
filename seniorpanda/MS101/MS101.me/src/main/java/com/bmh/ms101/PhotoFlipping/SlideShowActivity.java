@@ -53,7 +53,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         myDateTime.setTextColor(Color.YELLOW);
         timeThread.run();
 
-        //to DELETE: dummy content
+        //TODO: delete dummy content
         ImageView image1 = new ImageView(getApplicationContext());
         image1.setBackgroundResource(R.drawable.sanmay_dog);
         image1.setScaleType(ImageView.ScaleType.FIT_XY);
