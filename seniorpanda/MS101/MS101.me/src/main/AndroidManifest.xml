@@ -64,14 +64,16 @@
                 android:value=".MainActivity" />
         </activity>
         <!-- Setup Medication Activity -->
-        <!-- <activity
+        <!--
+        <activity
             android:name=".SetupMedsActivity"
             android:label="@string/title_activity_add_meds"
             android:parentActivityName=".MainActivity" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".MainActivity" />
-        </activity -->
+        </activity
+        -->
         <!-- Setup Medication Activity -->
         <activity
             android:name=".SetupMedicationActivity"
@@ -148,6 +150,11 @@
             android:name=".jobs.S3FetchPhotoIntentService"
             android:exported="false" >
         </service>
+
+        <activity
+            android:name=".UploadPhotoActivity"
+            android:label="@string/title_activity_upload_photo" >
+        </activity>
     </application>
 
 </manifest>
