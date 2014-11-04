@@ -10,19 +10,20 @@
     <ViewFlipper
         android:id="@+id/photoFlipper"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="fill_parent"
+        android:layout_marginTop="25dp"
         android:layout_centerInParent="true"
         android:layout_above="@id/photoFlipper"
-        android:layout_weight="1"
-        android:clipChildren="true">
+        android:layout_weight="1">
 
         <TextView
             android:id="@+id/date_time"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="850dp"
+            android:layout_marginTop="750dp"
             android:layout_gravity="center_horizontal"
-            android:textColor="@color/blue_filter" />
+            android:textColor="@color/yellow_filter"
+            android:textSize="80dp" />
 
     </ViewFlipper>
 

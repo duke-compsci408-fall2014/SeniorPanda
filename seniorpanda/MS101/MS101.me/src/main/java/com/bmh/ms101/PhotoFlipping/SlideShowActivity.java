@@ -1,6 +1,8 @@
 package com.bmh.ms101.PhotoFlipping;
 
 import android.app.Activity;
+import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
 import android.view.Menu;
@@ -10,6 +12,7 @@ import android.view.View.OnClickListener;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.ViewFlipper;
 
@@ -20,7 +23,7 @@ import java.util.Calendar;
 
 public class SlideShowActivity extends Activity implements OnClickListener {
 
-    private static final Integer FLIP_INTERVAL = 6000;
+    private static final Integer FLIP_INTERVAL = 50000;
 
     private ViewFlipper myFlipper;
     private Button myPreviousButton;
@@ -29,7 +32,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
     private Button myPauseButton;
     private Button myDeleteButton;
     private TextView myDateTime;
-    private int myPhotoIndex;
+    private int myPhotoIndex;//TODO
 
     private Animation slide_in_left, slide_in_right, slide_out_left, slide_out_right;
 
@@ -47,7 +50,18 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         myDateTime = (TextView) findViewById(R.id.date_time);
         DateTimeRunner timeThread = new DateTimeRunner();
         myDateTime.setVisibility(View.VISIBLE);
+        myDateTime.setTextColor(Color.YELLOW);
         timeThread.run();
+
+        //to DELETE: dummy content
+        ImageView image1 = new ImageView(getApplicationContext());
+        image1.setBackgroundResource(R.drawable.sanmay_dog);
+        image1.setScaleType(ImageView.ScaleType.FIT_XY);
+        myFlipper.addView(image1);
+        ImageView image2 = new ImageView(getApplicationContext());
+        image2.setBackgroundResource(R.drawable.steve);
+        image2.setScaleType(ImageView.ScaleType.FIT_XY);
+        myFlipper.addView(image2);
 
         myPauseButton.setOnClickListener(this);
         myNextButton.setOnClickListener(this);
@@ -73,7 +87,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.upload_photo:
-                //TODO
+                uploadPhoto();
                 return true;
             case R.id.action_settings:
                 return true;
@@ -82,6 +96,14 @@ public class SlideShowActivity extends Activity implements OnClickListener {
                 return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void uploadPhoto() {
+        Intent intent = new Intent();
+        intent.setType("image/*");
+        intent.setAction(Intent.ACTION_GET_CONTENT);
+        startActivityForResult(Intent.createChooser(intent, "Select Picture"), 1);
+        //TODO
     }
 
     @Override
