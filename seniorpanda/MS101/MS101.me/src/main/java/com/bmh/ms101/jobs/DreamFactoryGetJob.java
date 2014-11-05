@@ -63,6 +63,8 @@ public class DreamFactoryGetJob extends Job {
             ArrayList<BaseRecordModel> userRecords = backend.getFromDF(from, to);
             if (userRecords != null) {
                 EventBus.getDefault().post(new GetDataDFEvent(true, userRecords));
+                // indicating events are necessary
+
             } else {
                 throw new DFCredentialsInvalidException();
             }
@@ -74,6 +76,7 @@ public class DreamFactoryGetJob extends Job {
                 throw new DFCredentialsInvalidException();
             }
         }
+
     }
 
     @Override

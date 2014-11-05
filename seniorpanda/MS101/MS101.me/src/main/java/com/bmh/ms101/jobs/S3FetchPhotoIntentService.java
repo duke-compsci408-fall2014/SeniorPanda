@@ -46,8 +46,8 @@ public class S3FetchPhotoIntentService extends IntentService {
      *      http://docs.aws.amazon.com/AWSAndroidSDK/latest/javadoc/
      *      http://docs.aws.amazon.com/mobile/sdkforandroid/developerguide/s3transfermanager.html
      */
-    private static final String AWS_KEY = "AKIAJ4AM2SBTB6TRYJDQ";
-    private static final String AWS_SECRET = "mCKW+Nqpr8pIXUHMurdL1CB/TjxdSooAxx54pg1F";
+    private static final String AWS_KEY = "dummy_key";
+    private static final String AWS_SECRET = "dummy_secret";
     private static final String BUCKET_NAME = "seniorpandadevnew"; // think about alternative
 
     private static List<String> KeyList;
