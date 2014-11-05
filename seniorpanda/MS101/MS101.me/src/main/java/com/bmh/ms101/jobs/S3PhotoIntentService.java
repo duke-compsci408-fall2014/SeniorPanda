@@ -1,8 +1,8 @@
 package com.bmh.ms101.jobs;
 
 import android.app.IntentService;
-import android.content.Intent;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
@@ -14,9 +14,7 @@ import com.amazonaws.util.IOUtils;
 import com.bmh.ms101.ConcurrentUtils;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

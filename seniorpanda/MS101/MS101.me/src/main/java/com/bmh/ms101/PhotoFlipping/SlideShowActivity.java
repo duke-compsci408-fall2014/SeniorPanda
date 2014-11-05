@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.net.Uri;
@@ -24,7 +23,7 @@ import android.widget.ViewFlipper;
 
 import com.bmh.ms101.R;
 import com.bmh.ms101.Util;
-import com.bmh.ms101.jobs.S3FetchPhotoIntentService;
+import com.bmh.ms101.jobs.S3PhotoIntentService;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -150,13 +149,13 @@ public class SlideShowActivity extends Activity implements OnClickListener {
             if (resultCode == RESULT_OK) {
                 Uri imageURL = data.getData();
                 System.out.println("selected image path is: " + getRealPathFromURI(imageURL));//TODO: delete
-                Map<String, Uri> imageMap = new HashMap<String, Uri>();
-                imageMap.put(imageURL.toString().substring(imageURL.toString().lastIndexOf("/") + 1), imageURL);
-                S3FetchPhotoIntentService.startActionUploadS3(this, imageMap, null);
+                Map<String, String> imageMap = new HashMap<String, String>();
+                imageMap.put(imageURL.toString().substring(imageURL.toString().lastIndexOf("/") + 1), imageURL.toString());
+                S3PhotoIntentService.startActionUploadS3(this, imageMap, null);
             }
         } else if (requestCode == FETCH_PHOTO_REQUEST) {
             if (resultCode == RESULT_OK) {
-                S3FetchPhotoIntentService.startActionFetchS3(this, null, null);
+                S3PhotoIntentService.startActionFetchS3(this, null, null);
             }
         }
     }
@@ -234,7 +233,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                Map<String, Bitmap> bitmapMap = S3FetchPhotoIntentService.getBitmapMap();
+                Map<String, Bitmap> bitmapMap = S3PhotoIntentService.getBitmapMap();
                 for (Bitmap bitmap : bitmapMap.values()) {
                     if (!visitedBitMaps.contains(bitmap)) {
 
@@ -259,4 +258,6 @@ public class SlideShowActivity extends Activity implements OnClickListener {
             }
         }
     }
+
+
 }
