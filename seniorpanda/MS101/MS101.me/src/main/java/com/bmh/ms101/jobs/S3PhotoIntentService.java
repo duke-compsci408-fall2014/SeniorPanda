@@ -8,6 +8,7 @@ import android.graphics.BitmapFactory;
 
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.amazonaws.util.IOUtils;
@@ -60,7 +61,6 @@ public class S3PhotoIntentService extends IntentService {
         super("S3FetchPhotoJob");
     }
 
-
     //purpose of this one???
     /**
      * Starts this service to perform action X with the given parameters.
@@ -79,6 +79,7 @@ public class S3PhotoIntentService extends IntentService {
     public static void startActionUploadS3(Context context, Map<String, String> imageMap, String param1) {
         Intent intent = new Intent(context, S3PhotoIntentService.class);
         intent.setAction(ACTION_UPLOAD_S3);
+        intent.putExtra(EXTRA_PARAM1, param1);
         intent.putExtra(UPLOAD_MAP, ConcurrentUtils.SerializeHashMap(imageMap));
         context.startService(intent);
     }
@@ -97,7 +98,7 @@ public class S3PhotoIntentService extends IntentService {
                 final String param2 = intent.getStringExtra(EXTRA_PARAM2);
                 Map<String, String> imageMap =
                         ConcurrentUtils.DeserializeHashMap(intent.getSerializableExtra(UPLOAD_MAP));
-                handleActionUploadS3(AWS_KEY, AWS_SECRET);
+                handleActionUploadS3(AWS_KEY, AWS_SECRET, imageMap, param1, param2);
             }
         }
     }
@@ -105,9 +106,22 @@ public class S3PhotoIntentService extends IntentService {
     /**
      * Handle action UploadS3 in the provided background thread with the provided parameters.
      * @param awsKey, awsSecret
+     *               Bucket: imageSharing (should not change)
+     *                // 1. check against database to determine the 2. use Amazon's credential
+     *                caller must have Permission.Write permission to the bucket to upload an object.
      */
-    private void handleActionUploadS3(String awsKey, String awsSecret) {
-        // 1. check against database 2. use Amazon's credential
+    private void handleActionUploadS3(String awsKey, String awsSecret, Map<String, String> imageMap, String bucketName, String folderName) {
+
+        AmazonS3Client s3Client = getS3ClientInstance();
+
+        s3Client.listBuckets();
+
+        for (Map.Entry<String, String> entry: imageMap.entrySet()){
+
+            PutObjectRequest por = new PutObjectRequest(bucketName, entry.getKey(), new java.io.File(entry.getValue()));
+            s3Client.putObject( por );
+
+        }
     }
 
     /**

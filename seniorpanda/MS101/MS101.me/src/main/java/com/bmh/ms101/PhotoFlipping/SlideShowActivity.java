@@ -48,6 +48,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
     private Button myPauseButton;
     private Button myDeleteButton;
     private TextView myDateTime;
+
     private Set<String> visitedBitMaps;
 
     private Animation slide_in_left, slide_in_right, slide_out_left, slide_out_right;
@@ -168,11 +169,13 @@ public class SlideShowActivity extends Activity implements OnClickListener {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == SELECT_PHOTO_REQUEST) {
             if (resultCode == RESULT_OK) {
+
                 Uri imageURL = data.getData();
                 System.out.println("selected image path is: " + getRealPathFromURI(imageURL));//TODO: delete
                 Map<String, String> imageMap = new HashMap<String, String>();
                 imageMap.put(imageURL.toString().substring(imageURL.toString().lastIndexOf("/") + 1), imageURL.toString());
                 S3PhotoIntentService.startActionUploadS3(this, imageMap, null);
+
             }
         } else if (requestCode == FETCH_PHOTO_REQUEST) {
             if (resultCode == RESULT_OK) {
