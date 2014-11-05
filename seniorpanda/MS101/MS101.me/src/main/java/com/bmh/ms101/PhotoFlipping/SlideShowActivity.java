@@ -9,6 +9,7 @@ import android.graphics.Color;
 import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v4.app.NavUtils;
 import android.view.Menu;
@@ -26,8 +27,11 @@ import com.bmh.ms101.R;
 import com.bmh.ms101.Util;
 import com.bmh.ms101.PhotoSharing.S3PhotoIntentService;
 
+import java.io.File;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -37,9 +41,8 @@ public class SlideShowActivity extends Activity implements OnClickListener {
 
     private static final Integer FLIP_INTERVAL = 50000;
     private static final Integer SELECT_PHOTO_REQUEST = 100;
-    private static final Integer FETCH_PHOTO_REQUEST = 101;
-    private static final Integer DELETE_PHOTO_REQUEST = 102;
-    private static final Integer REQUEST_IMAGE_CAPTURE = 103;
+    private static final Integer DELETE_PHOTO_REQUEST = 101;
+    private static final Integer REQUEST_TAKE_PHOTO = 102;
 
     private ViewFlipper myFlipper;
     private Button myPreviousButton;
@@ -110,10 +113,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         image3.setScaleType(ImageView.ScaleType.FIT_XY);
         myFlipper.addView(image3);
 
-        Intent intent = new Intent();
-        intent.setType("image/*");
-        intent.setAction(Intent.ACTION_GET_CONTENT);
-        startActivityForResult(Intent.createChooser(intent, "Fetch Picture"), FETCH_PHOTO_REQUEST);
+        S3PhotoIntentService.startActionFetchS3(this, null, null);
     }
 
     public void addPhoto(Bitmap bitmap) {
@@ -122,13 +122,28 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         myFlipper.addView(imageView);
     }
 
-    public void dispatchTakePhotoIntent() {
+    private void dispatchTakePhotoIntent() {
         if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA)) {
             //TODO: pop up dialog
         }
         Intent takePhotoIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         if (takePhotoIntent.resolveActivity(getPackageManager()) != null) {
-            startActivityForResult(takePhotoIntent, REQUEST_IMAGE_CAPTURE);
+            ImageFilePath imageFilePath = null;
+            try {
+                imageFilePath = createImageFile();
+            } catch (IOException e) {
+                //TODO: pop up dialog
+            }
+            if (imageFilePath.getFile() != null) {
+                takePhotoIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(imageFilePath.getFile()));
+                startActivityForResult(takePhotoIntent, REQUEST_TAKE_PHOTO);
+
+                Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+                File f = new File(imageFilePath.getPath());
+                Uri contentUri = Uri.fromFile(f);
+                mediaScanIntent.setData(contentUri);
+                sendBroadcast(mediaScanIntent);
+            }
         }
     }
 
@@ -144,7 +159,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.take_photo:
-
+                dispatchTakePhotoIntent();
                 break;
             case R.id.upload_photo:
                 uploadPhoto();
@@ -158,6 +173,12 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         return super.onOptionsItemSelected(item);
     }
 
+//    private Bitmap resizeBitmap(Bitmap bitmap) {
+//        double width = bitmap.getWidth();
+//        double height = bitmap.getHeight();
+//        double ratio = myFlipper.getWidth()/width;
+//    }
+
     private void uploadPhoto() {
         Intent intent = new Intent();
         intent.setType("image/*");
@@ -165,23 +186,35 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         startActivityForResult(Intent.createChooser(intent, "Select Picture"), SELECT_PHOTO_REQUEST);
     }
 
+    private ImageFilePath createImageFile() throws IOException {
+        // Create an image file name
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFileName = "JPEG_" + timeStamp + "_";
+        File storageDir = Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_PICTURES);
+        File image = File.createTempFile(
+                imageFileName,  /* prefix */
+                ".jpg",         /* suffix */
+                storageDir      /* directory */
+        );
+
+        // Save a file: path for use with ACTION_VIEW intents
+        String path = "file:" + image.getAbsolutePath();
+        ImageFilePath imageFilePath = new ImageFilePath(image, path);
+        return imageFilePath;
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == SELECT_PHOTO_REQUEST) {
             if (resultCode == RESULT_OK) {
-
                 Uri imageURL = data.getData();
                 System.out.println("selected image path is: " + getRealPathFromURI(imageURL));//TODO: delete
                 Map<String, String> imageMap = new HashMap<String, String>();
                 imageMap.put(imageURL.toString().substring(imageURL.toString().lastIndexOf("/") + 1), imageURL.toString());
                 S3PhotoIntentService.startActionUploadS3(this, imageMap, null);
-
             }
-        } else if (requestCode == FETCH_PHOTO_REQUEST) {
-            if (resultCode == RESULT_OK) {
-                S3PhotoIntentService.startActionFetchS3(this, null, null);
-            }
-        } else if (requestCode == REQUEST_IMAGE_CAPTURE) {
+        } else if (requestCode == REQUEST_TAKE_PHOTO) {
             if (resultCode == RESULT_OK) {
                 Bundle extras = data.getExtras();
                 Bitmap bitmap = (Bitmap) extras.get("data");
