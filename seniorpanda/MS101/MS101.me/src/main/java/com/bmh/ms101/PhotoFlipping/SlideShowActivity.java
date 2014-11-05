@@ -2,6 +2,7 @@ package com.bmh.ms101.PhotoFlipping;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Color;
@@ -38,6 +39,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
     private static final Integer SELECT_PHOTO_REQUEST = 100;
     private static final Integer FETCH_PHOTO_REQUEST = 101;
     private static final Integer DELETE_PHOTO_REQUEST = 102;
+    private static final Integer REQUEST_IMAGE_CAPTURE = 103;
 
     private ViewFlipper myFlipper;
     private Button myPreviousButton;
@@ -119,8 +121,18 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         myFlipper.addView(imageView);
     }
 
+    public void dispatchTakePhotoIntent() {
+        if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA)) {
+            //TODO: pop up dialog
+        }
+        Intent takePhotoIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        if (takePhotoIntent.resolveActivity(getPackageManager()) != null) {
+            startActivityForResult(takePhotoIntent, REQUEST_IMAGE_CAPTURE);
+        }
+    }
 
     @Override
+
     public boolean onCreateOptionsMenu(Menu menu) {
         menu.clear();
         getMenuInflater().inflate(R.menu.slide_show, menu);
@@ -130,6 +142,9 @@ public class SlideShowActivity extends Activity implements OnClickListener {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
+            case R.id.take_photo:
+
+                break;
             case R.id.upload_photo:
                 uploadPhoto();
                 return true;
@@ -162,6 +177,12 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         } else if (requestCode == FETCH_PHOTO_REQUEST) {
             if (resultCode == RESULT_OK) {
                 S3PhotoIntentService.startActionFetchS3(this, null, null);
+            }
+        } else if (requestCode == REQUEST_IMAGE_CAPTURE) {
+            if (resultCode == RESULT_OK) {
+                Bundle extras = data.getExtras();
+                Bitmap bitmap = (Bitmap) extras.get("data");
+                addPhoto(bitmap);
             }
         }
     }
