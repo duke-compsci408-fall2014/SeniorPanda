@@ -33,15 +33,6 @@ public class S3PhotoIntentService extends IntentService {
     private static final String EXTRA_PARAM2 = "com.bmh.ms101.jobs.extra.PARAM2";
     private static final String UPLOAD_MAP = "com.bmh.ms101.jobs.extra.UPLOAD_MAP";
 
-    /**
-     * Consider putting the credential elsewhere:
-     *  1. Try Amazon Cognito
-     *  2. Try creating a user for app access specifically: dynamics ones vs static ones
-     *      http://docs.aws.amazon.com/IAM/latest/APIReference/API_CreateAccessKey.html
-     *      http://docs.aws.amazon.com/AWSAndroidSDK/latest/javadoc/
-     *      http://docs.aws.amazon.com/mobile/sdkforandroid/developerguide/s3transfermanager.html
-     */
-
     private static final String AWS_KEY = "dummy-key";
     private static final String AWS_SECRET = "dummy-secret";
     private static final String BUCKET_NAME = "seniorpandadevnew"; // think about alternative
@@ -50,6 +41,15 @@ public class S3PhotoIntentService extends IntentService {
     private static Map<String, Bitmap> BitmapMap = new ConcurrentHashMap<String, Bitmap>();
 
     private static final String SLASH = "/";
+
+    /**
+     * Consider putting the credential elsewhere:
+     *  1. Try Amazon Cognito
+     *  2. Try creating a user for app access specifically: dynamics ones vs static ones
+     *      http://docs.aws.amazon.com/IAM/latest/APIReference/API_CreateAccessKey.html
+     *      http://docs.aws.amazon.com/AWSAndroidSDK/latest/javadoc/
+     *      http://docs.aws.amazon.com/mobile/sdkforandroid/developerguide/s3transfermanager.html
+     */
 
     // singleton
     private static AmazonS3Client s3Client = null;
