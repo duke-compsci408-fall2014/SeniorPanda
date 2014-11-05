@@ -6,22 +6,17 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.auth.CognitoCachingCredentialsProvider;
-import com.amazonaws.regions.Regions;
-import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.model.ListObjectsRequest;
-import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
-import com.amazonaws.services.s3.transfer.TransferManager;
 import com.amazonaws.util.IOUtils;
+import com.bmh.ms101.ConcurrentUtils;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -31,13 +26,14 @@ import java.util.concurrent.ConcurrentHashMap;
  * a service on a separate handler thread.
  * <p>
  */
-public class S3FetchPhotoIntentService extends IntentService {
+public class S3PhotoIntentService extends IntentService {
 
     private static final String ACTION_UPLOAD_S3 = "com.bmh.ms101.jobs.action.UPLOAD_S3";
     private static final String ACTION_FETCH_S3 = "com.bmh.ms101.jobs.action.FETCH_S3"; // ?? no such class ??
 
     private static final String EXTRA_PARAM1 = "com.bmh.ms101.jobs.extra.PARAM1";
     private static final String EXTRA_PARAM2 = "com.bmh.ms101.jobs.extra.PARAM2";
+    private static final String UPLOAD_MAP = "com.bmh.ms101.jobs.extra.UPLOAD_MAP";
     /**
      * Consider putting the credential elsewhere:
      *  1. Try Amazon Cognito
@@ -62,6 +58,11 @@ public class S3FetchPhotoIntentService extends IntentService {
         return s3Client;
     }
 
+    public S3PhotoIntentService() {
+        super("S3FetchPhotoJob");
+    }
+
+
     //purpose of this one???
     /**
      * Starts this service to perform action X with the given parameters.
@@ -70,15 +71,18 @@ public class S3FetchPhotoIntentService extends IntentService {
      * @see IntentService
      */
     public static void startActionFetchS3(Context context, String param1, String param2) {
-        Intent intent = new Intent(context, S3FetchPhotoIntentService.class);
+        Intent intent = new Intent(context, S3PhotoIntentService.class);
         intent.setAction(ACTION_FETCH_S3);
         intent.putExtra(EXTRA_PARAM1, param1);
         intent.putExtra(EXTRA_PARAM2, param2);
         context.startService(intent);
     }
 
-    public S3FetchPhotoIntentService() {
-        super("S3FetchPhotoJob");
+    public static void startActionUploadS3(Context context, Map<String, String> imageMap, String param1) {
+        Intent intent = new Intent(context, S3PhotoIntentService.class);
+        intent.setAction(ACTION_UPLOAD_S3);
+        intent.putExtra(UPLOAD_MAP, ConcurrentUtils.SerializeHashMap(imageMap));
+        context.startService(intent);
     }
 
     @Override
@@ -93,6 +97,8 @@ public class S3FetchPhotoIntentService extends IntentService {
             } else if (ACTION_UPLOAD_S3.equals(action)) {
                 final String param1 = intent.getStringExtra(EXTRA_PARAM1);
                 final String param2 = intent.getStringExtra(EXTRA_PARAM2);
+                Map<String, String> imageMap =
+                        ConcurrentUtils.DeserializeHashMap(intent.getSerializableExtra(UPLOAD_MAP));
                 handleActionUploadS3(AWS_KEY, AWS_SECRET);
             }
         }
