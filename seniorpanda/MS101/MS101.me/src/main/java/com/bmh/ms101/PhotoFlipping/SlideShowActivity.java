@@ -28,6 +28,8 @@ import com.bmh.ms101.jobs.S3FetchPhotoIntentService;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
 
 public class SlideShowActivity extends Activity implements OnClickListener {
 
@@ -145,7 +147,9 @@ public class SlideShowActivity extends Activity implements OnClickListener {
             if (resultCode == RESULT_OK) {
                 Uri imageURL = data.getData();
                 System.out.println("selected image path is: " + getRealPathFromURI(imageURL));//TODO: delete
-                S3FetchPhotoIntentService.startActionFetchS3(this, imageURL.toString(), null);
+                Map<String, Uri> imageMap = new HashMap<String, Uri>();
+                imageMap.put(imageURL.toString().substring(imageURL.toString().lastIndexOf("/") + 1), imageURL);
+                S3FetchPhotoIntentService.startActionUploadS3(this, imageMap, null);
             }
         } else if (requestCode == FETCH_PHOTO_REQUEST) {
             if (resultCode == RESULT_OK) {
