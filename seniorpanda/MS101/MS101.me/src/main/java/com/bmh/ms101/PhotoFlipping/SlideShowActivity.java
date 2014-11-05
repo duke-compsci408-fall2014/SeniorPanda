@@ -22,13 +22,11 @@ import android.widget.ViewFlipper;
 
 import com.bmh.ms101.R;
 import com.bmh.ms101.Util;
-import com.bmh.ms101.jobs.S3FetchPhotoIntentService;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 public class SlideShowActivity extends Activity implements OnClickListener {
 
@@ -44,7 +42,6 @@ public class SlideShowActivity extends Activity implements OnClickListener {
     private Button myPauseButton;
     private Button myDeleteButton;
     private TextView myDateTime;
-    private Set<String>
 
     private Animation slide_in_left, slide_in_right, slide_out_left, slide_out_right;
 
@@ -149,7 +146,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
                 System.out.println("selected image path is: " + getRealPathFromURI(imageURL));//TODO: delete
                 Map<String, Uri> imageMap = new HashMap<String, Uri>();
                 imageMap.put(imageURL.toString().substring(imageURL.toString().lastIndexOf("/") + 1), imageURL);
-                S3FetchPhotoIntentService.startActionUploadS3(this, imageMap, null);
+                S3PhotoIntentService.startActionUploadS3(this, imageMap, null);
             }
         } else if (requestCode == FETCH_PHOTO_REQUEST) {
             if (resultCode == RESULT_OK) {
