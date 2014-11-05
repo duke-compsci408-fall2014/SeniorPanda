@@ -1,0 +1,430 @@
+/* Cal-HeatMap CSS */
+
+html { 
+  	background-color: #000060; 
+	 -webkit-background-size: cover;
+	 -moz-background-size: cover;
+	 -o-background-size: cover;
+  	background-size: cover;
+  	text-align: center;
+}
+
+body {
+    font: 10px sans-serif;
+}
+
+p {
+	font-family: sans-serif;
+	font-size:1.25em;
+}
+
+.top_bar {
+	width: 1000px;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.back_logout {
+	float: right;
+}
+
+.sel_leg_bar {
+    margin-left: auto;
+    margin-right: auto;
+	width: 1000px;
+}
+
+.select {
+	font-family: sans-serif;
+	font-size:1.5em;
+	color: #FFFFFF;
+	float: left;
+	clear: left;
+}
+
+.legend {
+	float: right;
+	clear: right;
+	font-family: sans-serif;
+	font-size:1.5em;
+}
+
+.title-white{
+    font-size: medium; 
+    font-weight: 400; 
+    text-decoration: none; 
+    color: #ffffff;
+    padding: 10px;
+}
+
+.button {
+    height: 2.5em;
+    width: 6em;
+    border-radius: 4px;
+}
+.long-button {
+    height: 2.5em;
+    width: 10em;
+    border-radius: 4px;
+}
+
+#title {
+	text-align: center;
+}
+
+#cal2 {
+    position: relative;
+}
+
+#caltitle {
+	font-family: sans-serif;
+	font-size:1.5em;
+	color: #FFFFFF;
+}
+
+#select {
+	font-family: sans-serif;
+	font-size:1.5em;
+	color: #FFFFFF;
+}
+
+#legend {
+	color: #FFFFFF;
+	display: inline-block;
+}
+
+#empty {
+    background-color: #f8f8f8;
+    color: black;
+    display: inline-block;
+    height: 1.2em;
+    width: 4.2em;
+	border-radius: 4px;
+}
+
+#zero {
+    background-color: #3cb233;
+    color: black;
+    display: inline-block;
+    height: 1.2em;
+    width: 2.5em;
+	border-radius: 4px;
+}
+
+#one {
+    background-color: #add8e6;
+    color: black;
+    display: inline-block;
+    height: 1.2em;
+    width: 2.5em;
+	border-radius: 4px;
+}
+
+#two {
+    background-color: #56a0d3;
+    color: black;
+    display: inline-block;
+    height: 1.2em;
+    width: 2.5em;
+	border-radius: 4px;
+}
+
+#three {
+    background-color: #990099;
+    color: white;
+    display: inline-block;
+    height: 1.2em;
+    width: 2.5em;
+	border-radius: 4px;
+}
+
+#four {
+    background-color: #ff7f00;
+    color: black;
+    display: inline-block;
+    height: 1.2em;
+    width: 2.5em;
+	border-radius: 4px;
+}
+
+#five {
+    background-color: #cc0000;
+    color: white;
+    display: inline-block;
+    height: 1.2em;
+    width: 2.5em;
+	border-radius: 4px;
+}
+
+.cal-heatmap-container {
+}
+
+.graph {
+	font-family: "Lucida Grande", Lucida, Verdana, sans-serif;
+}
+
+.graph-label {
+	fill: #FFFFFF;
+	font-size: 20px;
+}
+
+.graph, .graph-legend rect {
+	shape-rendering: crispedges;
+}
+
+/* Empty cells */
+.graph-rect {
+	fill: #F8F8F8;
+	stroke: #ededed;
+}
+
+/* Overrides hidden overflow */
+.graph-domain , .graph-subdomain-group{
+	overflow: visible;
+}
+
+.graph-subdomain-group rect:hover {
+	stroke: #000;
+	stroke-width: 1px;
+}
+
+.subdomain-text {
+	font-size: 12px;
+	pointer-events: none;
+}
+
+.hover_cursor:hover {
+	cursor: pointer;
+}
+
+.qi {
+	background-color: #999;
+	fill: #999
+}
+
+/* 0 Cells */
+.q1 {
+	background-color: #999;
+	fill: #3CB233;
+	stroke: #ededed;
+}
+
+/* 1 Cells */
+.q2 {
+	background-color: #cedb9c;
+	fill: #ADD8E6;
+	stroke: #ededed;
+}
+
+/* 2 Cells */
+.q3 {
+	background-color: #999;
+	fill: #56A0D3;
+	stroke: #ededed;
+}
+
+/* 3 Cells */
+.q4 {
+	background-color: #637939;
+	fill: #990099;
+	stroke: #ededed;
+    color: white;
+}
+
+/* 4 Cells */
+.q5 {
+	background-color: #3b6427;
+	fill: #FF7F00;
+	stroke: #ededed;
+}
+
+/* 5 Cells */
+.q6 {
+	background-color: #999;
+	fill: #CC0000;
+	stroke: #ededed;
+    color: white;
+}
+
+/* Cell style for cell hovered over */
+rect.highlight {
+	stroke: #444;
+	stroke-width: 1;
+}
+
+/* Text style for cell hovered over */
+text.highlight {
+	fill: #444;
+}
+
+/* Cell style for today's cell */
+rect.now {
+	stroke: blue;
+	stroke-width: 2;
+}
+
+/* Text style for today's cell */
+text.now {
+	fill: blue;
+	text-shadow: 1px 1px 0px grey;
+}
+
+.domain-background {
+	fill: transparent;
+	shape-rendering: crispedges
+}
+
+.ch-tooltip {
+	padding: 10px;
+	background: #222;
+	color: #bbb;
+	font-size: 12px;
+	line-height: 1.4;
+	width: 140px;
+	position: absolute;
+	z-index: 99999;
+	text-align: center;
+	border-radius: 2px;
+	box-shadow: 2px 2px 2px rgba(0,0,0,0.2);
+	display: none;
+	box-sizing: border-box;
+}
+
+.ch-tooltip::after {
+	position: absolute;
+	width: 0;
+	height: 0;
+	border-color: transparent;
+	border-style: solid;
+	content: "";
+	padding: 0;
+	display: "block";
+	bottom: -6px;
+	left: 50%;
+	margin-left: -6px;
+    border-width: 6px 6px 0;
+    border-top-color: black;
+}
+
+.domain-background {
+	fill: transparent;
+}
+
+.blocker{
+    z-index:1000;
+    height:100%;
+    width:100%;
+	/* For browsers that will support it, use viewport-based percents */
+	height: 100vh;
+	width: 100vw;
+    background: gray;
+    opacity:0.7;
+	/* Position based on viewport, not parent */
+    position:fixed;
+	top: 0px;
+	left: 0px;
+}
+
+.bigwhite, .bigwhite_nh {
+    font-size: large; 
+    font-weight: 400; 
+    text-decoration: none;
+    color: #ffffff;
+    padding: 10px;
+}
+
+.bigred {
+	font-size: large; 
+    font-weight: 400; 
+    text-decoration: none;
+    color: red;
+    padding: 10px;
+}
+
+.bigwhite:hover {
+    text-decoration: underline;
+    color: #ff0033;
+}
+
+img { 
+    max-width: 100%; 
+}
+
+@media (min-device-width:600px) {
+    img[data-src-600px] {
+        content: attr(data-src-600px, url);
+    }
+}
+
+@media (min-device-width:800px) {
+    img[data-src-800px] {
+        content: attr(data-src-800px, url);
+    }
+}
+
+input, textarea {
+    background: #fff;
+    border: 1px solid #CCCCCC;
+    color: black;
+    font-size: 14px;
+    line-height: 1.2em;
+    margin-bottom:15px;
+
+    -moz-border-radius:4px;
+    -webkit-border-radius:4px;
+    border-radius:4px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) inset, 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+input[type="email"], input[type="password"]{
+    padding: 8px 6px;
+    height: 18px;
+    width:250px;
+}
+
+input[type="email"]:focus, input[type="password"]:focus {
+    background:#fff;
+    text-indent: 0;
+    z-index: 1;
+    color: #373737;
+    -webkit-transition-duration: 400ms;
+    -webkit-transition-property: width, background;
+    -webkit-transition-timing-function: ease;
+    -moz-transition-duration: 400ms;
+    -moz-transition-property: width, background;
+    -moz-transition-timing-function: ease;
+    -o-transition-duration: 400ms;
+    -o-transition-property: width, background;
+    -o-transition-timing-function: ease;
+    width: 380px;
+
+    border-color:#ccc;
+    box-shadow:0 0 5px rgba(4, 129, 177, 0.5);
+}
+
+textarea {
+    padding:3px;
+    width:55%;
+    height:100px;
+}
+
+textarea:focus {
+    background:#ebf8fd;
+    text-indent: 0;
+    z-index: 1;
+    color: #373737;
+    opacity:0.6;
+    box-shadow:0 0 5px rgba(4, 129, 177, 0.5);
+    border-color:#ccc;
+}
+
+.small {
+    line-height:14px;
+    font-size:12px;
+    color:#999898;
+    margin-bottom:3px;
+}
+
+input:invalid, textarea:invalid {
+	background-color: #F9FDFF !important; 
+}
