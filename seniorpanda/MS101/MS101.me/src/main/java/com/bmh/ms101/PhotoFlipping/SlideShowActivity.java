@@ -113,6 +113,12 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         startActivityForResult(Intent.createChooser(intent, "Fetch Picture"), FETCH_PHOTO_REQUEST);
     }
 
+    public void addPhoto(Bitmap bitmap) {
+        ImageView imageView = new ImageView(this);
+        imageView.setImageBitmap(bitmap);
+        myFlipper.addView(imageView);
+    }
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -215,6 +221,20 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         });
     }
 
+    public void doFetchPhotoWork() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Map<String, Bitmap> bitmapMap = S3PhotoIntentService.getBitmapMap();
+                for (Bitmap bitmap : bitmapMap.values()) {
+                    if (!visitedBitMaps.contains(bitmap)) {
+                        addPhoto(bitmap);
+                    }
+                }
+            }
+        });
+    }
+
     public class DateTimeRunner implements Runnable {
         public void run() {
             while (!Thread.currentThread().isInterrupted()) {
@@ -227,20 +247,6 @@ public class SlideShowActivity extends Activity implements OnClickListener {
                 }
             }
         }
-    }
-
-    public void doFetchPhotoWork() {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                Map<String, Bitmap> bitmapMap = S3PhotoIntentService.getBitmapMap();
-                for (Bitmap bitmap : bitmapMap.values()) {
-                    if (!visitedBitMaps.contains(bitmap)) {
-
-                    }
-                }
-            }
-        });
     }
 
     public class FetchPhotoRunner implements Runnable {
@@ -258,6 +264,5 @@ public class SlideShowActivity extends Activity implements OnClickListener {
             }
         }
     }
-
 
 }
