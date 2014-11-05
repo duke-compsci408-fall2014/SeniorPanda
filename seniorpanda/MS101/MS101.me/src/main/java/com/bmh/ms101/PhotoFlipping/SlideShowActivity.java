@@ -3,6 +3,8 @@ package com.bmh.ms101.PhotoFlipping;
 import android.app.Activity;
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.net.Uri;
@@ -27,6 +29,7 @@ import com.bmh.ms101.jobs.S3FetchPhotoIntentService;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -44,7 +47,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
     private Button myPauseButton;
     private Button myDeleteButton;
     private TextView myDateTime;
-    private Set<String>
+    private Set<String> visitedBitMaps;
 
     private Animation slide_in_left, slide_in_right, slide_out_left, slide_out_right;
 
@@ -53,7 +56,6 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_slide_show);
         myFlipper = (ViewFlipper) findViewById(R.id.photoFlipper);
-        myFlipper.setAutoStart(true);
         myPreviousButton = (Button) findViewById(R.id.previousSlideButton);
         Util.makeGreen(myPreviousButton, this);
         myNextButton = (Button) findViewById(R.id.nextSlideButton);
@@ -65,6 +67,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         myDeleteButton = (Button) findViewById(R.id.deletePhotoButton);
         Util.makeGreen(myDeleteButton, this);
 
+        visitedBitMaps = new HashSet<String>();
         setUpDateTimeTextView();
         fetchPhotos();
 
@@ -78,6 +81,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         slide_in_right = AnimationUtils.loadAnimation(this, R.anim.silde_in_right);
         slide_out_left = AnimationUtils.loadAnimation(this, R.anim.slide_out_left);
         slide_out_right = AnimationUtils.loadAnimation(this, R.anim.slide_out_right);
+        myFlipper.setAutoStart(true);
     }
 
     private void setUpDateTimeTextView() {
@@ -140,7 +144,6 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         startActivityForResult(Intent.createChooser(intent, "Select Picture"), SELECT_PHOTO_REQUEST);
     }
 
-    //TODO: public or protected
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == SELECT_PHOTO_REQUEST) {
@@ -231,7 +234,12 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
+                Map<String, Bitmap> bitmapMap = S3FetchPhotoIntentService.getBitmapMap();
+                for (Bitmap bitmap : bitmapMap.values()) {
+                    if (!visitedBitMaps.contains(bitmap)) {
 
+                    }
+                }
             }
         });
     }
