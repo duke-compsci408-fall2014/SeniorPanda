@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.net.Uri;
@@ -20,6 +21,7 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.ViewFlipper;
 
@@ -101,8 +103,8 @@ public class SlideShowActivity extends Activity implements OnClickListener {
     private void fetchPhotos() {
         //TODO: delete dummy content
         ImageView image1 = new ImageView(getApplicationContext());
-        image1.setBackgroundResource(R.drawable.sanmay_dog);
-        image1.setScaleType(ImageView.ScaleType.FIT_XY);
+        Bitmap bitmap1 = resizeBitmap(BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.sanmay_dog));
+        image1.setImageBitmap(bitmap1);
         myFlipper.addView(image1);
         ImageView image2 = new ImageView(getApplicationContext());
         image2.setBackgroundResource(R.drawable.steve);
@@ -113,7 +115,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         image3.setScaleType(ImageView.ScaleType.FIT_XY);
         myFlipper.addView(image3);
 
-        S3PhotoIntentService.startActionFetchS3(this, null, null);
+        //S3PhotoIntentService.startActionFetchS3(this, null, null);
     }
 
     public void addPhoto(Bitmap bitmap) {
@@ -162,7 +164,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
                 dispatchTakePhotoIntent();
                 break;
             case R.id.upload_photo:
-                uploadPhoto();
+                uploadPhotoFromGallery();
                 return true;
             case R.id.action_settings:
                 return true;
@@ -173,13 +175,21 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         return super.onOptionsItemSelected(item);
     }
 
-//    private Bitmap resizeBitmap(Bitmap bitmap) {
-//        double width = bitmap.getWidth();
-//        double height = bitmap.getHeight();
-//        double ratio = myFlipper.getWidth()/width;
-//    }
+    private Bitmap resizeBitmap(Bitmap bitmap) {
+        double width = bitmap.getWidth();
+        double height = bitmap.getHeight();
+        System.out.println("width: " + width + " height: " + height);
+        RelativeLayout panel = (RelativeLayout) findViewById(R.id.slide_show_panel);
+        double ratio = Math.min(panel.getWidth() / width, panel.getHeight() / height);
+        int newWidth = (int) (ratio * width);
+        int newHeight = (int) (ratio * height);
+        System.out.println("panel width: " + panel.getWidth() + " height: " + panel.getHeight());
+        System.out.println("ratio: " + ratio + " newWidth: " + newWidth + " newHeight: " + newHeight);
+        bitmap = Bitmap.createScaledBitmap(bitmap, newWidth, newHeight, true);
+        return bitmap;
+    }
 
-    private void uploadPhoto() {
+    private void uploadPhotoFromGallery() {
         Intent intent = new Intent();
         intent.setType("image/*");
         intent.setAction(Intent.ACTION_GET_CONTENT);

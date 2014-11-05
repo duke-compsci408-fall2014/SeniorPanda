@@ -9,6 +9,7 @@
     android:orientation="vertical">
 
     <RelativeLayout
+        android:id="@+id/slide_show_panel"
         android:layout_width="match_parent"
         android:layout_height="fill_parent"
         android:layout_marginTop="15dp"
