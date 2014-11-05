@@ -1,8 +1,6 @@
 package com.bmh.ms101.PhotoFlipping;
 
 import android.app.Activity;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Color;
@@ -30,12 +28,14 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 public class SlideShowActivity extends Activity implements OnClickListener {
 
     private static final Integer FLIP_INTERVAL = 50000;
     private static final Integer SELECT_PHOTO_REQUEST = 100;
     private static final Integer FETCH_PHOTO_REQUEST = 101;
+    private static final Integer DELETE_PHOTO_REQUEST = 102;
 
     private ViewFlipper myFlipper;
     private Button myPreviousButton;
@@ -44,7 +44,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
     private Button myPauseButton;
     private Button myDeleteButton;
     private TextView myDateTime;
-    private int myPhotoIndex;//TODO
+    private Set<String>
 
     private Animation slide_in_left, slide_in_right, slide_out_left, slide_out_right;
 
@@ -193,11 +193,12 @@ public class SlideShowActivity extends Activity implements OnClickListener {
                 break;
             case R.id.deletePhotoButton:
                 //TODO
+//                myFlipper.getForeground()
                 break;
         }
     }
 
-    public void doWork() {
+    public void doUpdateTimeWork() {
         runOnUiThread(new Runnable() {
             public void run() {
                 try {
@@ -216,7 +217,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         public void run() {
             while (!Thread.currentThread().isInterrupted()) {
                 try {
-                    doWork();
+                    doUpdateTimeWork();
                     Thread.sleep(10000);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
@@ -226,15 +227,28 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         }
     }
 
-    public class FetchPhotoReceiver extends BroadcastReceiver {
+    public void doFetchPhotoWork() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
 
-        public static final String ACTION_FETCH_PHOTO = "com.bmh.ms101.intent.action.PHOTO_FETCHED";
+            }
+        });
+    }
+
+    public class FetchPhotoRunner implements Runnable {
 
         @Override
-        public void onReceive(Context context, Intent intent) {
-            //TODO
-            //intent.getByteArrayExtra();
-
+        public void run() {
+            while (!Thread.currentThread().isInterrupted()) {
+                try {
+                    doFetchPhotoWork();
+                    Thread.sleep(10000);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                } catch (Exception e) {
+                }
+            }
         }
     }
 }
