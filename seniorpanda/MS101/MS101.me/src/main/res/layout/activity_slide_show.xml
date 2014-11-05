@@ -1,5 +1,6 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/photo_slide_show_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:paddingLeft="16dp"
@@ -7,31 +8,49 @@
     tools:context="com.bmh.ms101.PhotoFlipping.SlideShowActivity"
     android:orientation="vertical">
 
-    <ViewFlipper
-        android:id="@+id/photoFlipper"
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="fill_parent"
-        android:layout_marginTop="25dp"
+        android:layout_marginTop="15dp"
         android:layout_centerInParent="true"
-        android:layout_above="@id/photoFlipper"
         android:layout_weight="1">
 
-        <TextView
-            android:id="@+id/date_time"
+        <ViewFlipper
+            android:id="@+id/photoFlipper"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:layout_centerInParent="true"></ViewFlipper>
+
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="750dp"
-            android:layout_gravity="center_horizontal"
-            android:textColor="@color/yellow_filter"
-            android:textSize="80dp" />
+            android:orientation="vertical"
+            android:layout_centerHorizontal="true">
 
-    </ViewFlipper>
+            <AnalogClock
+                android:id="@+id/slide_show_analog_clock"
+                android:layout_width="wrap_content"
+                android:layout_marginLeft="60dp"
+                android:layout_height="wrap_content"
+                android:textSize="80dp" />
+
+            <TextView
+                android:id="@+id/slide_show_display_date"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="10dp"
+                android:textSize="30dp" />
+        </LinearLayout>
+
+    </RelativeLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="48dp"
         android:layout_gravity="bottom"
         android:layout_below="@id/photoFlipper"
+        android:layout_alignParentBottom="true"
         android:orientation="horizontal">
 
         <Button

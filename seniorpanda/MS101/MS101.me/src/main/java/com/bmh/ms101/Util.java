@@ -26,7 +26,7 @@ import de.greenrobot.event.EventBus;
 /**
  * Utility class with common methods used all over the place
  */
-class Util {
+public class Util {
     // Methods to color views by use of filters
     public static void makeGreen(View view, Context ctx) {
         applyFilter(R.color.green_filter, view, ctx);

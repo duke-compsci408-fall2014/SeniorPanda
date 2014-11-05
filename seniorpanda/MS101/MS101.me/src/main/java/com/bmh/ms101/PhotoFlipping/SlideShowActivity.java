@@ -1,9 +1,12 @@
 package com.bmh.ms101.PhotoFlipping;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -20,6 +23,8 @@ import android.widget.TextView;
 import android.widget.ViewFlipper;
 
 import com.bmh.ms101.R;
+import com.bmh.ms101.Util;
+import com.bmh.ms101.jobs.S3FetchPhotoIntentService;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -27,6 +32,8 @@ import java.util.Calendar;
 public class SlideShowActivity extends Activity implements OnClickListener {
 
     private static final Integer FLIP_INTERVAL = 50000;
+    private static final Integer SELECT_PHOTO_REQUEST = 100;
+    private static final Integer FETCH_PHOTO_REQUEST = 101;
 
     private ViewFlipper myFlipper;
     private Button myPreviousButton;
@@ -46,25 +53,18 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         myFlipper = (ViewFlipper) findViewById(R.id.photoFlipper);
         myFlipper.setAutoStart(true);
         myPreviousButton = (Button) findViewById(R.id.previousSlideButton);
+        Util.makeGreen(myPreviousButton, this);
         myNextButton = (Button) findViewById(R.id.nextSlideButton);
+        Util.makeGreen(myNextButton, this);
         myStartButton = (Button) findViewById(R.id.startSlideButton);
+        Util.makeGreen(myStartButton, this);
         myPauseButton = (Button) findViewById(R.id.pauseSlideButton);
+        Util.makeGreen(myPauseButton, this);
         myDeleteButton = (Button) findViewById(R.id.deletePhotoButton);
-        myDateTime = (TextView) findViewById(R.id.date_time);
-        DateTimeRunner timeThread = new DateTimeRunner();
-        myDateTime.setVisibility(View.VISIBLE);
-        myDateTime.setTextColor(Color.YELLOW);
-        timeThread.run();
+        Util.makeGreen(myDeleteButton, this);
 
-        //TODO: delete dummy content
-        ImageView image1 = new ImageView(getApplicationContext());
-        image1.setBackgroundResource(R.drawable.sanmay_dog);
-        image1.setScaleType(ImageView.ScaleType.FIT_XY);
-        myFlipper.addView(image1);
-        ImageView image2 = new ImageView(getApplicationContext());
-        image2.setBackgroundResource(R.drawable.steve);
-        image2.setScaleType(ImageView.ScaleType.FIT_XY);
-        myFlipper.addView(image2);
+        setUpDateTimeTextView();
+        fetchPhotos();
 
         myPauseButton.setOnClickListener(this);
         myNextButton.setOnClickListener(this);
@@ -76,6 +76,36 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         slide_in_right = AnimationUtils.loadAnimation(this, R.anim.silde_in_right);
         slide_out_left = AnimationUtils.loadAnimation(this, R.anim.slide_out_left);
         slide_out_right = AnimationUtils.loadAnimation(this, R.anim.slide_out_right);
+    }
+
+    private void setUpDateTimeTextView() {
+        myDateTime = (TextView) findViewById(R.id.slide_show_display_date);
+        myDateTime.setTextColor(Color.WHITE);
+        myDateTime.setTypeface(Typeface.DEFAULT_BOLD);
+        Runnable timeRunnable = new DateTimeRunner();
+        Thread timeThread = new Thread(timeRunnable);
+        timeThread.start();
+    }
+
+    private void fetchPhotos() {
+        //TODO: delete dummy content
+        ImageView image1 = new ImageView(getApplicationContext());
+        image1.setBackgroundResource(R.drawable.sanmay_dog);
+        image1.setScaleType(ImageView.ScaleType.FIT_XY);
+        myFlipper.addView(image1);
+        ImageView image2 = new ImageView(getApplicationContext());
+        image2.setBackgroundResource(R.drawable.steve);
+        image2.setScaleType(ImageView.ScaleType.FIT_XY);
+        myFlipper.addView(image2);
+        ImageView image3 = new ImageView(getApplicationContext());
+        image3.setBackgroundResource(R.drawable.null_pointer);
+        image3.setScaleType(ImageView.ScaleType.FIT_XY);
+        myFlipper.addView(image3);
+
+        Intent intent = new Intent();
+        intent.setType("image/*");
+        intent.setAction(Intent.ACTION_GET_CONTENT);
+        startActivityForResult(Intent.createChooser(intent, "Fetch Picture"), FETCH_PHOTO_REQUEST);
     }
 
 
@@ -105,8 +135,23 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         Intent intent = new Intent();
         intent.setType("image/*");
         intent.setAction(Intent.ACTION_GET_CONTENT);
-        startActivityForResult(Intent.createChooser(intent, "Select Picture"), 1);
-        //TODO
+        startActivityForResult(Intent.createChooser(intent, "Select Picture"), SELECT_PHOTO_REQUEST);
+    }
+
+    //TODO: public or protected
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == SELECT_PHOTO_REQUEST) {
+            if (resultCode == RESULT_OK) {
+                Uri imageURL = data.getData();
+                System.out.println("selected image path is: " + getRealPathFromURI(imageURL));//TODO: delete
+                S3FetchPhotoIntentService.startActionFetchS3(this, imageURL.toString(), null);
+            }
+        } else if (requestCode == FETCH_PHOTO_REQUEST) {
+            if (resultCode == RESULT_OK) {
+                S3FetchPhotoIntentService.startActionFetchS3(this, null, null);
+            }
+        }
     }
 
     //Convert the image URI to the direct file system path of the image file
@@ -127,12 +172,12 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         switch (view.getId()) {
             case R.id.nextSlideButton:
                 myFlipper.setInAnimation(slide_in_right);
-                myFlipper.setInAnimation(slide_out_left);
+                myFlipper.setOutAnimation(slide_out_left);
                 myFlipper.showNext();
                 break;
             case R.id.previousSlideButton:
                 myFlipper.setInAnimation(slide_in_left);
-                myFlipper.setInAnimation(slide_out_right);
+                myFlipper.setOutAnimation(slide_out_right);
                 myFlipper.showPrevious();
                 break;
             case R.id.startSlideButton:
@@ -148,19 +193,44 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         }
     }
 
-    public class DateTimeRunner implements Runnable {
-        public void run() {
-            while (myFlipper.isShown()) {
-                Calendar c = Calendar.getInstance();
-                SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss a");
-                String formatted = dateFormat.format(c.getTime());
-                myDateTime.setText(formatted);
+    public void doWork() {
+        runOnUiThread(new Runnable() {
+            public void run() {
                 try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
+                    Calendar c = Calendar.getInstance();
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm a");
+                    String formatted = dateFormat.format(c.getTime());
+                    System.out.println("current time: " + formatted);//TODO:delete
+                    myDateTime.setText(formatted);
+                } catch (Exception e) {
                 }
             }
+        });
+    }
+
+    public class DateTimeRunner implements Runnable {
+        public void run() {
+            while (!Thread.currentThread().isInterrupted()) {
+                try {
+                    doWork();
+                    Thread.sleep(10000);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                } catch (Exception e) {
+                }
+            }
+        }
+    }
+
+    public class FetchPhotoReceiver extends BroadcastReceiver {
+
+        public static final String ACTION_FETCH_PHOTO = "com.bmh.ms101.intent.action.PHOTO_FETCHED";
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            //TODO
+            //intent.getByteArrayExtra();
+
         }
     }
 }
