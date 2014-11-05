@@ -147,7 +147,7 @@
         </activity>
 
         <service
-            android:name=".jobs.S3FetchPhotoIntentService"
+            android:name=".jobs.S3PhotoIntentService"
             android:exported="false" >
         </service>
 
