@@ -49,6 +49,8 @@ public class S3PhotoIntentService extends IntentService {
     private static List<String> KeyList = new ArrayList<String>(); // for later usage;
     private static Map<String, Bitmap> BitmapMap = new ConcurrentHashMap<String, Bitmap>();
 
+    private static final String SLASH = "/";
+
     // singleton
     private static AmazonS3Client s3Client = null;
     public static synchronized AmazonS3Client getS3ClientInstance() {
@@ -157,13 +159,23 @@ public class S3PhotoIntentService extends IntentService {
                 System.out.println(summaries.get(i).getKey()); // print out test
             }
 
-            for (String picName: keysNames){
-                BitmapMap.put(picName, fetchImageAsBitMap(BUCKET_NAME, picName));
+            for (String picName: keysNames) {
+                if (!checkEmptyDirectory(picName)) {
+                    BitmapMap.put(picName, fetchImageAsBitMap(BUCKET_NAME, picName));
+                    System.out.println("Bitmap of " + picName + " put in");
+                }
             }
         }
-        catch (Exception T) {
+        catch (Throwable T) {
+            T.printStackTrace();
             throw new UnsupportedOperationException("Cannot handle Fetch S3 Action");
         }
+
+    }
+
+    // check if it is the empty directory with /
+    private boolean checkEmptyDirectory(String picName){
+        return (picName.charAt(picName.length()) == SLASH.charAt(0));
     }
 
     /**
