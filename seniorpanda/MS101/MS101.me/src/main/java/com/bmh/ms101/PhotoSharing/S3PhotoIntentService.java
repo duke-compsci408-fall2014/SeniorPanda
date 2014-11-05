@@ -22,7 +22,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * An {@link IntentService} subclass for handling asynchronous task requests in
  * a service on a separate handler thread.
- * <p>
+ * <p/>
  */
 public class S3PhotoIntentService extends IntentService {
 
@@ -35,15 +35,15 @@ public class S3PhotoIntentService extends IntentService {
 
     /**
      * Consider putting the credential elsewhere:
-     *  1. Try Amazon Cognito
-     *  2. Try creating a user for app access specifically: dynamics ones vs static ones
-     *      http://docs.aws.amazon.com/IAM/latest/APIReference/API_CreateAccessKey.html
-     *      http://docs.aws.amazon.com/AWSAndroidSDK/latest/javadoc/
-     *      http://docs.aws.amazon.com/mobile/sdkforandroid/developerguide/s3transfermanager.html
+     * 1. Try Amazon Cognito
+     * 2. Try creating a user for app access specifically: dynamics ones vs static ones
+     * http://docs.aws.amazon.com/IAM/latest/APIReference/API_CreateAccessKey.html
+     * http://docs.aws.amazon.com/AWSAndroidSDK/latest/javadoc/
+     * http://docs.aws.amazon.com/mobile/sdkforandroid/developerguide/s3transfermanager.html
      */
 
-    private static final String AWS_KEY = "dummy_key";
-    private static final String AWS_SECRET = "dummy_secret";
+    private static final String AWS_KEY = "AKIAIEG6U7ONTABGQ4HA";
+    private static final String AWS_SECRET = "tk9nMUNHahvIty6wKKhXKRQ+aJKbmVicATeG42SE";
     private static final String BUCKET_NAME = "seniorpandadevnew"; // think about alternative
 
     private static List<String> KeyList;
@@ -51,6 +51,7 @@ public class S3PhotoIntentService extends IntentService {
 
     // singleton
     private static AmazonS3Client s3Client = null;
+
     public static synchronized AmazonS3Client getS3ClientInstance() {
         if (null == s3Client) {
             s3Client = new AmazonS3Client(new BasicAWSCredentials(AWS_KEY, AWS_SECRET));
@@ -63,10 +64,12 @@ public class S3PhotoIntentService extends IntentService {
     }
 
     //purpose of this one???
+
     /**
      * Starts this service to perform action X with the given parameters.
      * If the service is already performing a task this action will be queued:
-     *      ex: checking and downloading the recent added photos
+     * ex: checking and downloading the recent added photos
+     *
      * @see IntentService
      */
     public static void startActionFetchS3(Context context, String param1, String param2) {
@@ -116,8 +119,9 @@ public class S3PhotoIntentService extends IntentService {
 
     /**
      * Handle action UploadS3 in the provided background thread with the provided parameters.
+     *
      * @param awsKey, awsSecret
-     *               Bucket: imageSharing (should not change)
+     *                Bucket: imageSharing (should not change)
      *                // 1. check against database to determine the 2. use Amazon's credential
      *                caller must have Permission.Write permission to the bucket to upload an object.
      */
@@ -127,10 +131,10 @@ public class S3PhotoIntentService extends IntentService {
 
         s3Client.listBuckets();
 
-        for (Map.Entry<String, String> entry: imageMap.entrySet()){
+        for (Map.Entry<String, String> entry : imageMap.entrySet()) {
 
             PutObjectRequest por = new PutObjectRequest(bucketName, entry.getKey(), new java.io.File(entry.getValue()));
-            s3Client.putObject( por );
+            s3Client.putObject(por);
 
         }
     }
@@ -150,24 +154,24 @@ public class S3PhotoIntentService extends IntentService {
             List<S3ObjectSummary> summaries = s3Client.listObjects(BUCKET_NAME).getObjectSummaries();
             String[] keysNames = new String[summaries.size()]; // think about update issue:
 
-            for(int i = 0; i < keysNames.length; i++) {
+            for (int i = 0; i < keysNames.length; i++) {
                 keysNames[i] = summaries.get(i).getKey();
             }
 
-            for (String picName: keysNames){
+            for (String picName : keysNames) {
                 BitmapMap.put(picName, fetchImageAsBitMap(BUCKET_NAME, picName));
             }
-        }
-        catch (Exception T) {
+        } catch (Exception T) {
             throw new UnsupportedOperationException("Cannot handle Fetch S3 Action");
         }
     }
 
     /**
      * Fetch Image from S3 in the format of Bitmap to be displayed
+     *
      * @return
      */
-    private Bitmap fetchImageAsBitMap(String bucketName, String picName) throws IOException{
+    private Bitmap fetchImageAsBitMap(String bucketName, String picName) throws IOException {
         S3ObjectInputStream content = s3Client.getObject(bucketName, picName).getObjectContent();
         byte[] bytes = IOUtils.toByteArray(content);
         Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
@@ -176,6 +180,7 @@ public class S3PhotoIntentService extends IntentService {
 
     /**
      * Getter for the ConcurrentHashMap
+     *
      * @return
      */
     public static Map<String, Bitmap> getBitmapMap() {

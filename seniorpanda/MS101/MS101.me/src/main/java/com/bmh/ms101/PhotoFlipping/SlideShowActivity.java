@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.net.Uri;
@@ -25,9 +24,9 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.ViewFlipper;
 
+import com.bmh.ms101.PhotoSharing.S3PhotoIntentService;
 import com.bmh.ms101.R;
 import com.bmh.ms101.Util;
-import com.bmh.ms101.PhotoSharing.S3PhotoIntentService;
 
 import java.io.File;
 import java.io.IOException;
@@ -76,7 +75,10 @@ public class SlideShowActivity extends Activity implements OnClickListener {
 
         visitedBitMaps = new HashSet<String>();
         setUpDateTimeTextView();
-        fetchPhotos();
+        initFetchPhotos();
+        Runnable fetchPhotoRunnable = new FetchPhotoRunner();
+        Thread fetchPhotoThread = new Thread(fetchPhotoRunnable);
+        fetchPhotoThread.start();
 
         myPauseButton.setOnClickListener(this);
         myNextButton.setOnClickListener(this);
@@ -100,11 +102,13 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         timeThread.start();
     }
 
-    private void fetchPhotos() {
+    private void initFetchPhotos() {
         //TODO: delete dummy content
         ImageView image1 = new ImageView(getApplicationContext());
-        Bitmap bitmap1 = resizeBitmap(BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.sanmay_dog));
-        image1.setImageBitmap(bitmap1);
+        image1.setBackgroundResource(R.drawable.sanmay_dog);
+        image1.setScaleType(ImageView.ScaleType.FIT_XY);
+//        Bitmap bitmap1 = resizeBitmap(BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.sanmay_dog));
+//        image1.setImageBitmap(bitmap1);
         myFlipper.addView(image1);
         ImageView image2 = new ImageView(getApplicationContext());
         image2.setBackgroundResource(R.drawable.steve);
@@ -115,7 +119,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         image3.setScaleType(ImageView.ScaleType.FIT_XY);
         myFlipper.addView(image3);
 
-        //S3PhotoIntentService.startActionFetchS3(this, null, null);
+        S3PhotoIntentService.startActionFetchS3(this, null, null);
     }
 
     public void addPhoto(Bitmap bitmap) {
