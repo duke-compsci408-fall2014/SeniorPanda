@@ -46,8 +46,8 @@ public class S3PhotoIntentService extends IntentService {
     private static final String AWS_SECRET = "tk9nMUNHahvIty6wKKhXKRQ+aJKbmVicATeG42SE";
     private static final String BUCKET_NAME = "seniorpandadevnew"; // think about alternative
 
-    private static List<String> KeyList;
-    private static Map<String, Bitmap> BitmapMap;
+    private static List<String> KeyList = new ArrayList<String>(); // for later usage;
+    private static Map<String, Bitmap> BitmapMap = new ConcurrentHashMap<String, Bitmap>();
 
     // singleton
     private static AmazonS3Client s3Client = null;
@@ -126,16 +126,18 @@ public class S3PhotoIntentService extends IntentService {
      *                caller must have Permission.Write permission to the bucket to upload an object.
      */
     private void handleActionUploadS3(String awsKey, String awsSecret, Map<String, String> imageMap, String bucketName, String folderName) {
+        try {
 
-        AmazonS3Client s3Client = getS3ClientInstance();
+            AmazonS3Client s3Client = getS3ClientInstance();
 
-        s3Client.listBuckets();
+            s3Client.listBuckets();
 
-        for (Map.Entry<String, String> entry : imageMap.entrySet()) {
-
-            PutObjectRequest por = new PutObjectRequest(bucketName, entry.getKey(), new java.io.File(entry.getValue()));
-            s3Client.putObject(por);
-
+            for (Map.Entry<String, String> entry : imageMap.entrySet()) {
+                PutObjectRequest por = new PutObjectRequest(bucketName, entry.getKey(), new java.io.File(entry.getValue()));
+                s3Client.putObject(por);
+            }
+        } catch (Exception T) {
+            throw new UnsupportedOperationException("Cannot handle Upload S3 Action");
         }
     }
 
@@ -146,8 +148,6 @@ public class S3PhotoIntentService extends IntentService {
         try {
 //            AWS_KEY = key; AWS_SECRET = key; // in case those credentials are fed from outsides. i.e. properties file
 //            AmazonS3 s3 = new AmazonS3Client(AWSCredentials);
-            KeyList = new ArrayList<String>(); // for later usage;
-            BitmapMap = new ConcurrentHashMap<String, Bitmap>();
 
             AmazonS3Client s3Client = getS3ClientInstance();
 
@@ -156,6 +156,7 @@ public class S3PhotoIntentService extends IntentService {
 
             for (int i = 0; i < keysNames.length; i++) {
                 keysNames[i] = summaries.get(i).getKey();
+                System.out.println(summaries.get(i).getKey()); // print out test
             }
 
             for (String picName : keysNames) {

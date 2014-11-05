@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.net.Uri;
@@ -52,6 +53,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
     private Button myPauseButton;
     private Button myDeleteButton;
     private TextView myDateTime;
+    private boolean fetched;//TODO: delete
 
     private Set<String> visitedBitMaps;
 
@@ -75,10 +77,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
 
         visitedBitMaps = new HashSet<String>();
         setUpDateTimeTextView();
-        initFetchPhotos();
-        Runnable fetchPhotoRunnable = new FetchPhotoRunner();
-        Thread fetchPhotoThread = new Thread(fetchPhotoRunnable);
-        fetchPhotoThread.start();
+        //S3PhotoIntentService.startActionFetchS3(this, null, null);
 
         myPauseButton.setOnClickListener(this);
         myNextButton.setOnClickListener(this);
@@ -90,7 +89,11 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         slide_in_right = AnimationUtils.loadAnimation(this, R.anim.silde_in_right);
         slide_out_left = AnimationUtils.loadAnimation(this, R.anim.slide_out_left);
         slide_out_right = AnimationUtils.loadAnimation(this, R.anim.slide_out_right);
+        Runnable fetchPhotoRunnable = new FetchPhotoRunner();
+        Thread fetchPhotoThread = new Thread(fetchPhotoRunnable);
+        fetchPhotoThread.start();
         myFlipper.setAutoStart(true);
+        fetched = false;//TODO: delete
     }
 
     private void setUpDateTimeTextView() {
@@ -100,26 +103,6 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         Runnable timeRunnable = new DateTimeRunner();
         Thread timeThread = new Thread(timeRunnable);
         timeThread.start();
-    }
-
-    private void initFetchPhotos() {
-        //TODO: delete dummy content
-        ImageView image1 = new ImageView(getApplicationContext());
-        image1.setBackgroundResource(R.drawable.sanmay_dog);
-        image1.setScaleType(ImageView.ScaleType.FIT_XY);
-//        Bitmap bitmap1 = resizeBitmap(BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.sanmay_dog));
-//        image1.setImageBitmap(bitmap1);
-        myFlipper.addView(image1);
-        ImageView image2 = new ImageView(getApplicationContext());
-        image2.setBackgroundResource(R.drawable.steve);
-        image2.setScaleType(ImageView.ScaleType.FIT_XY);
-        myFlipper.addView(image2);
-        ImageView image3 = new ImageView(getApplicationContext());
-        image3.setBackgroundResource(R.drawable.null_pointer);
-        image3.setScaleType(ImageView.ScaleType.FIT_XY);
-        myFlipper.addView(image3);
-
-        S3PhotoIntentService.startActionFetchS3(this, null, null);
     }
 
     public void addPhoto(Bitmap bitmap) {
@@ -223,7 +206,6 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         if (requestCode == SELECT_PHOTO_REQUEST) {
             if (resultCode == RESULT_OK) {
                 Uri imageURL = data.getData();
-                System.out.println("selected image path is: " + getRealPathFromURI(imageURL));//TODO: delete
                 Map<String, String> imageMap = new HashMap<String, String>();
                 imageMap.put(imageURL.toString().substring(imageURL.toString().lastIndexOf("/") + 1), imageURL.toString());
                 S3PhotoIntentService.startActionUploadS3(this, imageMap, null);
@@ -284,7 +266,6 @@ public class SlideShowActivity extends Activity implements OnClickListener {
                     Calendar c = Calendar.getInstance();
                     SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm a");
                     String formatted = dateFormat.format(c.getTime());
-                    System.out.println("current time: " + formatted);//TODO:delete
                     myDateTime.setText(formatted);
                 } catch (Exception e) {
                 }
@@ -296,6 +277,23 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
+                //TODO: delete dummy content
+                if (!fetched) {
+                    ImageView image1 = new ImageView(getApplicationContext());
+                    Bitmap bitmap1 = resizeBitmap(BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.sanmay_dog));
+                    image1.setImageBitmap(bitmap1);
+                    myFlipper.addView(image1);
+                    ImageView image2 = new ImageView(getApplicationContext());
+                    Bitmap bitmap2 = resizeBitmap(BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.steve));
+                    image2.setImageBitmap(bitmap2);
+                    myFlipper.addView(image2);
+                    ImageView image3 = new ImageView(getApplicationContext());
+                    Bitmap bitmap3 = resizeBitmap(BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.null_pointer));
+                    image3.setImageBitmap(bitmap3);
+                    myFlipper.addView(image3);
+                    fetched = true;
+                }
+
                 Map<String, Bitmap> bitmapMap = S3PhotoIntentService.getBitmapMap();
                 for (Bitmap bitmap : bitmapMap.values()) {
                     if (!visitedBitMaps.contains(bitmap)) {
