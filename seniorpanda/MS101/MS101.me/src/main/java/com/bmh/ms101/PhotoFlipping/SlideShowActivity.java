@@ -3,6 +3,7 @@ package com.bmh.ms101.PhotoFlipping;
 import android.app.Activity;
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.net.Uri;
@@ -22,11 +23,14 @@ import android.widget.ViewFlipper;
 
 import com.bmh.ms101.R;
 import com.bmh.ms101.Util;
+import com.bmh.ms101.jobs.S3PhotoIntentService;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 public class SlideShowActivity extends Activity implements OnClickListener {
 
@@ -43,6 +47,8 @@ public class SlideShowActivity extends Activity implements OnClickListener {
     private Button myDeleteButton;
     private TextView myDateTime;
 
+    private Set<String> visitedBitMaps;
+
     private Animation slide_in_left, slide_in_right, slide_out_left, slide_out_right;
 
     @Override
@@ -50,7 +56,6 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_slide_show);
         myFlipper = (ViewFlipper) findViewById(R.id.photoFlipper);
-        myFlipper.setAutoStart(true);
         myPreviousButton = (Button) findViewById(R.id.previousSlideButton);
         Util.makeGreen(myPreviousButton, this);
         myNextButton = (Button) findViewById(R.id.nextSlideButton);
@@ -62,6 +67,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         myDeleteButton = (Button) findViewById(R.id.deletePhotoButton);
         Util.makeGreen(myDeleteButton, this);
 
+        visitedBitMaps = new HashSet<String>();
         setUpDateTimeTextView();
         fetchPhotos();
 
@@ -75,6 +81,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         slide_in_right = AnimationUtils.loadAnimation(this, R.anim.silde_in_right);
         slide_out_left = AnimationUtils.loadAnimation(this, R.anim.slide_out_left);
         slide_out_right = AnimationUtils.loadAnimation(this, R.anim.slide_out_right);
+        myFlipper.setAutoStart(true);
     }
 
     private void setUpDateTimeTextView() {
@@ -107,6 +114,12 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         startActivityForResult(Intent.createChooser(intent, "Fetch Picture"), FETCH_PHOTO_REQUEST);
     }
 
+    public void addPhoto(Bitmap bitmap) {
+        ImageView imageView = new ImageView(this);
+        imageView.setImageBitmap(bitmap);
+        myFlipper.addView(imageView);
+    }
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -137,20 +150,21 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         startActivityForResult(Intent.createChooser(intent, "Select Picture"), SELECT_PHOTO_REQUEST);
     }
 
-    //TODO: public or protected
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == SELECT_PHOTO_REQUEST) {
             if (resultCode == RESULT_OK) {
+
                 Uri imageURL = data.getData();
                 System.out.println("selected image path is: " + getRealPathFromURI(imageURL));//TODO: delete
-                Map<String, Uri> imageMap = new HashMap<String, Uri>();
-                imageMap.put(imageURL.toString().substring(imageURL.toString().lastIndexOf("/") + 1), imageURL);
+                Map<String, String> imageMap = new HashMap<String, String>();
+                imageMap.put(imageURL.toString().substring(imageURL.toString().lastIndexOf("/") + 1), imageURL.toString());
                 S3PhotoIntentService.startActionUploadS3(this, imageMap, null);
+
             }
         } else if (requestCode == FETCH_PHOTO_REQUEST) {
             if (resultCode == RESULT_OK) {
-                S3FetchPhotoIntentService.startActionFetchS3(this, null, null);
+                S3PhotoIntentService.startActionFetchS3(this, null, null);
             }
         }
     }
@@ -210,6 +224,20 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         });
     }
 
+    public void doFetchPhotoWork() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Map<String, Bitmap> bitmapMap = S3PhotoIntentService.getBitmapMap();
+                for (Bitmap bitmap : bitmapMap.values()) {
+                    if (!visitedBitMaps.contains(bitmap)) {
+                        addPhoto(bitmap);
+                    }
+                }
+            }
+        });
+    }
+
     public class DateTimeRunner implements Runnable {
         public void run() {
             while (!Thread.currentThread().isInterrupted()) {
@@ -222,15 +250,6 @@ public class SlideShowActivity extends Activity implements OnClickListener {
                 }
             }
         }
-    }
-
-    public void doFetchPhotoWork() {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-
-            }
-        });
     }
 
     public class FetchPhotoRunner implements Runnable {
@@ -248,4 +267,5 @@ public class SlideShowActivity extends Activity implements OnClickListener {
             }
         }
     }
+
 }
