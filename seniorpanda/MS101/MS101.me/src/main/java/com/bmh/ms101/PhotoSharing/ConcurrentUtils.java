@@ -1,4 +1,4 @@
-package com.bmh.ms101;
+package com.bmh.ms101.PhotoSharing;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;

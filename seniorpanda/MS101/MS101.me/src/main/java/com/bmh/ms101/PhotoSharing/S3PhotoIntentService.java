@@ -1,4 +1,4 @@
-package com.bmh.ms101.jobs;
+package com.bmh.ms101.PhotoSharing;
 
 import android.app.IntentService;
 import android.content.Context;
@@ -12,7 +12,6 @@ import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.amazonaws.util.IOUtils;
-import com.bmh.ms101.ConcurrentUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -33,6 +32,7 @@ public class S3PhotoIntentService extends IntentService {
     private static final String EXTRA_PARAM1 = "com.bmh.ms101.jobs.extra.PARAM1";
     private static final String EXTRA_PARAM2 = "com.bmh.ms101.jobs.extra.PARAM2";
     private static final String UPLOAD_MAP = "com.bmh.ms101.jobs.extra.UPLOAD_MAP";
+
     /**
      * Consider putting the credential elsewhere:
      *  1. Try Amazon Cognito
@@ -41,6 +41,7 @@ public class S3PhotoIntentService extends IntentService {
      *      http://docs.aws.amazon.com/AWSAndroidSDK/latest/javadoc/
      *      http://docs.aws.amazon.com/mobile/sdkforandroid/developerguide/s3transfermanager.html
      */
+
     private static final String AWS_KEY = "dummy_key";
     private static final String AWS_SECRET = "dummy_secret";
     private static final String BUCKET_NAME = "seniorpandadevnew"; // think about alternative
@@ -83,6 +84,16 @@ public class S3PhotoIntentService extends IntentService {
         intent.putExtra(UPLOAD_MAP, ConcurrentUtils.SerializeHashMap(imageMap));
         context.startService(intent);
     }
+
+    // delete function to be implemented
+    public static void startActionDeleteS3(Context context, Map<String, String> imageMap, String param1) {
+        Intent intent = new Intent(context, S3PhotoIntentService.class);
+        intent.setAction(ACTION_UPLOAD_S3);
+        intent.putExtra(EXTRA_PARAM1, param1);
+        intent.putExtra(UPLOAD_MAP, ConcurrentUtils.SerializeHashMap(imageMap));
+        context.startService(intent);
+    }
+
 
     @Override
     protected void onHandleIntent(Intent intent) {
