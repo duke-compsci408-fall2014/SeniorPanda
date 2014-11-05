@@ -152,7 +152,7 @@
         </activity>
 
         <service
-            android:name=".jobs.S3PhotoIntentService"
+            android:name=".PhotoSharing.S3PhotoIntentService"
             android:exported="false"></service>
 
         <activity

@@ -27,7 +27,7 @@ import android.widget.ViewFlipper;
 
 import com.bmh.ms101.R;
 import com.bmh.ms101.Util;
-import com.bmh.ms101.jobs.S3PhotoIntentService;
+import com.bmh.ms101.PhotoSharing.S3PhotoIntentService;
 
 import java.io.File;
 import java.io.IOException;

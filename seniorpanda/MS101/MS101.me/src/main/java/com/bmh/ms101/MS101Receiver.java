@@ -195,6 +195,7 @@ public class MS101Receiver extends BroadcastReceiver {
      * @param type What notification type
      * @return Intent used to start an activity based on notification type
      */
+    
     private Intent sendNotification(Context context, Notif type) {
         Class<?> targetActivity = null;
         String notifTitle = null;
