@@ -42,12 +42,14 @@ public class S3PhotoIntentService extends IntentService {
      * http://docs.aws.amazon.com/mobile/sdkforandroid/developerguide/s3transfermanager.html
      */
 
-    private static final String AWS_KEY = "AKIAIEG6U7ONTABGQ4HA";
-    private static final String AWS_SECRET = "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";
+    private static final String AWS_KEY = "";
+    private static final String AWS_SECRET = "";
     private static final String BUCKET_NAME = "seniorpandadevnew"; // think about alternative
 
     private static List<String> KeyList = new ArrayList<String>(); // for later usage;
     private static Map<String, Bitmap> BitmapMap = new ConcurrentHashMap<String, Bitmap>();
+
+    private static final String SLASH = "/";
 
     // singleton
     private static AmazonS3Client s3Client = null;
@@ -160,11 +162,21 @@ public class S3PhotoIntentService extends IntentService {
             }
 
             for (String picName : keysNames) {
-                BitmapMap.put(picName, fetchImageAsBitMap(BUCKET_NAME, picName));
+                if (!checkEmptyDirectory(picName)) {
+                    BitmapMap.put(picName, fetchImageAsBitMap(BUCKET_NAME, picName));
+                    System.out.println("Bitmap of " + picName + " put in");
+                }
             }
-        } catch (Exception T) {
+        } catch (Throwable T) {
+            T.printStackTrace();
             throw new UnsupportedOperationException("Cannot handle Fetch S3 Action");
         }
+
+    }
+
+    // check if it is the empty directory with /
+    private boolean checkEmptyDirectory(String picName) {
+        return (picName.charAt(picName.length() - 1) == SLASH.charAt(0));
     }
 
     /**

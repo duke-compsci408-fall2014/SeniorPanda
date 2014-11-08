@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.net.Uri;
@@ -42,9 +41,9 @@ import java.util.Set;
 public class SlideShowActivity extends Activity implements OnClickListener {
 
     private static final Integer FLIP_INTERVAL = 50000;
-    private static final Integer SELECT_PHOTO_REQUEST = 100;
+    private static final Integer SELECT_PHOTO_FROM_GALLERY_REQUEST = 100;
     private static final Integer DELETE_PHOTO_REQUEST = 101;
-    private static final Integer REQUEST_TAKE_PHOTO = 102;
+    private static final Integer TAKE_PHOTO_REQUEST = 102;
 
     private ViewFlipper myFlipper;
     private Button myPreviousButton;
@@ -77,7 +76,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
 
         visitedBitMaps = new HashSet<String>();
         setUpDateTimeTextView();
-        //S3PhotoIntentService.startActionFetchS3(this, null, null);
+        S3PhotoIntentService.startActionFetchS3(this, null, null);
 
         myPauseButton.setOnClickListener(this);
         myNextButton.setOnClickListener(this);
@@ -125,7 +124,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
             }
             if (imageFilePath.getFile() != null) {
                 takePhotoIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(imageFilePath.getFile()));
-                startActivityForResult(takePhotoIntent, REQUEST_TAKE_PHOTO);
+                startActivityForResult(takePhotoIntent, TAKE_PHOTO_REQUEST);
 
                 Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
                 File f = new File(imageFilePath.getPath());
@@ -165,13 +164,14 @@ public class SlideShowActivity extends Activity implements OnClickListener {
     private Bitmap resizeBitmap(Bitmap bitmap) {
         double width = bitmap.getWidth();
         double height = bitmap.getHeight();
-        System.out.println("width: " + width + " height: " + height);
+        System.out.println("width: " + width + " height: " + height);//TODO: delete
         RelativeLayout panel = (RelativeLayout) findViewById(R.id.slide_show_panel);
+        panel.getViewTreeObserver()
         double ratio = Math.min(panel.getWidth() / width, panel.getHeight() / height);
         int newWidth = (int) (ratio * width);
         int newHeight = (int) (ratio * height);
-        System.out.println("panel width: " + panel.getWidth() + " height: " + panel.getHeight());
-        System.out.println("ratio: " + ratio + " newWidth: " + newWidth + " newHeight: " + newHeight);
+        System.out.println("panel width: " + panel.getWidth() + " height: " + panel.getHeight());//TODO: delete
+        System.out.println("ratio: " + ratio + " newWidth: " + newWidth + " newHeight: " + newHeight);//TODO: delete
         bitmap = Bitmap.createScaledBitmap(bitmap, newWidth, newHeight, true);
         return bitmap;
     }
@@ -180,7 +180,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         Intent intent = new Intent();
         intent.setType("image/*");
         intent.setAction(Intent.ACTION_GET_CONTENT);
-        startActivityForResult(Intent.createChooser(intent, "Select Picture"), SELECT_PHOTO_REQUEST);
+        startActivityForResult(Intent.createChooser(intent, "Select Picture"), SELECT_PHOTO_FROM_GALLERY_REQUEST);
     }
 
     private ImageFilePath createImageFile() throws IOException {
@@ -203,14 +203,14 @@ public class SlideShowActivity extends Activity implements OnClickListener {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == SELECT_PHOTO_REQUEST) {
+        if (requestCode == SELECT_PHOTO_FROM_GALLERY_REQUEST) {
             if (resultCode == RESULT_OK) {
                 Uri imageURL = data.getData();
                 Map<String, String> imageMap = new HashMap<String, String>();
                 imageMap.put(imageURL.toString().substring(imageURL.toString().lastIndexOf("/") + 1), imageURL.toString());
                 S3PhotoIntentService.startActionUploadS3(this, imageMap, null);
             }
-        } else if (requestCode == REQUEST_TAKE_PHOTO) {
+        } else if (requestCode == TAKE_PHOTO_REQUEST) {
             if (resultCode == RESULT_OK) {
                 Bundle extras = data.getExtras();
                 Bitmap bitmap = (Bitmap) extras.get("data");
@@ -278,21 +278,12 @@ public class SlideShowActivity extends Activity implements OnClickListener {
             @Override
             public void run() {
                 //TODO: delete dummy content
-                if (!fetched) {
-                    ImageView image1 = new ImageView(getApplicationContext());
-                    Bitmap bitmap1 = resizeBitmap(BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.sanmay_dog));
-                    image1.setImageBitmap(bitmap1);
-                    myFlipper.addView(image1);
-                    ImageView image2 = new ImageView(getApplicationContext());
-                    Bitmap bitmap2 = resizeBitmap(BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.steve));
-                    image2.setImageBitmap(bitmap2);
-                    myFlipper.addView(image2);
-                    ImageView image3 = new ImageView(getApplicationContext());
-                    Bitmap bitmap3 = resizeBitmap(BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.null_pointer));
-                    image3.setImageBitmap(bitmap3);
-                    myFlipper.addView(image3);
-                    fetched = true;
-                }
+//                if (!fetched) {
+//                    ImageView image1 = new ImageView(getApplicationContext());
+//                    Bitmap bitmap1 = resizeBitmap(BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.sanmay_dog));
+//                    image1.setImageBitmap(bitmap1);
+//                    myFlipper.addView(image1);
+//                }
 
                 Map<String, Bitmap> bitmapMap = S3PhotoIntentService.getBitmapMap();
                 for (Bitmap bitmap : bitmapMap.values()) {

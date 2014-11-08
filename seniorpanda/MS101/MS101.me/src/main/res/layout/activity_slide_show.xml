@@ -23,6 +23,7 @@
             android:layout_centerInParent="true"></ViewFlipper>
 
         <LinearLayout
+            android:id="@+id/slide_show_date_time"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="vertical"
