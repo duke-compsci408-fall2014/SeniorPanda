@@ -35,8 +35,8 @@ public class S3PhotoIntentService extends IntentService {
     private static final String UPLOAD_MAP = "com.bmh.ms101.jobs.extra.UPLOAD_MAP";
 
 
-    private static final String AWS_KEY = "dummy-key";
-    private static final String AWS_SECRET = "dummy-secret";
+    private static final String AWS_KEY = "";
+    private static final String AWS_SECRET = "";
     private static final String BUCKET_NAME = "seniorpandadevnew"; // think about alternative
 
     private static List<String> KeyList = new ArrayList<String>(); // for later usage;

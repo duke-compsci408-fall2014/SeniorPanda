@@ -8,48 +8,51 @@
     tools:context="com.bmh.ms101.PhotoFlipping.SlideShowActivity"
     android:orientation="vertical">
 
-    <RelativeLayout
+    <LinearLayout
         android:id="@+id/slide_show_panel"
         android:layout_width="match_parent"
-        android:layout_height="fill_parent"
+        android:layout_height="0dp"
+        android:orientation="horizontal"
         android:layout_marginTop="15dp"
         android:layout_centerInParent="true"
-        android:layout_weight="1">
-
-        <ViewFlipper
-            android:id="@+id/photoFlipper"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-            android:layout_centerInParent="true"></ViewFlipper>
+        android:layout_weight="20">
 
         <LinearLayout
             android:id="@+id/slide_show_date_time"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="0dp"
+            android:layout_height="fill_parent"
+            android:layout_weight="1"
             android:orientation="vertical"
             android:layout_centerHorizontal="true">
 
             <AnalogClock
                 android:id="@+id/slide_show_analog_clock"
-                android:layout_width="wrap_content"
-                android:layout_marginLeft="60dp"
+                android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
                 android:textSize="80dp" />
 
             <TextView
                 android:id="@+id/slide_show_display_date"
-                android:layout_width="wrap_content"
+                android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
                 android:layout_marginTop="10dp"
                 android:textSize="30dp" />
         </LinearLayout>
 
-    </RelativeLayout>
+        <ViewFlipper
+            android:id="@+id/photoFlipper"
+            android:layout_width="0dp"
+            android:layout_weight="3"
+            android:layout_height="fill_parent"
+            android:layout_centerInParent="true"></ViewFlipper>
+
+    </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="48dp"
+        android:layout_height="0dp"
+        android:layout_weight="1"
         android:layout_gravity="bottom"
         android:layout_below="@id/photoFlipper"
         android:layout_alignParentBottom="true"
@@ -57,35 +60,35 @@
 
         <Button
             android:id="@+id/previousSlideButton"
-            android:layout_width="128dp"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="Previous" />
 
         <Button
             android:id="@+id/startSlideButton"
-            android:layout_width="128dp"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="Start" />
 
         <Button
             android:id="@+id/pauseSlideButton"
-            android:layout_width="128dp"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="Pause" />
 
         <Button
             android:id="@+id/nextSlideButton"
-            android:layout_width="128dp"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="Next" />
 
         <Button
             android:id="@+id/deletePhotoButton"
-            android:layout_width="128dp"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="Delete" />

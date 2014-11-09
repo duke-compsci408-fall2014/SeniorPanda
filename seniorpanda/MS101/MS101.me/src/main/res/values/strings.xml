@@ -58,6 +58,10 @@
     <string name="symp_notif_title">How are you feeling?</string>
     <string name="stress_notif_title">How are you doing?</string>
 
+    <!-- Slide Show Activity -->
+    <string name="no_camera_message">You do not have the camera support</string>
+    <string name="no_camera_ok">OK</string>
+
     <!-- Log Activity -->
     <string name="title_activity_log">Your Data</string>
     <string name="log_meds_label">Medication Doses</string>

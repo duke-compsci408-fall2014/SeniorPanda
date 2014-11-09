@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.net.Uri;
@@ -20,7 +21,7 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.RelativeLayout;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.ViewFlipper;
 
@@ -112,7 +113,8 @@ public class SlideShowActivity extends Activity implements OnClickListener {
 
     private void dispatchTakePhotoIntent() {
         if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA)) {
-            //TODO: pop up dialog
+            NoCameraDialogFragment noCameraDialog = new NoCameraDialogFragment();
+            noCameraDialog.show(getFragmentManager(), "no_camera_dialog");
         }
         Intent takePhotoIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         if (takePhotoIntent.resolveActivity(getPackageManager()) != null) {
@@ -165,8 +167,8 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         double width = bitmap.getWidth();
         double height = bitmap.getHeight();
         System.out.println("width: " + width + " height: " + height);//TODO: delete
-        RelativeLayout panel = (RelativeLayout) findViewById(R.id.slide_show_panel);
-        panel.getViewTreeObserver()
+        LinearLayout panel = (LinearLayout) findViewById(R.id.slide_show_panel);
+//        panel.getViewTreeObserver()
         double ratio = Math.min(panel.getWidth() / width, panel.getHeight() / height);
         int newWidth = (int) (ratio * width);
         int newHeight = (int) (ratio * height);
@@ -184,7 +186,6 @@ public class SlideShowActivity extends Activity implements OnClickListener {
     }
 
     private ImageFilePath createImageFile() throws IOException {
-        // Create an image file name
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
         String imageFileName = "JPEG_" + timeStamp + "_";
         File storageDir = Environment.getExternalStoragePublicDirectory(
@@ -278,19 +279,23 @@ public class SlideShowActivity extends Activity implements OnClickListener {
             @Override
             public void run() {
                 //TODO: delete dummy content
-//                if (!fetched) {
-//                    ImageView image1 = new ImageView(getApplicationContext());
-//                    Bitmap bitmap1 = resizeBitmap(BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.sanmay_dog));
-//                    image1.setImageBitmap(bitmap1);
-//                    myFlipper.addView(image1);
-//                }
-
-                Map<String, Bitmap> bitmapMap = S3PhotoIntentService.getBitmapMap();
-                for (Bitmap bitmap : bitmapMap.values()) {
-                    if (!visitedBitMaps.contains(bitmap)) {
-                        addPhoto(bitmap);
-                    }
+                if (!fetched) {
+                    ImageView image1 = new ImageView(getApplicationContext());
+                    Bitmap bitmap1 = resizeBitmap(BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.sanmay_dog));
+                    image1.setImageBitmap(bitmap1);
+                    myFlipper.addView(image1);
+                    ImageView image2 = new ImageView(getApplicationContext());
+                    Bitmap bitmap2 = resizeBitmap(BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.steve));
+                    image2.setImageBitmap(bitmap2);
+                    myFlipper.addView(image2);
                 }
+
+//                Map<String, Bitmap> bitmapMap = S3PhotoIntentService.getBitmapMap();
+//                for (Bitmap bitmap : bitmapMap.values()) {
+//                    if (!visitedBitMaps.contains(bitmap)) {
+//                        addPhoto(bitmap);
+//                    }
+//                }
             }
         });
     }
