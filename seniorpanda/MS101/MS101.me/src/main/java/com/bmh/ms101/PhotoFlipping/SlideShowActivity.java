@@ -184,10 +184,9 @@ public class SlideShowActivity extends Activity implements OnClickListener {
             case R.id.upload_photo:
                 uploadPhotoFromGallery();
                 return true;
-            case R.id.action_settings:
-                return true;
             case R.id.update_slide_show:
-                return true;//TODO
+                doFetchPhotoWork();
+                return true;
             case android.R.id.home:
                 NavUtils.navigateUpFromSameTask(this);
                 return true;
