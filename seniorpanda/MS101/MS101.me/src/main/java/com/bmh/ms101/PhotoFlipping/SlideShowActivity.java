@@ -9,6 +9,7 @@ import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Typeface;
+import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -16,8 +17,10 @@ import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v4.app.NavUtils;
 import android.support.v4.content.LocalBroadcastManager;
+import android.view.GestureDetector;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.WindowManager;
@@ -50,6 +53,8 @@ public class SlideShowActivity extends Activity implements OnClickListener {
     private static final Integer SELECT_PHOTO_FROM_GALLERY_REQUEST = 100;
     private static final Integer DELETE_PHOTO_REQUEST = 101;
     private static final Integer TAKE_PHOTO_REQUEST = 102;
+    private static final int SWIPE_MIN_DISTANCE = 120;
+    private static final int SWIPE_THRESHOLD_VELOCITY = 200;
 
     private ViewFlipper myFlipper;
     private Button myPreviousButton;
@@ -60,6 +65,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
     private TextView myDateTime;
     private Thread myDateTimeThread;
     private ResponseReceiver myResponseReceiver;
+    private final GestureDetector myTouchDetector = new GestureDetector(new SwipeGestureDetector());
 
     private Set<String> visitedBitMaps;
     private boolean myFullScreen;
@@ -77,6 +83,14 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_slide_show);
         myFlipper = (ViewFlipper) findViewById(R.id.photoFlipper);
+        myFlipper.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                myTouchDetector.onTouchEvent(motionEvent);
+                return true;
+            }
+        });
+
         myPreviousButton = (Button) findViewById(R.id.previousSlideButton);
         Util.makeGreen(myPreviousButton, this);
         myNextButton = (Button) findViewById(R.id.nextSlideButton);
@@ -185,7 +199,8 @@ public class SlideShowActivity extends Activity implements OnClickListener {
                 uploadPhotoFromGallery();
                 return true;
             case R.id.update_slide_show:
-                doFetchPhotoWork();
+                Intent fetchedIntent = new Intent(Constants.BROADCAST_ACTION).putExtra(Constants.EXTENDED_DATA_STATUS, Constants.STATE_ACTION_COMPLETE);
+                LocalBroadcastManager.getInstance(this).sendBroadcast(fetchedIntent);
                 return true;
             case android.R.id.home:
                 NavUtils.navigateUpFromSameTask(this);
@@ -267,33 +282,45 @@ public class SlideShowActivity extends Activity implements OnClickListener {
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.nextSlideButton:
-                myFlipper.stopFlipping();
-                myFlipper.setInAnimation(slide_in_right);
-                myFlipper.setOutAnimation(slide_out_left);
-                myFlipper.showNext();
+                flipperShowNext();
                 break;
             case R.id.previousSlideButton:
-                myFlipper.stopFlipping();
-                myFlipper.setInAnimation(slide_in_left);
-                myFlipper.setOutAnimation(slide_out_right);
-                myFlipper.showPrevious();
+                flipperShowPrevious();
                 break;
             case R.id.startSlideButton:
                 if (!myFlipper.isFlipping()) {
                     myFlipper.setFlipInterval(FLIP_INTERVAL);
+                    myFlipper.setAutoStart(true);
                     myFlipper.startFlipping();
                 }
                 break;
             case R.id.pauseSlideButton:
                 if (myFlipper.isFlipping()) {
+                    myFlipper.setAutoStart(false);
                     myFlipper.stopFlipping();
                 }
                 break;
             case R.id.deletePhotoButton:
-                //TODO
-//                myFlipper.getForeground()
+                ImageView currentView = (ImageView) myFlipper.getCurrentView();
+                myFlipper.removeView(currentView);
+                String imageName = S3PhotoIntentService.getImageName(((BitmapDrawable) currentView.getDrawable()).getBitmap());
+                S3PhotoIntentService.startActionDeleteS3(this, imageName);
                 break;
         }
+    }
+
+    private void flipperShowPrevious() {
+        myFlipper.stopFlipping();
+        myFlipper.setInAnimation(slide_in_left);
+        myFlipper.setOutAnimation(slide_out_right);
+        myFlipper.showPrevious();
+    }
+
+    private void flipperShowNext() {
+        myFlipper.stopFlipping();
+        myFlipper.setInAnimation(slide_in_right);
+        myFlipper.setOutAnimation(slide_out_left);
+        myFlipper.showNext();
     }
 
     public void doUpdateTimeWork() {
@@ -310,22 +337,10 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         });
     }
 
-    public void doFetchPhotoWork() {
+    public synchronized void doFetchPhotoWork() {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-//                //TODO: delete dummy content
-//                if (!fetched) {
-//                    ImageView image1 = new ImageView(getApplicationContext());
-//                    Bitmap bitmap1 = resizeBitmap(BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.sanmay_dog));
-//                    image1.setImageBitmap(bitmap1);
-//                    myFlipper.addView(image1);
-//                    ImageView image2 = new ImageView(getApplicationContext());
-//                    Bitmap bitmap2 = resizeBitmap(BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.steve));
-//                    image2.setImageBitmap(bitmap2);
-//                    myFlipper.addView(image2);
-//                }
-
                 Map<String, Bitmap> bitmapMap = S3PhotoIntentService.getBitmapMap();
                 for (Bitmap bitmap : bitmapMap.values()) {
                     if (!visitedBitMaps.contains(bitmap)) {
@@ -387,6 +402,24 @@ public class SlideShowActivity extends Activity implements OnClickListener {
                 case Constants.STATE_ACTION_COMPLETE:
                     doFetchPhotoWork();
             }
+        }
+    }
+
+    class SwipeGestureDetector extends GestureDetector.SimpleOnGestureListener {
+        @Override
+        public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+            try {
+                if (e1.getX() - e2.getX() > SWIPE_MIN_DISTANCE && Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) {
+                    flipperShowNext();
+                    return true;
+                } else if (e2.getX() - e1.getX() > SWIPE_MIN_DISTANCE && Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) {
+                    flipperShowPrevious();
+                    return true;
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return false;
         }
     }
 }

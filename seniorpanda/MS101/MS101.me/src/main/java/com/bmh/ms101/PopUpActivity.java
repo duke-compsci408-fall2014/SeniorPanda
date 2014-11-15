@@ -58,6 +58,7 @@ public class PopUpActivity extends Activity {
 
     /**
      * Sets up the UI
+     *
      * @param which Which layout to use
      */
     private void setupUi(int which) {
@@ -94,7 +95,7 @@ public class PopUpActivity extends Activity {
 
     /**
      * Handles when user says that they missed a dose of Tecfidera.
-     *
+     * <p/>
      * TODO use jobs!
      * TODO move to TecfideraWidgetHandler class
      *
@@ -147,6 +148,7 @@ public class PopUpActivity extends Activity {
                 mDismiss.setEnabled(false);
                 mDismiss.setText(R.string.sending);
             }
+
             @Override
             protected Object doInBackground(String... params) {
                 try {
@@ -163,6 +165,7 @@ public class PopUpActivity extends Activity {
                 }
                 return "Success";
             }
+
             @Override
             protected void onPostExecute(Object result) {
                 if (result instanceof String) {

@@ -36,7 +36,6 @@ public class S3PhotoIntentService extends IntentService {
     private static final String IMAGE_NAME = "com.bmh.ms101.jobs.extra.IMAGE_NAME";
     private static final String UPLOAD_MAP = "com.bmh.ms101.jobs.extra.UPLOAD_MAP";
 
-
     private static final String AWS_KEY = "";
     private static final String AWS_SECRET = "";
     private static final String BUCKET_NAME = "seniorpandadevnew"; // think about alternative
@@ -219,6 +218,15 @@ public class S3PhotoIntentService extends IntentService {
      */
     public static Map<String, Bitmap> getBitmapMap() {
         return BitmapMap;
+    }
+
+    public static String getImageName(Bitmap bitmap) {
+        for (String name : BitmapMap.keySet()) {
+            if (BitmapMap.get(name).equals(bitmap)) {
+                return name;
+            }
+        }
+        return null;
     }
 
 // //thinking of improving the sign-in:
