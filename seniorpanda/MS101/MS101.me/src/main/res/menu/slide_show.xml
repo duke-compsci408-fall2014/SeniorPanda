@@ -16,4 +16,11 @@
         android:title="Take Photo"
         android:orderInCategory="100"
         android:showAsAction="never" />
+
+    <item
+        android:id="@+id/update_slide_show"
+        android:title="Update"
+        android:orderInCategory="100"
+        android:showAsAction="never" />
+    
 </menu>

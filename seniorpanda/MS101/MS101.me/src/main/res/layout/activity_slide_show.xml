@@ -53,7 +53,6 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:layout_gravity="bottom"
         android:layout_below="@id/photoFlipper"
         android:layout_alignParentBottom="true"
         android:orientation="horizontal">
@@ -64,6 +63,13 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="Previous" />
+
+        <Button
+            android:id="@+id/nextSlideButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Next" />
 
         <Button
             android:id="@+id/startSlideButton"
@@ -78,13 +84,6 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="Pause" />
-
-        <Button
-            android:id="@+id/nextSlideButton"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Next" />
 
         <Button
             android:id="@+id/deletePhotoButton"

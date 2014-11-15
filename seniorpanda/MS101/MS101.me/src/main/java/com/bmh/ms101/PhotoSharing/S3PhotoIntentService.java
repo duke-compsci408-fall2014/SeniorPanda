@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.support.v4.content.LocalBroadcastManager;
 
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.s3.AmazonS3Client;
@@ -13,6 +14,7 @@ import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.amazonaws.util.IOUtils;
+import com.bmh.ms101.Constants;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -46,11 +48,11 @@ public class S3PhotoIntentService extends IntentService {
 
     /**
      * Consider putting the credential elsewhere:
-     *  1. Try Amazon Cognito
-     *  2. Try creating a user for app access specifically: dynamics ones vs static ones
-     *      http://docs.aws.amazon.com/IAM/latest/APIReference/API_CreateAccessKey.html
-     *      http://docs.aws.amazon.com/AWSAndroidSDK/latest/javadoc/
-     *      http://docs.aws.amazon.com/mobile/sdkforandroid/developerguide/s3transfermanager.html
+     * 1. Try Amazon Cognito4
+     * 2. Try creating a user for app access specifically: dynamics ones vs static ones
+     * http://docs.aws.amazon.com/IAM/latest/APIReference/API_CreateAccessKey.html
+     * http://docs.aws.amazon.com/AWSAndroidSDK/latest/javadoc/
+     * http://docs.aws.amazon.com/mobile/sdkforandroid/developerguide/s3transfermanager.html
      */
 
     // singleton
@@ -104,10 +106,9 @@ public class S3PhotoIntentService extends IntentService {
             final String action = intent.getAction();
             if (ACTION_FETCH_S3.equals(action)) {
                 handleActionFetchS3(AWS_KEY, AWS_SECRET);
-
             } else if (ACTION_UPLOAD_S3.equals(action)) {
                 final String bucketName = BUCKET_NAME;
-                    // TODO: automate this information fetching from DB
+                // TODO: automate this information fetching from DB
                 final String folderName = "PhotoSharing";
                 Map<String, String> imageMap =
                         ConcurrentUtils.DeserializeHashMap(intent.getSerializableExtra(UPLOAD_MAP));
@@ -123,14 +124,13 @@ public class S3PhotoIntentService extends IntentService {
     }
 
 
-    private void handleActionDeleteS3(String awsKey, String awsSecret, String nameKey, String bucketName){
-        try{
+    private void handleActionDeleteS3(String awsKey, String awsSecret, String nameKey, String bucketName) {
+        try {
 
             AmazonS3Client s3Client = getS3ClientInstance();
             s3Client.deleteObject(new DeleteObjectRequest(bucketName, nameKey));
 
-        }
-        catch (Exception T) {
+        } catch (Exception T) {
             T.printStackTrace();
             throw new UnsupportedOperationException("Cannot handle Delete S3 Action");
         }
@@ -186,6 +186,8 @@ public class S3PhotoIntentService extends IntentService {
                     System.out.println("Bitmap of " + picName + " put in");
                 }
             }
+            Intent fetchedIntent = new Intent(Constants.BROADCAST_ACTION).putExtra(Constants.EXTENDED_DATA_STATUS, Constants.STATE_ACTION_COMPLETE);
+            LocalBroadcastManager.getInstance(this).sendBroadcast(fetchedIntent);
         } catch (Throwable T) {
             T.printStackTrace();
             throw new UnsupportedOperationException("Cannot handle Fetch S3 Action");

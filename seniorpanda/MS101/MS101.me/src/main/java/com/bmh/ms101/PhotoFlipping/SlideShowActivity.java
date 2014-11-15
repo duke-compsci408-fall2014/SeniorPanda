@@ -1,22 +1,26 @@
 package com.bmh.ms101.PhotoFlipping;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Color;
 import android.graphics.Typeface;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v4.app.NavUtils;
+import android.support.v4.content.LocalBroadcastManager;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
@@ -25,6 +29,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.ViewFlipper;
 
+import com.bmh.ms101.Constants;
 import com.bmh.ms101.PhotoSharing.S3PhotoIntentService;
 import com.bmh.ms101.R;
 import com.bmh.ms101.Util;
@@ -53,14 +58,22 @@ public class SlideShowActivity extends Activity implements OnClickListener {
     private Button myPauseButton;
     private Button myDeleteButton;
     private TextView myDateTime;
-    private boolean fetched;//TODO: delete
+    private Thread myDateTimeThread;
+    private ResponseReceiver myResponseReceiver;
 
     private Set<String> visitedBitMaps;
+    private boolean myFullScreen;
 
     private Animation slide_in_left, slide_in_right, slide_out_left, slide_out_right;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        getWindow().setFlags(
+                WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
+                        | WindowManager.LayoutParams.FLAG_LAYOUT_INSET_DECOR,
+                WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
+                        | WindowManager.LayoutParams.FLAG_LAYOUT_INSET_DECOR);
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_slide_show);
         myFlipper = (ViewFlipper) findViewById(R.id.photoFlipper);
@@ -75,7 +88,8 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         myDeleteButton = (Button) findViewById(R.id.deletePhotoButton);
         Util.makeGreen(myDeleteButton, this);
 
-        visitedBitMaps = new HashSet<String>();
+        visitedBitMaps = new HashSet<>();
+        myFullScreen = false;
         setUpDateTimeTextView();
         S3PhotoIntentService.startActionFetchS3(this, null, null);
 
@@ -89,20 +103,29 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         slide_in_right = AnimationUtils.loadAnimation(this, R.anim.silde_in_right);
         slide_out_left = AnimationUtils.loadAnimation(this, R.anim.slide_out_left);
         slide_out_right = AnimationUtils.loadAnimation(this, R.anim.slide_out_right);
-        Runnable fetchPhotoRunnable = new FetchPhotoRunner();
-        Thread fetchPhotoThread = new Thread(fetchPhotoRunnable);
-        fetchPhotoThread.start();
-        myFlipper.setAutoStart(true);
-        fetched = false;//TODO: delete
+
+        IntentFilter statusIntentFilter = new IntentFilter(Constants.BROADCAST_ACTION);
+        statusIntentFilter.addCategory(Intent.CATEGORY_DEFAULT);
+        myResponseReceiver = new ResponseReceiver();
+        LocalBroadcastManager.getInstance(this).registerReceiver(myResponseReceiver, statusIntentFilter);
+    }
+
+    @Override
+    public void onDestroy() {
+        if (myResponseReceiver != null) {
+            LocalBroadcastManager.getInstance(this).unregisterReceiver(myResponseReceiver);
+            myResponseReceiver = null;
+        }
+        myDateTimeThread.interrupt();
+        super.onDestroy();
     }
 
     private void setUpDateTimeTextView() {
         myDateTime = (TextView) findViewById(R.id.slide_show_display_date);
-        myDateTime.setTextColor(Color.WHITE);
+        myDateTime.setTextColor(getResources().getColor(R.color.app_green));
         myDateTime.setTypeface(Typeface.DEFAULT_BOLD);
-        Runnable timeRunnable = new DateTimeRunner();
-        Thread timeThread = new Thread(timeRunnable);
-        timeThread.start();
+        myDateTimeThread = new Thread(new DateTimeRunner());
+        myDateTimeThread.start();
     }
 
     public void addPhoto(Bitmap bitmap) {
@@ -115,6 +138,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA)) {
             NoCameraDialogFragment noCameraDialog = new NoCameraDialogFragment();
             noCameraDialog.show(getFragmentManager(), "no_camera_dialog");
+            return;
         }
         Intent takePhotoIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         if (takePhotoIntent.resolveActivity(getPackageManager()) != null) {
@@ -123,6 +147,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
                 imageFilePath = createImageFile();
             } catch (IOException e) {
                 //TODO: pop up dialog
+                return;
             }
             if (imageFilePath.getFile() != null) {
                 takePhotoIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(imageFilePath.getFile()));
@@ -138,7 +163,12 @@ public class SlideShowActivity extends Activity implements OnClickListener {
     }
 
     @Override
+    protected void onStop() {
+        myDateTimeThread.interrupt();
+        super.onStop();
+    }
 
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         menu.clear();
         getMenuInflater().inflate(R.menu.slide_show, menu);
@@ -156,6 +186,8 @@ public class SlideShowActivity extends Activity implements OnClickListener {
                 return true;
             case R.id.action_settings:
                 return true;
+            case R.id.update_slide_show:
+                return true;//TODO
             case android.R.id.home:
                 NavUtils.navigateUpFromSameTask(this);
                 return true;
@@ -195,7 +227,6 @@ public class SlideShowActivity extends Activity implements OnClickListener {
                 ".jpg",         /* suffix */
                 storageDir      /* directory */
         );
-
         // Save a file: path for use with ACTION_VIEW intents
         String path = "file:" + image.getAbsolutePath();
         ImageFilePath imageFilePath = new ImageFilePath(image, path);
@@ -237,21 +268,27 @@ public class SlideShowActivity extends Activity implements OnClickListener {
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.nextSlideButton:
+                myFlipper.stopFlipping();
                 myFlipper.setInAnimation(slide_in_right);
                 myFlipper.setOutAnimation(slide_out_left);
                 myFlipper.showNext();
                 break;
             case R.id.previousSlideButton:
+                myFlipper.stopFlipping();
                 myFlipper.setInAnimation(slide_in_left);
                 myFlipper.setOutAnimation(slide_out_right);
                 myFlipper.showPrevious();
                 break;
             case R.id.startSlideButton:
-                myFlipper.setFlipInterval(FLIP_INTERVAL);
-                myFlipper.startFlipping();
+                if (!myFlipper.isFlipping()) {
+                    myFlipper.setFlipInterval(FLIP_INTERVAL);
+                    myFlipper.startFlipping();
+                }
                 break;
             case R.id.pauseSlideButton:
-                myFlipper.stopFlipping();
+                if (myFlipper.isFlipping()) {
+                    myFlipper.stopFlipping();
+                }
                 break;
             case R.id.deletePhotoButton:
                 //TODO
@@ -278,26 +315,53 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                //TODO: delete dummy content
-                if (!fetched) {
-                    ImageView image1 = new ImageView(getApplicationContext());
-                    Bitmap bitmap1 = resizeBitmap(BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.sanmay_dog));
-                    image1.setImageBitmap(bitmap1);
-                    myFlipper.addView(image1);
-                    ImageView image2 = new ImageView(getApplicationContext());
-                    Bitmap bitmap2 = resizeBitmap(BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.steve));
-                    image2.setImageBitmap(bitmap2);
-                    myFlipper.addView(image2);
-                }
-
-//                Map<String, Bitmap> bitmapMap = S3PhotoIntentService.getBitmapMap();
-//                for (Bitmap bitmap : bitmapMap.values()) {
-//                    if (!visitedBitMaps.contains(bitmap)) {
-//                        addPhoto(bitmap);
-//                    }
+//                //TODO: delete dummy content
+//                if (!fetched) {
+//                    ImageView image1 = new ImageView(getApplicationContext());
+//                    Bitmap bitmap1 = resizeBitmap(BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.sanmay_dog));
+//                    image1.setImageBitmap(bitmap1);
+//                    myFlipper.addView(image1);
+//                    ImageView image2 = new ImageView(getApplicationContext());
+//                    Bitmap bitmap2 = resizeBitmap(BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.steve));
+//                    image2.setImageBitmap(bitmap2);
+//                    myFlipper.addView(image2);
 //                }
+
+                Map<String, Bitmap> bitmapMap = S3PhotoIntentService.getBitmapMap();
+                for (Bitmap bitmap : bitmapMap.values()) {
+                    if (!visitedBitMaps.contains(bitmap)) {
+                        addPhoto(bitmap);
+                    }
+                }
+                myFlipper.setAutoStart(true);
             }
         });
+    }
+
+    public void setFullScreen(boolean fullscreen) {
+        getWindow().setFlags(
+                fullscreen ? WindowManager.LayoutParams.FLAG_FULLSCREEN : 0,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
+        myFullScreen = fullscreen;
+
+        if (Build.VERSION.SDK_INT >= 11) {
+            // Sets the View to be "low profile". Status and navigation bar icons will be dimmed
+            int flag = fullscreen ? View.SYSTEM_UI_FLAG_LOW_PROFILE : 0;
+            if (Build.VERSION.SDK_INT >= 14 && fullscreen) {
+                // Hides all of the navigation icons
+                flag |= View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
+            }
+//           Applies the settings to the screen View
+            View mainView = findViewById(R.id.slide_show_panel);
+            mainView.setSystemUiVisibility(flag);
+
+            if (fullscreen) {
+                this.getActionBar().hide();
+            } else {
+                this.getActionBar().show();
+            }
+        }
     }
 
     public class DateTimeRunner implements Runnable {
@@ -314,20 +378,16 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         }
     }
 
-    public class FetchPhotoRunner implements Runnable {
+    public class ResponseReceiver extends BroadcastReceiver {
+        private ResponseReceiver() {
+        }
 
         @Override
-        public void run() {
-            while (!Thread.currentThread().isInterrupted()) {
-                try {
+        public void onReceive(Context context, Intent intent) {
+            switch (intent.getIntExtra(Constants.EXTENDED_DATA_STATUS, Constants.STATE_ACTION_COMPLETE)) {
+                case Constants.STATE_ACTION_COMPLETE:
                     doFetchPhotoWork();
-                    Thread.sleep(10000);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                } catch (Exception e) {
-                }
             }
         }
     }
-
 }
