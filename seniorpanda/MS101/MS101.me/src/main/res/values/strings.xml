@@ -45,6 +45,9 @@
     <string name="dosage_4_plus">4+</string>
     <string name="send">Send</string>
     <string name="meds_notif_title">Did you take your medication?</string>
+    <string name="meds_notif_morning_title">Did you take your morning medication?</string>
+    <string name="meds_notif_afternoon_title">Did you take your afternoon_medication?</string>
+    <string name="meds_notif_evening_title">Did you take your evening medication?</string>
 
     <!-- Symptoms/Stress Factors Activity/Fragments -->
     <string name="title_activity_symptoms">Rate Each Symptom</string>
@@ -165,6 +168,24 @@
         simply fill in the bubble of how many doses of each medication you\'ve taken today.
         \n
         \nFill in NS if you aren\'t scheduled or if you don\'t need the medication today.\n
+        \nFill in 0 if you\'ve missed all doses for today.</string>
+    <string name="help_morning_medication_title">Morning Dosage Reminder</string>
+    <string name="help_morning_medication_content">To report the doses of morning medication you\'ve taken during the day,
+        simply fill in the bubble of how many doses of each medication you\'ve taken this morning.
+        \n
+        \nFill in NS if you aren\'t scheduled or if you don\'t need the medication this morning.\n
+        \nFill in 0 if you\'ve missed all doses for today.</string>
+    <string name="help_afternoon_medication_title">Afternoon Dosage Reminder</string>
+    <string name="help_afternoon_medication_content">To report the doses of afternoon medication you\'ve taken during the day,
+        simply fill in the bubble of how many doses of each medication you\'ve taken this afternoon.
+        \n
+        \nFill in NS if you aren\'t scheduled or if you don\'t need the medication this morning.\n
+        \nFill in 0 if you\'ve missed all doses for today.</string>
+    <string name="help_evening_medication_title">Evening Dosage Reminder</string>
+    <string name="help_evening_medication_content">To report the doses of evening medication you\'ve taken during the day,
+        simply fill in the bubble of how many doses of each medication you\'ve taken this afternoon.
+        \n
+        \nFill in NS if you aren\'t scheduled or if you don\'t need the medication this morning.\n
         \nFill in 0 if you\'ve missed all doses for today.</string>
     <string name="help_symptom_scales_title">Symptom Scales</string>
     <string name="help_stress_factor_scales_title">Stress Factor Scales</string>

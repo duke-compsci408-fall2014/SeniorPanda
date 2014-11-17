@@ -254,7 +254,12 @@ public class Backend {
                 String getSubscribeURL = DF_URL + DF_DB_SUFIX + "/" + DF_USER_TABLE + "?related="
                         + DF_RELATED_SUBSCRIBE_BY_UID + "," + DF_RELATED_MED_BY_SUBSCIBE;
                 System.out.println("getURL :: " + getSubscribeURL);
-                JSONArray userDataObjectsJson = mDFRestClient.getJSONObject(getSubscribeURL).getJSONArray("record");
+                JSONObject userData = mDFRestClient.getJSONObject(getSubscribeURL);
+                List<SubscribeDataModel> subscribeData = DataUtil.getSubsciptionsFromUserData(userData, mUser.getUserId());
+                for (int i = 0; i < subscribeData.size(); i++) {
+                    data.add(subscribeData.get(i));
+                }
+                /*JSONArray userDataObjectsJson = mDFRestClient.getJSONObject(getSubscribeURL).getJSONArray("record");
                 JSONObject userDataObjectJson = null;
                 for (int i = 0; i < userDataObjectsJson.length(); i++) {
                     JSONObject json = userDataObjectsJson.getJSONObject(i);
@@ -268,7 +273,7 @@ public class Backend {
                 List<SubscribeDataModel> subscribeData = userDataModel.getSubscriptionData();
                 for (int i = 0; i < subscribeData.size(); i++) {
                     data.add(subscribeData.get(i));
-                }
+                }*/
                 break;
         }
 
@@ -339,11 +344,12 @@ public class Backend {
      * @param data The data to send
      * @param time The time the data was reported by user
      */
-    public void sendToDF(int type, String data, String time) throws JSONException, HTTPException,
+    public Object sendToDF(int type, String data, String time) throws JSONException, HTTPException,
             DFCredentialsInvalidException {
+        HTTPResponse httpResponse = null;
         // If session is blank or it could be invalid, try to login
         if (mUser.getDFSessionId().equals("") || !mUser.isDFSessionIdValid()) {
-            if (!tryDFQuickLogin()) return; // Don't do this if we aren't logged in
+            if (!tryDFQuickLogin()) return httpResponse; // Don't do this if we aren't logged in
         }
         String uid = mUser.getAccountName();
         String postURL = DF_URL;
@@ -427,11 +433,15 @@ public class Backend {
         System.out.println("Calling server");
         if (type ==  User.SUBSCRIBE_DATA_TYPE) {
             System.out.println("calling put");
-            mDFRestClient.put(postURL, recordToCreate);
+            httpResponse = mDFRestClient.put(postURL, recordToCreate);
         } else {
             System.out.println("post");
-            mDFRestClient.post(postURL, recordToCreate);
+            httpResponse = mDFRestClient.post(postURL, recordToCreate);
         }
+        System.out.println("http response : " + httpResponse);
+        System.out.println("http response body : " + httpResponse.body);
+
+        return httpResponse;
     }
 
     /**

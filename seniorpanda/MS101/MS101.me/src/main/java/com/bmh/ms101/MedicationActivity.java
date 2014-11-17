@@ -185,9 +185,24 @@ public class MedicationActivity extends Activity {
     private void setupUI() {
         RelativeLayout mContent = (RelativeLayout) findViewById(R.id.meds_content);
         TextView tvHeader = (TextView) mContent.findViewById(R.id.meds_header);
+        boolean morningDose = getIntent().getBooleanExtra("meds_morning", false);
+        boolean afternoonDose = getIntent().getBooleanExtra("meds_afternoon", false);
+        boolean eveningDose = getIntent().getBooleanExtra("meds_evening", false);
+        System.out.println("is morning dose : " + morningDose);
+        System.out.println("is afternoon dose : " + afternoonDose);
+        System.out.println("is evening dose : " + eveningDose);
         if (mIsFromMain) {
             setTitle(R.string.title_activity_medication_confirm);
             tvHeader.setText(R.string.report_meds_header);
+        } else if (morningDose) {
+            setTitle("Morning Dose");
+            tvHeader.setText("Fill in your morning dose");
+        } else if (afternoonDose) {
+            setTitle("Afternoon Dose");
+            tvHeader.setText("Fill in your afternoon dose");
+        } else if (eveningDose) {
+            setTitle("Evening Dose");
+            tvHeader.setText("Fill in your evening dose");
         } else {
             setTitle(R.string.title_activity_medication_alarm);
             tvHeader.setText(R.string.reminder_meds_header);
@@ -207,9 +222,28 @@ public class MedicationActivity extends Activity {
 
         /*Util.buildInfoDialog(this, R.string.help_meds_title, R.string.help_meds_content,
                 R.string.okay);*/
-        if (!mIsFromMain) {
+     /*   if (!mIsFromMain) {
             Util.buildInfoDialog(this, R.string.help_medication_title, R.string.help_medication_content,
                     R.string.okay);
+        }*/
+
+        if (!mIsFromMain) {
+            if (morningDose) {
+                Util.buildInfoDialog(this, R.string.help_morning_medication_title,
+                        R.string.help_morning_medication_content,
+                        R.string.okay);
+            } else if (afternoonDose) {
+                Util.buildInfoDialog(this, R.string.help_afternoon_medication_title,
+                        R.string.help_afternoon_medication_content,
+                        R.string.okay);
+            } else if (eveningDose) {
+                Util.buildInfoDialog(this, R.string.help_evening_medication_title,
+                        R.string.help_evening_medication_content,
+                        R.string.okay);
+            } else {
+                Util.buildInfoDialog(this, R.string.help_medication_title, R.string.help_medication_content,
+                        R.string.okay);
+            }
         }
     }
 

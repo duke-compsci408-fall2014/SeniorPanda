@@ -3,6 +3,7 @@ package com.bmh.ms101.jobs;
 import android.util.Log;
 
 import com.bmh.ms101.Backend;
+import com.bmh.ms101.DataUtil;
 import com.bmh.ms101.MS101;
 import com.bmh.ms101.User;
 import com.bmh.ms101.events.SendMedsDFEvent;
@@ -10,10 +11,19 @@ import com.bmh.ms101.events.SendStressDFEvent;
 import com.bmh.ms101.events.SendSubscribeDFEvent;
 import com.bmh.ms101.events.SendSympDFEvent;
 import com.bmh.ms101.events.SendTakenDFEvent;
+import com.bmh.ms101.models.BaseDataModel;
+import com.bmh.ms101.models.SubscribeDataModel;
 import com.path.android.jobqueue.Job;
 import com.path.android.jobqueue.Params;
 
+import org.droidparts.net.http.HTTPResponse;
+
 import de.greenrobot.event.EventBus;
+
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Job that handles sending data to the Dreamfactory server.
@@ -46,7 +56,7 @@ public class DreamFactorySendJob extends Job {
     @Override
     public void onRun() throws Throwable {
         Backend backend = new Backend(MS101.getInstance());
-        backend.sendToDF(dataType, data, String.valueOf(timeSent));
+        HTTPResponse httpResponse = (HTTPResponse) backend.sendToDF(dataType, data, String.valueOf(timeSent));
         switch (dataType) {
             case User.MED:
                 EventBus.getDefault().post(new SendMedsDFEvent(true, ""));
@@ -61,7 +71,17 @@ public class DreamFactorySendJob extends Job {
                 EventBus.getDefault().post(new SendTakenDFEvent(true, ""));
                 break;
             case User.SUBSCRIBE_DATA_TYPE:
-                EventBus.getDefault().post(new SendSubscribeDFEvent(true, ""));
+                List<BaseDataModel> data = new ArrayList<>();
+                JSONObject httpResponseDataJson = new JSONObject(httpResponse.body);
+                List<SubscribeDataModel> subscribeData = DataUtil.getSubsciptionsFromUserData(httpResponseDataJson, backend.getUser().getUserId());
+                System.out.println("send subscribe data size : " + subscribeData.size());
+
+                for (int i = 0; i < subscribeData.size(); i++) {
+                    data.add(subscribeData.get(i));
+                }
+                System.out.println("send data size : " + data.size());
+                EventBus.getDefault().post(new SendSubscribeDFEvent(true, data));
+             //   EventBus.getDefault().post(new SendSubscribeDFEvent(true, ""));
                 break;
             default:
                 break;
