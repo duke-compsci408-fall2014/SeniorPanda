@@ -22,17 +22,27 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.bmh.ms101.events.DFLoginResponseEvent;
+import com.bmh.ms101.events.GetMedsDFEvent;
+import com.bmh.ms101.events.GetSubscribeDFEvent;
 import com.bmh.ms101.events.SendMedsDFEvent;
+import com.bmh.ms101.events.SendTakenDFEvent;
 import com.bmh.ms101.ex.DFCredentialsInvalidException;
+import com.bmh.ms101.jobs.DreamFactoryGetJob;
 import com.bmh.ms101.jobs.DreamFactoryLoginJob;
 import com.bmh.ms101.jobs.DreamFactorySendJob;
+import com.bmh.ms101.models.MedicationDataModel;
+import com.bmh.ms101.models.SubscribeDataModel;
+import com.bmh.ms101.models.TakenDataModel;
 import com.path.android.jobqueue.JobManager;
 
 import org.droidparts.net.http.HTTPException;
+import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Set;
 
 import de.greenrobot.event.EventBus;
@@ -58,21 +68,31 @@ public class MedicationActivity extends Activity {
     private String lastReportedMedData;
     private long lastReportedTime;
 
+    private List<SubscribeDataModel> mSubscibeDataModelList;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mBackend = new Backend(this);
         mUser = mBackend.getUser();
         mJobManager = MS101.getInstance().getJobManager();
+        boolean getMainStatus = true;
         if (getIntent().getBooleanExtra(MainActivity.IS_UNLOCKED, false) || savedInstanceState != null &&
                 savedInstanceState.getBoolean(MainActivity.IS_UNLOCKED, false)) {
             mIsUnlocked = true;
         } else {
-            mUser.requestUnlockOrCreatePin();
+            //  mUser.requestUnlockOrCreatePin();
+            getMainStatus = false;
         }
-        mIsFromMain = getIntent().getBooleanExtra(MainActivity.IS_FROM_MAIN, true);
+        //   mIsFromMain = getIntent().getBooleanExtra(MainActivity.IS_FROM_MAIN, true);
+        if (getMainStatus) {
+            mIsFromMain = getIntent().getBooleanExtra(MainActivity.IS_FROM_MAIN, true);
+        } else {
+            mIsFromMain = false;
+        }
         requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
         getActionBar().setDisplayHomeAsUpEnabled(mIsFromMain);
+        loadSubscribeData();
         setContentView(R.layout.activity_medication);
         setProgressBarIndeterminateVisibility(false);
         setupUI();
@@ -131,6 +151,34 @@ public class MedicationActivity extends Activity {
     }
 
     /**
+     * Called to load subscribe data.
+     */
+    private void loadSubscribeData() {
+        //    prepareLoadLogData();
+        mJobManager.addJobInBackground(new DreamFactoryGetJob(User.SUBSCRIBE_DATA_TYPE));
+    }
+
+    /**
+     * Called when we get a response from DreamFactory after requesting some of the User's data.
+     * @param event GetDataDFEvent
+     */
+    public void onEventMainThread(GetSubscribeDFEvent event) {
+        System.out.println("Debug## :: In onEventMainThread ");
+        if (event.wasSuccess) {
+            ArrayList<SubscribeDataModel> subscribeDataModelList = (ArrayList<SubscribeDataModel>) event.response;
+            System.out.println("Debug## :: In onEventMainThread subscribe list.size() " + subscribeDataModelList.size());
+            mSubscibeDataModelList = subscribeDataModelList;
+            setupListOfMeds(subscribeDataModelList);
+        } else {
+            if (event.response instanceof DFCredentialsInvalidException) {
+                mJobManager.addJobInBackground(new DreamFactoryGetJob(User.MEDICATION_DATA_TYPE));
+            } else {
+                Util.handleGetJobFailure(this, (Exception) event.response);
+            }
+        }
+    }
+
+    /**
      * Sets up the UI, with slight differences depending on if the activity was called from the main
      * activity or a notification.
      */
@@ -149,10 +197,20 @@ public class MedicationActivity extends Activity {
         mConfirmBtn.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                sendMedData();
+                // sendMedData();
+                sendMedTakenData();
             }
         });
-        setupListOfMeds();
+        //   setupListOfMeds();
+        //   setupListOfMeds(mSubscibeDataModelList);
+
+
+        /*Util.buildInfoDialog(this, R.string.help_meds_title, R.string.help_meds_content,
+                R.string.okay);*/
+        if (!mIsFromMain) {
+            Util.buildInfoDialog(this, R.string.help_medication_title, R.string.help_medication_content,
+                    R.string.okay);
+        }
     }
 
     /**
@@ -178,6 +236,30 @@ public class MedicationActivity extends Activity {
     }
 
     /**
+     * Fills in a list of with an meds_item for each med that the user takes. Each one of
+     * those items has the med's name and a radio group so the user can indicate how many they've
+     * taken. If the user has reported things already today, fill in that data to the radio buttons.
+     */
+    private void setupListOfMeds(List<SubscribeDataModel> subscribeDataModelList) {
+        LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        mMedsList = (LinearLayout) findViewById(R.id.meds_list); // List of med_item
+        for (SubscribeDataModel subscribeDataModel : subscribeDataModelList) {
+            System.out.println("med id : " + subscribeDataModel.getMedicationId());
+            System.out.println("med name : " + subscribeDataModel.getMedicationName());
+            System.out.println("doses per day : " + subscribeDataModel.getDosesPerDay());
+            System.out.println("pills per dose : " + subscribeDataModel.getPillsPerDose());
+            LinearLayout medItem = (LinearLayout) inflater.inflate(R.layout.meds_item, null);
+            medItem.setTag(subscribeDataModel.getMedicationId()); // Set the item's tag to be the med's ID #
+            TextView label = (TextView) medItem.findViewById(R.id.med_label);
+            label.setText(subscribeDataModel.getMedicationName()); // Set the name
+            fillInMedDoses(subscribeDataModel.getMedicationId(), subscribeDataModel.getPillsPerDose(), medItem);
+            // Add the item to the list
+            mMedsList.addView(medItem,
+                    new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1));
+        }
+    }
+
+    /**
      * Check to see if there is stored dosage data for this med from today. If there is, checks the
      * appropriate radio button.
      *
@@ -186,6 +268,20 @@ public class MedicationActivity extends Activity {
      */
     private void fillInMedDoses(int medID, LinearLayout medItem) {
         int medDoses = mUser.getDosesFromToday(medID);
+        if (medDoses >= 0) {
+            RadioGroup rgMedDoses = (RadioGroup) medItem.findViewById(R.id.med_doses);
+            ((RadioButton) rgMedDoses.getChildAt(medDoses + 1)).setChecked(true);
+        }
+    }
+
+    /**
+     * Check to see if there is stored dosage data for this med from today. If there is, checks the
+     * appropriate radio button.
+     *
+     * @param medID   ID of med to check for dosage data
+     * @param medItem LinearLayout of the med item
+     */
+    private void fillInMedDoses(int medID, int medDoses, LinearLayout medItem) {
         if (medDoses >= 0) {
             RadioGroup rgMedDoses = (RadioGroup) medItem.findViewById(R.id.med_doses);
             ((RadioButton) rgMedDoses.getChildAt(medDoses + 1)).setChecked(true);
@@ -214,6 +310,35 @@ public class MedicationActivity extends Activity {
         return mBackend.encodeMedsRow(mMedIDs, mDoses);
     }
 
+    private JSONObject prepareMedTakenData() {
+        int[] mMedIDs = new int[mMedsList.getChildCount()], mDoses = new int[mMedsList.getChildCount()];
+        // Get two int arrays with med IDs and the doses of each med
+        for (int i = 0; i < mMedsList.getChildCount(); i++) {
+            mMedIDs[i] = (Integer) mMedsList.getChildAt(i).getTag();
+            LinearLayout medItem = (LinearLayout) mMedsList.getChildAt(i);
+            RadioGroup rg = (RadioGroup) medItem.findViewById(R.id.med_doses);
+            RadioButton rb = (RadioButton) rg.findViewById(rg.getCheckedRadioButtonId());
+            mDoses[i] = Integer.valueOf((String) rb.getTag());
+        }
+
+        JSONObject json = new JSONObject();
+        JSONArray jsonArray = new JSONArray();
+        for (int j = 0; j < mMedIDs.length; j++) {
+            TakenDataModel takenData = new TakenDataModel();
+            takenData.setUserId(mUser.getUserId());
+            takenData.setMedicationId(mMedIDs[j]);
+            takenData.setPillsTaken(mDoses[j]);
+            JSONObject takenJson = TakenDataModel.toJson(takenData);
+            jsonArray.put(takenJson);
+        }
+        try {
+            json.put("record", jsonArray);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return json;
+    }
+
     /**
      * Starts Jobs that send data to backends.
      */
@@ -230,6 +355,24 @@ public class MedicationActivity extends Activity {
         jobsRunning.add("DF");
         // Start the jobs
         mJobManager.addJobInBackground(new DreamFactorySendJob(User.MED, lastReportedMedData, lastReportedTime));
+    }
+
+    /**
+     * Starts Jobs that send data to backends.
+     */
+    private void sendMedTakenData() {
+        // Change UI
+        setProgressBarIndeterminateVisibility(true);
+        mConfirmBtn.setText(getString(R.string.sending));
+        mConfirmBtn.setEnabled(false);
+        mMedsList.setEnabled(false);
+        // Get data
+        JSONObject lastReportedData = prepareMedTakenData();
+        lastReportedTime = Calendar.getInstance().getTimeInMillis();
+        // Store the fact that we're running jobs
+        jobsRunning.add("DF");
+        // Start the jobs
+        mJobManager.addJobInBackground(new DreamFactorySendJob(User.TAKEN_DATA_TYPE, lastReportedData.toString(), lastReportedTime));
     }
 
     /**
@@ -288,6 +431,23 @@ public class MedicationActivity extends Activity {
      * @param event SendMedsDFEvent
      */
     public void onEventMainThread(SendMedsDFEvent event) {
+        if (event.wasSuccess) {
+            jobsRunning.remove("DF");
+            if (jobsRunning.isEmpty()) finishedSending();
+        } else {
+            if (event.response instanceof DFCredentialsInvalidException) {
+                mJobManager.addJobInBackground(new DreamFactoryLoginJob());
+            } else {
+                Util.handleSendJobFailure(this, (Exception) event.response);
+            }
+        }
+    }
+    /**
+     * Called when we finish trying to send medication data to Dreamfactory.
+     *
+     * @param event SendTakenDFEvent
+     */
+    public void onEventMainThread(SendTakenDFEvent event) {
         if (event.wasSuccess) {
             jobsRunning.remove("DF");
             if (jobsRunning.isEmpty()) finishedSending();

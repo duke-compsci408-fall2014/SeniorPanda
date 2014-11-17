@@ -13,9 +13,11 @@ import android.os.Vibrator;
 import android.support.v4.app.NotificationCompat;
 
 import com.bmh.ms101.jobs.DreamFactoryLoginJob;
+import com.bmh.ms101.models.SubscribeDataModel;
 import com.path.android.jobqueue.JobManager;
 
 import java.util.Calendar;
+import java.util.List;
 
 /**
  * Receives and handles alarm events when they fire. Also receives broadcasts from the system both
@@ -51,6 +53,9 @@ public class MS101Receiver extends BroadcastReceiver {
     private static final int REFRESH_SESSION_HOUR = 9; // 9 AM
     private static final int MEDS_NOTIF_HOUR = 18; // 6 PM
     private static final int SYMP_STRESS_NOTIF_HOUR = 12; // 12 Noon
+    private static final int MEDS_MORNING_DOSE_NOTIF_HOUR = 7; // 8AM
+    private static final int MEDS_AFTERNOON_DOSE_NOTIF_HOUR = 14; // 2PM
+    private static final int MEDS_EVENING_DOSE_NOTIF_HOUR = 21; // 9PM
     //// Tecfidera Widget alarms
     private static final int TEC_1_START_HOUR = 0;
     private static final int TEC_1_START_MIN = 5; // 12:05 AM
@@ -63,10 +68,10 @@ public class MS101Receiver extends BroadcastReceiver {
 
     // Pattern that the phone will vibrate in when the alarms go off (in milliseconds)
     private static final long[] VIBRATE_PATTERN = new long[] {0, 100, 100, 100, 100, 100, 100,
-                                                              100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100};
+            100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100};
     // The notification the symp/envir alarm triggers will have a different action based on the day
     private static final Notif[] SYMP_STRESS_SCHEDULE = {Notif.SYMP, Notif.SYMP, Notif.SYMP,
-                                                         Notif.SYMP, Notif.SYMP, Notif.SYMP, Notif.SYMP};
+            Notif.SYMP, Notif.SYMP, Notif.SYMP, Notif.SYMP};
     public static final String EXTRA_NOTIF_TYPE = "notif_type";
 
     private Backend mBackend;
@@ -195,7 +200,7 @@ public class MS101Receiver extends BroadcastReceiver {
      * @param type What notification type
      * @return Intent used to start an activity based on notification type
      */
-    
+
     private Intent sendNotification(Context context, Notif type) {
         Class<?> targetActivity = null;
         String notifTitle = null;
@@ -261,6 +266,66 @@ public class MS101Receiver extends BroadcastReceiver {
     }
 
     /**
+     * Sets specified alarms
+     * @param context Context in which the receiver is running
+     */
+    public static void createPDAlarms(Context context) {
+        // Cancel all our alarms first
+        /*cancelAlarms(context);
+        Class cls = MS101Receiver.class;
+        // Create pending intents for the alarms
+        PendingIntent cancelNotifsAlarm = createAlarmPendingIntent(context, cls, CANCEL_NOTIFS_ALARM);
+        PendingIntent refreshSessionAlarm = createAlarmPendingIntent(context, cls, REFRESH_SESSION_ALARM);
+        PendingIntent medsPIntent = createAlarmPendingIntent(context, cls, MEDS_ALARM);
+        PendingIntent sympEnvirPIntent = createAlarmPendingIntent(context, cls, SYMP_STRESS_ALARM);
+        // Set the alarms
+        setAlarm(context, cancelNotifsAlarm, CANCEL_NOTIFS_HOUR);
+        setAlarm(context, refreshSessionAlarm, REFRESH_SESSION_HOUR);
+        setAlarm(context, medsPIntent, MEDS_NOTIF_HOUR);
+        setAlarm(context, sympEnvirPIntent, SYMP_STRESS_NOTIF_HOUR);*/
+        testRepeatNotif(context);
+    }
+
+    /**
+     * Sets specified alarms
+     * @param context Context in which the receiver is running
+     */
+    public static void createPDSubscriptionAlarms(Context context, boolean oncePerDay,
+                                                  boolean twicePerDay, boolean thricePerDay) {
+        Class cls = MS101Receiver.class;
+        AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        Calendar c = Calendar.getInstance();
+        if (oncePerDay) {
+            PendingIntent medsMorningPIntent = createAlarmPendingIntent(context, cls, MEDS_ALARM);
+            c.add(Calendar.HOUR_OF_DAY, MEDS_MORNING_DOSE_NOTIF_HOUR);
+            am.setRepeating(AlarmManager.RTC_WAKEUP, c.getTimeInMillis(), (24* 60 * 60 * 60 *1000), medsMorningPIntent);
+            System.out.println("Set once a day alarm");
+        } else if (twicePerDay) {
+            PendingIntent medsMorningPIntent = createAlarmPendingIntent(context, cls, MEDS_ALARM);
+            c.add(Calendar.HOUR_OF_DAY, MEDS_MORNING_DOSE_NOTIF_HOUR);
+            am.setRepeating(AlarmManager.RTC_WAKEUP, c.getTimeInMillis(), (24* 60 * 60 * 60 *1000), medsMorningPIntent);
+
+            PendingIntent medsEveningPIntent = createAlarmPendingIntent(context, cls, MEDS_ALARM);
+            c.add(Calendar.HOUR_OF_DAY, MEDS_EVENING_DOSE_NOTIF_HOUR);
+            am.setRepeating(AlarmManager.RTC_WAKEUP, c.getTimeInMillis(), (24* 60 * 60 * 60 *1000), medsEveningPIntent);
+            System.out.println("Set twice a day alarms");
+        } else if (thricePerDay) {
+            PendingIntent medsMorningPIntent = createAlarmPendingIntent(context, cls, MEDS_ALARM);
+            c.add(Calendar.HOUR_OF_DAY, MEDS_MORNING_DOSE_NOTIF_HOUR);
+            am.setRepeating(AlarmManager.RTC_WAKEUP, c.getTimeInMillis(), (24* 60 * 60 * 60 *1000), medsMorningPIntent);
+
+            PendingIntent medsAfternoonPIntent = createAlarmPendingIntent(context, cls, MEDS_ALARM);
+            c.add(Calendar.HOUR_OF_DAY, MEDS_AFTERNOON_DOSE_NOTIF_HOUR);
+            am.setRepeating(AlarmManager.RTC_WAKEUP, c.getTimeInMillis(), (24* 60 * 60 * 60 *1000), medsMorningPIntent);
+
+            PendingIntent medsEveningPIntent = createAlarmPendingIntent(context, cls, MEDS_ALARM);
+            c.add(Calendar.HOUR_OF_DAY, MEDS_EVENING_DOSE_NOTIF_HOUR);
+            am.setRepeating(AlarmManager.RTC_WAKEUP, c.getTimeInMillis(), (24* 60 * 60 * 60 *1000), medsEveningPIntent);
+            System.out.println("Set thrice a day alarms");
+        }
+    }
+
+    /**
      * Convenience method for creating pending intents to use for setting alarms.
      * @param context Context to use
      * @param cls Class to use
@@ -310,6 +375,7 @@ public class MS101Receiver extends BroadcastReceiver {
         am.setRepeating(AlarmManager.RTC_WAKEUP, c.getTimeInMillis(), interval, pendingIntent);
     }
 
+
     /**
      * Sets a test alarm for a notif.
      * @param context Context to use
@@ -322,6 +388,18 @@ public class MS101Receiver extends BroadcastReceiver {
         // This alarm will only run once, 20 seconds after the current time
         c.add(Calendar.SECOND, 30);
         am.set(AlarmManager.RTC_WAKEUP, c.getTimeInMillis(), testPIntent);
+    }
+
+    public static void testRepeatNotif(Context context) {
+        Class cls = MS101Receiver.class;
+        //   PendingIntent testPIntent = createAlarmPendingIntent(context, cls, TEST_ALARM);
+        PendingIntent testPIntent = createAlarmPendingIntent(context, cls, MEDS_ALARM);
+        AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        Calendar c = Calendar.getInstance();
+        // This alarm will only run once, 20 seconds after the current time
+        c.add(Calendar.SECOND, 30);
+        //    am.setRepeating(AlarmManager.RTC_WAKEUP, c.getTimeInMillis(), (60 *1000)/2, testPIntent);
+        am.setRepeating(AlarmManager.RTC_WAKEUP, c.getTimeInMillis(), (60 * 60 *1000), testPIntent);
     }
 
     /**

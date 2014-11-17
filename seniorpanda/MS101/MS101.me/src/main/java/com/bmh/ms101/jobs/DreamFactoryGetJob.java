@@ -6,10 +6,10 @@ import com.bmh.ms101.Backend;
 import com.bmh.ms101.MS101;
 import com.bmh.ms101.events.GetDataDFEvent;
 import com.bmh.ms101.events.GetMedsDFEvent;
+import com.bmh.ms101.events.GetSubscribeDFEvent;
 import com.bmh.ms101.ex.DFCredentialsInvalidException;
 import com.bmh.ms101.models.BaseDataModel;
 import com.bmh.ms101.models.BaseRecordModel;
-import com.bmh.ms101.models.MedicationDataModel;
 import com.path.android.jobqueue.Job;
 import com.path.android.jobqueue.Params;
 
@@ -20,8 +20,6 @@ import java.util.List;
 import de.greenrobot.event.EventBus;
 
 import com.bmh.ms101.User;
-
-import org.json.JSONObject;
 
 /**
  * Job that handles getting data from the Dreamfactory server.
@@ -43,7 +41,7 @@ public class DreamFactoryGetJob extends Job {
         super(new Params(PRIORITY).requireNetwork().persist());
         this.from = from;
         this.to = to;
-        this.dataType = User.USER_RECORD_DATA_TYPE;
+        this.dataType = User.OLD_USER_RECORD_DATA_TYPE;
     }
 
     public DreamFactoryGetJob(int dataType) {
@@ -59,7 +57,7 @@ public class DreamFactoryGetJob extends Job {
     @Override
     public void onRun() throws Throwable {
         Backend backend = new Backend(MS101.getInstance());
-        if (dataType == User.USER_RECORD_DATA_TYPE) {
+        if (dataType == User.OLD_USER_RECORD_DATA_TYPE) {
             ArrayList<BaseRecordModel> userRecords = backend.getFromDF(from, to);
             if (userRecords != null) {
                 EventBus.getDefault().post(new GetDataDFEvent(true, userRecords));
@@ -72,6 +70,13 @@ public class DreamFactoryGetJob extends Job {
             List<BaseDataModel> data = backend.getFromDF(dataType);
             if (data != null) {
                 EventBus.getDefault().post(new GetMedsDFEvent(true, data));
+            } else {
+                throw new DFCredentialsInvalidException();
+            }
+        } else if (dataType == User.SUBSCRIBE_DATA_TYPE) {
+            List<BaseDataModel> data = backend.getFromDF(dataType);
+            if (data != null) {
+                EventBus.getDefault().post(new GetSubscribeDFEvent(true, data));
             } else {
                 throw new DFCredentialsInvalidException();
             }

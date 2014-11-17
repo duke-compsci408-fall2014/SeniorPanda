@@ -7,7 +7,9 @@ import com.bmh.ms101.MS101;
 import com.bmh.ms101.User;
 import com.bmh.ms101.events.SendMedsDFEvent;
 import com.bmh.ms101.events.SendStressDFEvent;
+import com.bmh.ms101.events.SendSubscribeDFEvent;
 import com.bmh.ms101.events.SendSympDFEvent;
+import com.bmh.ms101.events.SendTakenDFEvent;
 import com.path.android.jobqueue.Job;
 import com.path.android.jobqueue.Params;
 
@@ -55,6 +57,12 @@ public class DreamFactorySendJob extends Job {
             case User.STRESS:
                 EventBus.getDefault().post(new SendStressDFEvent(true, ""));
                 break;
+            case User.TAKEN_DATA_TYPE:
+                EventBus.getDefault().post(new SendTakenDFEvent(true, ""));
+                break;
+            case User.SUBSCRIBE_DATA_TYPE:
+                EventBus.getDefault().post(new SendSubscribeDFEvent(true, ""));
+                break;
             default:
                 break;
         }
@@ -79,6 +87,12 @@ public class DreamFactorySendJob extends Job {
                     break;
                 case User.STRESS:
                     EventBus.getDefault().post(new SendStressDFEvent(false, e));
+                    break;
+                case User.TAKEN_DATA_TYPE:
+                    EventBus.getDefault().post(new SendTakenDFEvent(false, e));
+                    break;
+                case User.SUBSCRIBE_DATA_TYPE:
+                    EventBus.getDefault().post(new SendSubscribeDFEvent(true, ""));
                     break;
                 default:
                     break;

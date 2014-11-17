@@ -160,6 +160,12 @@
         \n
         \nFill in NS if you aren\'t scheduled or if you don\'t need the medication today.\n
         \nFill in 0 if you\'ve missed all doses for today.</string>
+    <string name="help_medication_title">Dosage Reminder</string>
+    <string name="help_medication_content">To report the doses of medication you\'ve taken during the day,
+        simply fill in the bubble of how many doses of each medication you\'ve taken today.
+        \n
+        \nFill in NS if you aren\'t scheduled or if you don\'t need the medication today.\n
+        \nFill in 0 if you\'ve missed all doses for today.</string>
     <string name="help_symptom_scales_title">Symptom Scales</string>
     <string name="help_stress_factor_scales_title">Stress Factor Scales</string>
     <string name="help_symptom_scales_content">ADL: Activities of daily living (Dressing, showering, cooking, eating)

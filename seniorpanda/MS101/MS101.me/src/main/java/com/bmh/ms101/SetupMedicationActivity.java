@@ -1,6 +1,8 @@
 package com.bmh.ms101;
 
 import android.app.Activity;
+import android.app.NotificationManager;
+import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
 import android.util.SparseBooleanArray;
@@ -10,23 +12,38 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 
 import com.bmh.ms101.events.DFLoginResponseEvent;
 import com.bmh.ms101.events.GetMedsDFEvent;
+import com.bmh.ms101.events.SendMedsDFEvent;
+import com.bmh.ms101.events.SendSubscribeDFEvent;
 import com.bmh.ms101.ex.DFCredentialsInvalidException;
 import com.bmh.ms101.jobs.DreamFactoryGetJob;
 import com.bmh.ms101.jobs.DreamFactoryLoginJob;
+import com.bmh.ms101.jobs.DreamFactorySendJob;
 import com.bmh.ms101.models.BaseRecordModel;
 import com.bmh.ms101.models.MedRecordModel;
 import com.bmh.ms101.models.MedicationDataModel;
 import com.bmh.ms101.models.StressFactorRecordModel;
+import com.bmh.ms101.models.SubscribeDataModel;
 import com.bmh.ms101.models.SymptomRecordModel;
+import com.bmh.ms101.models.TakenDataModel;
 import com.path.android.jobqueue.JobManager;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.List;
 
@@ -53,6 +70,13 @@ public class SetupMedicationActivity extends Activity {
     private Set<String> mCurrentMedIds;
 
     private List<MedicationDataModel> mMedsDataList;
+    private List<Integer> mCurrentSubscribedMedIds;
+    private long lastReportedTime;
+    private ArrayList<String> jobsRunning = new ArrayList<>();
+    Map<Integer, SubscribeDataModel> oldSubscriptionsMap = new HashMap<Integer, SubscribeDataModel>();
+    List<SubscribeDataModel> updatedSubscriptions = new ArrayList<SubscribeDataModel>();
+
+    Button next;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,11 +85,12 @@ public class SetupMedicationActivity extends Activity {
         mJobManager = MS101.getInstance().getJobManager();
         // Get the user and their current meds
         mUser = new User(this);
+        mCurrentSubscribedMedIds = new ArrayList<Integer>();
         mCurrentMedIds = mUser.getMedsIds();
         // Show the Up button in the action bar if not in tutorial.
         mIsInitialSetup = getIntent().getBooleanExtra(MainActivity.IS_INITIAL_SETUP, false);
         setupActionBar();
-      //  setupList();
+        //  setupList();
         loadMedData();
         setupButton();
     }
@@ -91,16 +116,37 @@ public class SetupMedicationActivity extends Activity {
         if (event.wasSuccess) {
             ArrayList<MedicationDataModel> medicationDataModel = (ArrayList<MedicationDataModel>) event.response;
             System.out.println("Debug## :: In onEventMainThread list.size() " + medicationDataModel.size());
-         //   populateMedsDF(medicationDataModel);
+            //   populateMedsDF(medicationDataModel);
 
             setupList(medicationDataModel);
-          //  afterLoadLogData(true);
+            //afterLoadLogData(true);
         } else {
             if (event.response instanceof DFCredentialsInvalidException) {
                 mJobManager.addJobInBackground(new DreamFactoryGetJob(User.MEDICATION_DATA_TYPE));
             } else {
                 Util.handleGetJobFailure(this, (Exception) event.response);
-              //  afterLoadLogData(false);
+                //    afterLoadLogData(false);
+            }
+        }
+    }
+
+    /**
+     * Called when we finish trying to send medication data to Dreamfactory.
+     *
+     * @param event SendMedsDFEvent
+     */
+    public void onEventMainThread(SendSubscribeDFEvent event) {
+        if (event.wasSuccess) {
+            //       List<SubscribeDataModel> subscriptions =  (ArrayList<SubscribeDataModel>)event.response;
+            //        mUser.setSubscriptions(subscriptions);
+            //        mUser.setSubscriptionAlarms();
+            jobsRunning.remove("SUBSCRIBE_SEND_DF");
+            if (jobsRunning.isEmpty()) finishedSending();
+        } else {
+            if (event.response instanceof DFCredentialsInvalidException) {
+                mJobManager.addJobInBackground(new DreamFactoryLoginJob());
+            } else {
+                Util.handleSendJobFailure(this, (Exception) event.response);
             }
         }
     }
@@ -121,7 +167,7 @@ public class SetupMedicationActivity extends Activity {
                 case "Server Problems":
                 case "Cancelled":
                     mBackend.destroyDF();
-                  //  afterLoadLogData(false);
+                    //  afterLoadLogData(false);
                     break;
                 case "Success":
                 case "Already Logged In":
@@ -139,15 +185,15 @@ public class SetupMedicationActivity extends Activity {
      * Called to load log data.
      */
     private void loadMedData() {
-    //    prepareLoadLogData();
+        //    prepareLoadLogData();
         mJobManager.addJobInBackground(new DreamFactoryGetJob(User.MEDICATION_DATA_TYPE));
     }
 
     /**
      * Changes UI based on if we successfully loaded the Log data or not.
      * @param wasSuccess True on success
-     *//*
-    private void afterLoadLogData(boolean wasSuccess) {
+     */
+/*    private void afterLoadLogData(boolean wasSuccess) {
         mLoading.setVisibility(View.GONE);
         if (wasSuccess) {
             mListContainer.setVisibility(View.VISIBLE);
@@ -234,36 +280,43 @@ public class SetupMedicationActivity extends Activity {
         mAdapter.notifyDataSetChanged();
     }*/
 
-    /**
-     * Populates the listview with all of the meds that are available. Pulls list from a string
-     * array in the strings.xml file. Each entry in that array has the format:
-     * "[ID#]:[Name]"
-     */
+
     private void setupList(ArrayList<MedicationDataModel> medicationDataList) {
         System.out.println("Debug## :: In setupList size() " + medicationDataList.size());
         mMedsDataList = medicationDataList;
         mMedsNames = new String[medicationDataList.size()];
         mMedicationIds = new int[medicationDataList.size()];
 
+        // Populate adapter.
+        //    boolean[] addedMedsIds = new boolean[mMeds.length];
+        boolean[] addedMedsIds = new boolean[mMedsNames.length];
         for (int i = 0; i < medicationDataList.size(); i++) {
             mMedsNames[i] = medicationDataList.get(i).getName();
             mMedicationIds[i] = medicationDataList.get(i).getId();
             System.out.println("Debug## :: " + mMedsNames[i] +  " ::: " + mMedicationIds[i]);
+            List<SubscribeDataModel> subscriptions =  medicationDataList.get(i).getSubscriptions();
+            for (int j = 0; j < subscriptions.size(); j++) {
+                if (mUser.getUserId() == subscriptions.get(j).getUserId()) {
+                    mCurrentSubscribedMedIds.add(subscriptions.get(j).getMedicationId());
+                    oldSubscriptionsMap.put(subscriptions.get(j).getId(), subscriptions.get(j));
+                    addedMedsIds[i] = true;
+                    break;
+                }
+            }
         }
-       
+
         // Get complete list.
         mMedsListView = (ListView) findViewById(R.id.listMeds);
         mMeds = getResources().getStringArray(R.array.medications);
-        // Populate adapter.
-        boolean[] addedMedsIds = new boolean[mMeds.length];
+
 
         // Set the listview to use the med names array
         mMedsListView.setAdapter(new ArrayAdapter<>(this,
                 android.R.layout.simple_list_item_multiple_choice, mMedsNames));
         // Check the checkboxes of the already added meds.
-       /* for (int j = 0; j < addedMedsIds.length; j++) {
+        for (int j = 0; j < addedMedsIds.length; j++) {
             mMedsListView.setItemChecked(j, addedMedsIds[j]);
-        }*/
+        }
     }
 
     /**
@@ -300,7 +353,7 @@ public class SetupMedicationActivity extends Activity {
      * Sets up the Next button so that it gets the checked medications
      */
     private void setupButton() {
-        Button next = (Button) findViewById(R.id.nextButton);
+        next = (Button) findViewById(R.id.nextButton);
         Util.makeGreen(next, this);
         next.setOnClickListener(new OnClickListener() {
             @Override
@@ -318,16 +371,17 @@ public class SetupMedicationActivity extends Activity {
                     }
                 }
                 // Ensure at least one drug is selected.
-                if (selectedItems.size() > 0) {
+                if (selectedIds.size() > 0) {
                     // Save to sharedPrefs only meds were changed from before.
-                    if (!mCurrentMedIds.equals(selectedIds)) {
-                        mUser.recordAddedMeds(selectedItems);
-                        if (!mIsInitialSetup) {
-                            Util.toast(SetupMedicationActivity.this, R.string.toast_changes_saved);
-                        }
-                    }
-                    setResult(RESULT_OK);
-                    finish();
+                    //    if (!mCurrentMedIds.equals(selectedIds)) {
+                    sendMedSubscriptionData(selectedIds);
+                    mUser.recordAddedMedications(mMedsDataList, selectedIds);
+                    //   if (!mIsInitialSetup) {
+                    Util.toast(SetupMedicationActivity.this, R.string.toast_changes_saved);
+                    //  }
+                    //      }
+                    //   setResult(RESULT_OK);
+                    //   finish();
                 } else {
                     Util.toast(ctx, R.string.toast_must_select_med);
                 }
@@ -353,11 +407,111 @@ public class SetupMedicationActivity extends Activity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-        case android.R.id.home:
-            NavUtils.navigateUpFromSameTask(this);
-            return true;
+            case android.R.id.home:
+                NavUtils.navigateUpFromSameTask(this);
+                return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private JSONObject prepareMedSubscriptionData(Set<Integer> selectedIds) {
+        for (Integer selectedKey : selectedIds)  {
+            System.out.println("selectedId : " + selectedKey);
+        }
+        Set<Integer> deletedSubscribeIds = new HashSet<Integer>();
+        Set<Integer> unchangedSubscribeIds = new HashSet<Integer>();
+        Set<Integer> addedMedIds = new HashSet<Integer>();
+        Set<Integer> unchangedMedIds = new HashSet<Integer>();
+        Set<Integer> deletedMedIds = new HashSet<Integer>();
+
+        Set<Integer> oldSubscribeKeys = oldSubscriptionsMap.keySet();
+
+        for (Integer key : oldSubscribeKeys) {
+            System.out.println("oldSubscribeKey : " + key);
+            Integer medId = oldSubscriptionsMap.get(key).getMedicationId();
+            System.out.println("oldSubscribeKey medId : " + medId);
+            if (!selectedIds.contains(medId)) {
+                deletedSubscribeIds.add(key);
+                deletedMedIds.add(medId);
+                System.out.println("-- deleted medId : " + medId);
+            } else {
+                unchangedSubscribeIds.add(key);
+                unchangedMedIds.add(medId);
+                System.out.println("-- unchanged medId : " + medId);
+            }
+        }
+
+        for (Integer selectedKey : selectedIds)  {
+            if (!deletedMedIds.contains(selectedKey) && !unchangedMedIds.contains(selectedKey)) {
+                addedMedIds.add(selectedKey);
+                System.out.println("-- added medId : " + selectedKey);
+            }
+        }
+        JSONObject updatedJson = new JSONObject();
+        JSONObject userJson = new JSONObject();
+        JSONObject json = new JSONObject();
+        JSONArray jsonArray = new JSONArray();
+        for (Integer medId : addedMedIds) {
+            SubscribeDataModel subscribeData = new SubscribeDataModel();
+            subscribeData.setUserId(mUser.getUserId());
+            subscribeData.setMedicationId(medId);
+            JSONObject subscribeJson = SubscribeDataModel.toJson(subscribeData);
+            jsonArray.put(subscribeJson);
+        }
+        for (Integer id : deletedSubscribeIds) {
+            SubscribeDataModel subscribeData = new SubscribeDataModel();
+            subscribeData.setId(id);
+            subscribeData.setUserId(0);
+            subscribeData.setMedicationId(0);
+            JSONObject subscribeJson = SubscribeDataModel.toJson(subscribeData);
+            jsonArray.put(subscribeJson);
+        }
+        try {
+            userJson.put("id", mUser.getUserId());
+            userJson.put("subscribes_by_uid", jsonArray);
+            JSONArray userJsonArray = new JSONArray();
+            userJsonArray.put(userJson);
+            updatedJson.put("record", userJsonArray);
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        System.out.println("UpdatedJson :: " + updatedJson);
+        return updatedJson;
+    }
+
+    /**
+     * Starts Jobs that send data to backends.
+     */
+    private void sendMedSubscriptionData(Set<Integer> selectedIds) {
+        // Change UI
+        setProgressBarIndeterminateVisibility(true);
+        next.setText(getString(R.string.sending));
+        next.setEnabled(false);
+        //    mMedsList.setEnabled(false);
+        // Get data
+        JSONObject lastReportedData = prepareMedSubscriptionData(selectedIds);
+        lastReportedTime = Calendar.getInstance().getTimeInMillis();
+        // Store the fact that we're running jobs
+        jobsRunning.add("SUBSCRIBE_SEND_DF");
+        // Start the jobs
+        mJobManager.addJobInBackground(new DreamFactorySendJob(User.SUBSCRIBE_DATA_TYPE, lastReportedData.toString(), lastReportedTime));
+    }
+
+    private void finishedSending() {
+        // Change UI
+        setProgressBarIndeterminateVisibility(false);
+        next.setText(getString(R.string.send));
+        next.setEnabled(true);
+        //   mMedsList.setEnabled(true);
+        // Toast
+        Util.toast(SetupMedicationActivity.this, R.string.toast_changes_saved);
+        setResult(RESULT_OK);
+        finish();
+       /* // Dismiss notification if needed then finish
+        NotificationManager notifManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        notifManager.cancel(MS101Receiver.Notif.MEDS.ordinal());
+        finish();*/
     }
 
 }

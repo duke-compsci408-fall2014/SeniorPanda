@@ -17,8 +17,10 @@ import com.bmh.ms101.models.LoginModel;
 import com.bmh.ms101.models.MedRecordModel;
 import com.bmh.ms101.models.MedicationDataModel;
 import com.bmh.ms101.models.StressFactorRecordModel;
+import com.bmh.ms101.models.SubscribeDataModel;
 import com.bmh.ms101.models.SymptomRecordModel;
 import com.bmh.ms101.models.SymptomDataModel;
+import com.bmh.ms101.models.UserDataModel;
 
 import org.droidparts.net.http.HTTPException;
 import org.droidparts.net.http.HTTPResponse;
@@ -78,6 +80,9 @@ public class Backend {
     public static final String DF_LATEST_DATA_TABLE = "ms_latest_data";
     public static final String DF_GET_DATA_SUFFIX = DF_DB_SUFIX + "/%s?filter=uid%%3D\"%s\"%%20AND%%20date_created%%20BETWEEN%%20\"%s%%2000%%3A00%%3A00\"%%20AND%%20\"%s%%2023%%3A59%%3A59\"&order=date_created%%20DESC&fields=*";
     public static final String DF_POST_DATA_SUFIX = DF_DB_SUFIX + "/%s?fields=*";
+    public static final String DF_PUT_DATA_SUFIX = DF_DB_SUFIX + "/%s?fields=*&related=subscribes_by_uid,medications_by_subscribe";
+    public static final String DF_RELATED_MED_BY_SUBSCIBE = "medications_by_subscribe";
+    public static final String DF_RELATED_SUBSCRIBE_BY_UID = "subscribes_by_uid";
     public static final String VER_MED = "MS101:med:1";
     public static final String VER_SYMP = "MS101:symp:1";
     public static final String VER_STRESS = "MS101:env:1";
@@ -233,14 +238,36 @@ public class Backend {
         switch (dataType) {
             case User.MEDICATION_DATA_TYPE:
                 data = new ArrayList<BaseDataModel>();
-                String getURL = DF_URL + DF_DB_SUFIX + "/" + DF_MEDICATION_TABLE;
-                System.out.println("getURL :: " + getURL);
-                JSONArray dataObjectsJson = mDFRestClient.getJSONObject(getURL).getJSONArray("record");
-                System.out.println("medication dataObjects :: " + dataObjectsJson);
-                for (int i = 0; i < dataObjectsJson.length(); i++) {
-                    JSONObject json = dataObjectsJson.getJSONObject(i);
-                    MedicationDataModel dataObject = MedicationDataModel.fromJson(json);
-                    data.add(dataObject);
+                String getMedsURL = DF_URL + DF_DB_SUFIX + "/" + DF_MEDICATION_TABLE + "?related=*";
+                System.out.println("getURL :: " + getMedsURL);
+                JSONArray medsDataObjectsJson = mDFRestClient.getJSONObject(getMedsURL).getJSONArray("record");
+                System.out.println("medication dataObjects :: " + medsDataObjectsJson);
+                for (int i = 0; i < medsDataObjectsJson.length(); i++) {
+                    JSONObject json = medsDataObjectsJson.getJSONObject(i);
+                    MedicationDataModel medsDataObject = MedicationDataModel.fromJson(json);
+                    data.add(medsDataObject);
+                }
+                break;
+            case User.SUBSCRIBE_DATA_TYPE:
+                data = new ArrayList<BaseDataModel>();
+
+                String getSubscribeURL = DF_URL + DF_DB_SUFIX + "/" + DF_USER_TABLE + "?related="
+                        + DF_RELATED_SUBSCRIBE_BY_UID + "," + DF_RELATED_MED_BY_SUBSCIBE;
+                System.out.println("getURL :: " + getSubscribeURL);
+                JSONArray userDataObjectsJson = mDFRestClient.getJSONObject(getSubscribeURL).getJSONArray("record");
+                JSONObject userDataObjectJson = null;
+                for (int i = 0; i < userDataObjectsJson.length(); i++) {
+                    JSONObject json = userDataObjectsJson.getJSONObject(i);
+                    int id = json.getInt("id");
+                    if (id == mUser.getUserId()) {
+                        userDataObjectJson = json;
+                        break;
+                    }
+                }
+                UserDataModel userDataModel = new UserDataModel(userDataObjectJson);
+                List<SubscribeDataModel> subscribeData = userDataModel.getSubscriptionData();
+                for (int i = 0; i < subscribeData.size(); i++) {
+                    data.add(subscribeData.get(i));
                 }
                 break;
         }
@@ -360,7 +387,32 @@ public class Backend {
                     recordToCreate = json;
 */
                     recordToCreate = new JSONObject(data);
-                  //  recordToCreate = new JSONSerializer<>(SymptomRecordModel.class, mCtx).serialize(symptomRecordRequest);
+                    //  recordToCreate = new JSONSerializer<>(SymptomRecordModel.class, mCtx).serialize(symptomRecordRequest);
+                    break;
+                case User.TAKEN_DATA_TYPE:
+                    postURL += String.format(DF_POST_DATA_SUFIX, DF_TAKEN_TABLE);
+
+                    /*SymptomDataModel symptomDataModel = new SymptomDataModel();
+
+                    JSONObject json = symptomDataModel.getJsonData(SymptomDataModel.SYMPTOM_TYPE_RIGIDITY,
+                                                       "right foot", "55", 1, time);
+                    recordToCreate = json;
+*/
+                    recordToCreate = new JSONObject(data);
+                    //  recordToCreate = new JSONSerializer<>(SymptomRecordModel.class, mCtx).serialize(symptomRecordRequest);
+                    break;
+                case User.SUBSCRIBE_DATA_TYPE:
+                    postURL += String.format(DF_PUT_DATA_SUFIX, DF_USER_TABLE);
+
+                    /*SymptomDataModel symptomDataModel = new SymptomDataModel();
+
+                    JSONObject json = symptomDataModel.getJsonData(SymptomDataModel.SYMPTOM_TYPE_RIGIDITY,
+                                                       "right foot", "55", 1, time);
+                    recordToCreate = json;
+*/
+                    recordToCreate = new JSONObject(data);
+                    //  recordToCreate = new JSONSerializer<>(SymptomRecordModel.class, mCtx).serialize(symptomRecordRequest);
+                    System.out.println("Subscribe send json : " + recordToCreate);
                     break;
             }
         } catch (Exception e) {
@@ -372,7 +424,14 @@ public class Backend {
                 e.printStackTrace();
             }
         }
-        mDFRestClient.post(postURL, recordToCreate);
+        System.out.println("Calling server");
+        if (type ==  User.SUBSCRIBE_DATA_TYPE) {
+            System.out.println("calling put");
+            mDFRestClient.put(postURL, recordToCreate);
+        } else {
+            System.out.println("post");
+            mDFRestClient.post(postURL, recordToCreate);
+        }
     }
 
     /**

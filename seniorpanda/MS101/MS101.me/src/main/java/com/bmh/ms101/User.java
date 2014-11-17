@@ -10,12 +10,15 @@ import android.content.SharedPreferences;
 
 import com.bmh.ms101.ex.DFNotAddedException;
 import com.bmh.ms101.ex.UserMedsNotAddedException;
+import com.bmh.ms101.models.MedicationDataModel;
+import com.bmh.ms101.models.SubscribeDataModel;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -34,7 +37,10 @@ public class User {
     public static final int SYMP_DATA_TYPE = 11;
 
     public static final int MEDICATION_DATA_TYPE = 12;
-    public static final int USER_RECORD_DATA_TYPE = 13;
+    public static final int OLD_USER_RECORD_DATA_TYPE = 13;
+
+    public static final int SUBSCRIBE_DATA_TYPE = 14;
+    public static final int TAKEN_DATA_TYPE = 15;
 
     // Key strings to get values from the pref file
     private static final String PREF_MEDS = "key_meds";
@@ -53,11 +59,18 @@ public class User {
 
     private static final String SECRET_KEY = "ms101BAMBOOmobileHealth@ms101.me";
 
+    ///
+    private static final String PREF_SETUP_MEDS = "key_setup_meds";
+
     // Corresponds to the proper indexes of the meds in the strings.xml file. Sorted by ID #.
     public static String[] MED_NAMES = null;
     private static ArrayList<String> mDevList = new ArrayList<>();
     private final Context mCtx;
     private PrefsUtil mPrefsUtil;
+    private List<SubscribeDataModel> mSubscriptions;
+
+    // TODO - populate userId from user info
+    private int userId = 1;
 
     /**
      * Create new User object using the given context
@@ -104,7 +117,8 @@ public class User {
      * @throws UserMedsNotAddedException If the user has no meds set up
      */
     void ensureMedsAdded() throws UserMedsNotAddedException {
-        if (mPrefsUtil.getPrefStringSet(PREF_MEDS, null) == null) throw new UserMedsNotAddedException();
+        //    if (mPrefsUtil.getPrefStringSet(PREF_MEDS, null) == null) throw new UserMedsNotAddedException();
+        if (mPrefsUtil.getPrefBoolean(PREF_SETUP_MEDS, false) == false) throw new UserMedsNotAddedException();
     }
 
     /**
@@ -150,6 +164,33 @@ public class User {
         mPrefsUtil.getPrefs().edit().putStringSet(PREF_MEDS, selectedMeds).commit();
         checkForSpecialMeds();
         MS101Receiver.createAlarms(mCtx);
+    }
+
+
+    public void recordAddedMedications(List<MedicationDataModel> medications, Set<Integer> selectedMedIds) {
+        //   mPrefsUtil.getPrefs().edit().putStringSet(PREF_MEDS, selectedMeds).commit();
+        mPrefsUtil.getPrefs().edit().putBoolean(PREF_SETUP_MEDS, true).commit();
+        //   checkForSpecialMeds();
+        // update subscribe table
+        // setup notifications
+        //   MS101Receiver.createPDAlarms(mCtx);
+    }
+
+    public void setSubscriptionAlarms() {
+        boolean oncePerDay = false;
+        boolean twicePerDay = false;
+        boolean thricePerDay = false;
+        for (int i = 0; i < mSubscriptions.size(); i++) {
+            int dosesPerDay = mSubscriptions.get(i).getDosesPerDay();
+            if (dosesPerDay == 1) {
+                oncePerDay = true;
+            } else if (dosesPerDay == 2) {
+                twicePerDay = true;
+            } else if (dosesPerDay == 3) {
+                thricePerDay = true;
+            }
+        }
+        MS101Receiver.createPDSubscriptionAlarms(mCtx, oncePerDay, twicePerDay, thricePerDay);
     }
 
     /**
@@ -455,5 +496,22 @@ public class User {
      */
     public boolean isDev() {
         return mDevList.contains(getAccountName());
+    }
+
+    public int getUserId() {
+        return userId;
+    }
+
+    public void setUserId(int userId) {
+        this.userId = userId;
+    }
+
+    public List<SubscribeDataModel> getSubscriptions() {
+        return mSubscriptions;
+    }
+
+    public void setSubscriptions(List<SubscribeDataModel> mSubscriptions) {
+        System.out.println("Setting subscriptions");
+        this.mSubscriptions = mSubscriptions;
     }
 }

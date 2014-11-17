@@ -17,20 +17,20 @@
         android:adjustViewBounds="true"
         android:src="@drawable/faces" />
 
+    <!--LinearLayout
+        android:id="@+id/items"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_below="@+id/pain_scale"
+        android:orientation="vertical" /-->
+
     <LinearLayout
         android:id="@+id/items"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_above="@+id/sendButton"
         android:layout_below="@+id/pain_scale"
-        android:orientation="vertical" >
+        android:orientation="vertical"
+        android:layout_alignParentBottom="true">
     </LinearLayout>
-
-    <Button
-        android:id="@+id/sendButton"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:text="@string/send" />
 
 </RelativeLayout>
