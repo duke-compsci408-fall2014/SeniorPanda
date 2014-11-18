@@ -7,17 +7,15 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.support.v4.content.LocalBroadcastManager;
 
-import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.auth.CognitoCachingCredentialsProvider;
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.DeleteObjectRequest;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
-import com.amazonaws.auth.CognitoCachingCredentialsProvider;
-import com.amazonaws.regions.Regions;
 import com.amazonaws.util.IOUtils;
 import com.bmh.ms101.Constants;
-import com.bmh.ms101.PhotoFlipping.SlideShowActivity;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -82,6 +80,7 @@ public class S3PhotoIntentService extends IntentService {
     public S3PhotoIntentService() {
         super("S3FetchPhotoJob");
     }
+
     /**
      * Starts this service to perform action X with the given parameters.
      * If the service is already performing a task this action will be queued:

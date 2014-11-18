@@ -1,8 +1,10 @@
 package com.bmh.ms101.PhotoFlipping;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
@@ -11,24 +13,24 @@ import android.graphics.Bitmap;
 import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v4.app.NavUtils;
 import android.support.v4.content.LocalBroadcastManager;
+import android.text.InputType;
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.ViewFlipper;
 
@@ -47,12 +49,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import com.amazonaws.auth.CognitoCachingCredentialsProvider;
-import com.amazonaws.regions.Regions;
-
 public class SlideShowActivity extends Activity implements OnClickListener {
 
-    private static final Integer FLIP_INTERVAL = 50000;
+    private static final Integer FLIP_INTERVAL = 20000;
     private static final Integer SELECT_PHOTO_FROM_GALLERY_REQUEST = 100;
     private static final Integer DELETE_PHOTO_REQUEST = 101;
     private static final Integer TAKE_PHOTO_REQUEST = 102;
@@ -60,29 +59,15 @@ public class SlideShowActivity extends Activity implements OnClickListener {
     private static final int SWIPE_THRESHOLD_VELOCITY = 200;
 
     private ViewFlipper myFlipper;
-    private Button myPreviousButton;
-    private Button myNextButton;
-    private Button myStartButton;
-    private Button myPauseButton;
-    private Button myDeleteButton;
     private TextView myDateTime;
     private Thread myDateTimeThread;
     private ResponseReceiver myResponseReceiver;
-    private final GestureDetector myTouchDetector = new GestureDetector(new SwipeGestureDetector());
-
+    private GestureDetector myTouchDetector;
     private Set<String> visitedBitMaps;
-    private boolean myFullScreen;
-
     private Animation slide_in_left, slide_in_right, slide_out_left, slide_out_right;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        getWindow().setFlags(
-                WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
-                        | WindowManager.LayoutParams.FLAG_LAYOUT_INSET_DECOR,
-                WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
-                        | WindowManager.LayoutParams.FLAG_LAYOUT_INSET_DECOR);
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_slide_show);
         myFlipper = (ViewFlipper) findViewById(R.id.photoFlipper);
@@ -94,27 +79,14 @@ public class SlideShowActivity extends Activity implements OnClickListener {
             }
         });
 
-        myPreviousButton = (Button) findViewById(R.id.previousSlideButton);
-        Util.makeGreen(myPreviousButton, this);
-        myNextButton = (Button) findViewById(R.id.nextSlideButton);
-        Util.makeGreen(myNextButton, this);
-        myStartButton = (Button) findViewById(R.id.startSlideButton);
-        Util.makeGreen(myStartButton, this);
-        myPauseButton = (Button) findViewById(R.id.pauseSlideButton);
-        Util.makeGreen(myPauseButton, this);
-        myDeleteButton = (Button) findViewById(R.id.deletePhotoButton);
-        Util.makeGreen(myDeleteButton, this);
+        initButton(R.id.previousSlideButton);
+        initButton(R.id.nextSlideButton);
+        initButton(R.id.startSlideButton);
+        initButton(R.id.pauseSlideButton);
+        initButton(R.id.deletePhotoButton);
 
         visitedBitMaps = new HashSet<>();
-        myFullScreen = false;
-        setUpDateTimeTextView();
         S3PhotoIntentService.startActionFetchS3(this, null, null);
-
-        myPauseButton.setOnClickListener(this);
-        myNextButton.setOnClickListener(this);
-        myStartButton.setOnClickListener(this);
-        myPauseButton.setOnClickListener(this);
-        myDeleteButton.setOnClickListener(this);
 
         slide_in_left = AnimationUtils.loadAnimation(this, R.anim.slide_in_left);
         slide_in_right = AnimationUtils.loadAnimation(this, R.anim.silde_in_right);
@@ -125,6 +97,20 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         statusIntentFilter.addCategory(Intent.CATEGORY_DEFAULT);
         myResponseReceiver = new ResponseReceiver();
         LocalBroadcastManager.getInstance(this).registerReceiver(myResponseReceiver, statusIntentFilter);
+        myTouchDetector = new GestureDetector(myFlipper.getContext(), new SwipeGestureDetector());
+
+        //set up the date time text views
+        myDateTime = (TextView) findViewById(R.id.slide_show_display_date);
+        myDateTime.setTextColor(getResources().getColor(R.color.app_green));
+        myDateTime.setTypeface(Typeface.DEFAULT_BOLD);
+        myDateTimeThread = new Thread(new DateTimeRunner());
+        myDateTimeThread.start();
+    }
+
+    private void initButton(int resId) {
+        Button button = (Button) findViewById(resId);
+        Util.makeGreen(button, this);
+        button.setOnClickListener(this);
     }
 
     @Override
@@ -133,16 +119,8 @@ public class SlideShowActivity extends Activity implements OnClickListener {
             LocalBroadcastManager.getInstance(this).unregisterReceiver(myResponseReceiver);
             myResponseReceiver = null;
         }
-        myDateTimeThread.interrupt();
+        //TODO: destroy threads
         super.onDestroy();
-    }
-
-    private void setUpDateTimeTextView() {
-        myDateTime = (TextView) findViewById(R.id.slide_show_display_date);
-        myDateTime.setTextColor(getResources().getColor(R.color.app_green));
-        myDateTime.setTypeface(Typeface.DEFAULT_BOLD);
-        myDateTimeThread = new Thread(new DateTimeRunner());
-        myDateTimeThread.start();
     }
 
     public void addPhoto(Bitmap bitmap) {
@@ -153,8 +131,20 @@ public class SlideShowActivity extends Activity implements OnClickListener {
 
     private void dispatchTakePhotoIntent() {
         if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA)) {
-            NoCameraDialogFragment noCameraDialog = new NoCameraDialogFragment();
-            noCameraDialog.show(getFragmentManager(), "no_camera_dialog");
+            Log.w("PhotoShowActivity", "The current app has no camera");
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("Alert");
+            final EditText input = new EditText(this);
+            input.setInputType(InputType.TYPE_CLASS_TEXT);
+            input.setText(R.string.no_camera_message);
+            builder.setView(input);
+            builder.setPositiveButton("Okay", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.cancel();
+                }
+            });
+            builder.show();
             return;
         }
         Intent takePhotoIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
@@ -178,12 +168,18 @@ public class SlideShowActivity extends Activity implements OnClickListener {
             }
         }
     }
-
-    @Override
-    protected void onStop() {
-        myDateTimeThread.interrupt();
-        super.onStop();
-    }
+//    @Override
+//    protected void onStop() {
+//        myDateTimeThread.interrupt();
+//        super.onStop();
+//    }
+//
+//    @Override
+//    protected void onResume() {
+//        myDateTimeThread = new Thread(new DateTimeRunner());
+//        myDateTimeThread.start();
+//        super.onResume();
+//    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -197,7 +193,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         switch (item.getItemId()) {
             case R.id.take_photo:
                 dispatchTakePhotoIntent();
-                break;
+                return true;
             case R.id.upload_photo:
                 uploadPhotoFromGallery();
                 return true;
@@ -208,23 +204,33 @@ public class SlideShowActivity extends Activity implements OnClickListener {
             case android.R.id.home:
                 NavUtils.navigateUpFromSameTask(this);
                 return true;
+            case R.id.change_city:
+                showInputDialog();
+                return true;
         }
         return super.onOptionsItemSelected(item);
     }
 
-    private Bitmap resizeBitmap(Bitmap bitmap) {
-        double width = bitmap.getWidth();
-        double height = bitmap.getHeight();
-        System.out.println("width: " + width + " height: " + height);//TODO: delete
-        LinearLayout panel = (LinearLayout) findViewById(R.id.slide_show_panel);
-//        panel.getViewTreeObserver()
-        double ratio = Math.min(panel.getWidth() / width, panel.getHeight() / height);
-        int newWidth = (int) (ratio * width);
-        int newHeight = (int) (ratio * height);
-        System.out.println("panel width: " + panel.getWidth() + " height: " + panel.getHeight());//TODO: delete
-        System.out.println("ratio: " + ratio + " newWidth: " + newWidth + " newHeight: " + newHeight);//TODO: delete
-        bitmap = Bitmap.createScaledBitmap(bitmap, newWidth, newHeight, true);
-        return bitmap;
+    private void showInputDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Change city");
+        final EditText input = new EditText(this);
+        input.setInputType(InputType.TYPE_CLASS_TEXT);
+        builder.setView(input);
+        builder.setPositiveButton("Go", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                changeCity(input.getText().toString());
+            }
+        });
+        builder.show();
+    }
+
+    public void changeCity(String city) {
+        WeatherFragment weatherFragment = (WeatherFragment) getFragmentManager()
+                .findFragmentById(R.id.slide_show_weather_display);
+        weatherFragment.changeCity(city);
+        new CityPreference(this).setCity(city);
     }
 
     private void uploadPhotoFromGallery() {
@@ -291,36 +297,49 @@ public class SlideShowActivity extends Activity implements OnClickListener {
                 flipperShowPrevious();
                 break;
             case R.id.startSlideButton:
-                if (!myFlipper.isFlipping()) {
-                    myFlipper.setFlipInterval(FLIP_INTERVAL);
-                    myFlipper.setAutoStart(true);
-                    myFlipper.startFlipping();
-                }
+                flipperStartFlipping();
                 break;
             case R.id.pauseSlideButton:
-                if (myFlipper.isFlipping()) {
-                    myFlipper.setAutoStart(false);
-                    myFlipper.stopFlipping();
-                }
+                flipperStopFlipping();
                 break;
             case R.id.deletePhotoButton:
                 ImageView currentView = (ImageView) myFlipper.getCurrentView();
                 myFlipper.removeView(currentView);
                 String imageName = S3PhotoIntentService.getImageName(((BitmapDrawable) currentView.getDrawable()).getBitmap());
+                Log.w("PhotoShowActivity", "Delete photo is called " + imageName);
                 S3PhotoIntentService.startActionDeleteS3(this, imageName);
                 break;
         }
     }
 
-    private void flipperShowPrevious() {
+    private void flipperStopFlipping() {
+        Log.w("PhotoShowActivity", "ViewFlipper stops flipping");
         myFlipper.stopFlipping();
+        myFlipper.setAutoStart(false);
+    }
+
+    private void flipperStartFlipping() {
+        myFlipper.setAutoStart(true);
+        myFlipper.setFlipInterval(FLIP_INTERVAL);
+        if (myFlipper.isAutoStart() && !myFlipper.isFlipping()) {
+            Log.w("PhotoShowActivity", "ViewFlipper starts to flip");
+            myFlipper.setInAnimation(slide_in_right);
+            myFlipper.setOutAnimation(slide_out_left);
+            myFlipper.startFlipping();
+        }
+    }
+
+    private void flipperShowPrevious() {
+        Log.w("PhotoShowActivity", "ViewFlipper shows previous");
+        flipperStopFlipping();
         myFlipper.setInAnimation(slide_in_left);
         myFlipper.setOutAnimation(slide_out_right);
         myFlipper.showPrevious();
     }
 
     private void flipperShowNext() {
-        myFlipper.stopFlipping();
+        Log.w("PhotoShowActivity", "ViewFlipper shows next");
+        flipperStopFlipping();
         myFlipper.setInAnimation(slide_in_right);
         myFlipper.setOutAnimation(slide_out_left);
         myFlipper.showNext();
@@ -350,35 +369,9 @@ public class SlideShowActivity extends Activity implements OnClickListener {
                         addPhoto(bitmap);
                     }
                 }
-                myFlipper.setAutoStart(true);
+                flipperStartFlipping();
             }
         });
-    }
-
-    public void setFullScreen(boolean fullscreen) {
-        getWindow().setFlags(
-                fullscreen ? WindowManager.LayoutParams.FLAG_FULLSCREEN : 0,
-                WindowManager.LayoutParams.FLAG_FULLSCREEN);
-
-        myFullScreen = fullscreen;
-
-        if (Build.VERSION.SDK_INT >= 11) {
-            // Sets the View to be "low profile". Status and navigation bar icons will be dimmed
-            int flag = fullscreen ? View.SYSTEM_UI_FLAG_LOW_PROFILE : 0;
-            if (Build.VERSION.SDK_INT >= 14 && fullscreen) {
-                // Hides all of the navigation icons
-                flag |= View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
-            }
-//           Applies the settings to the screen View
-            View mainView = findViewById(R.id.slide_show_panel);
-            mainView.setSystemUiVisibility(flag);
-
-            if (fullscreen) {
-                this.getActionBar().hide();
-            } else {
-                this.getActionBar().show();
-            }
-        }
     }
 
     public class DateTimeRunner implements Runnable {
@@ -403,22 +396,26 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         public void onReceive(Context context, Intent intent) {
             switch (intent.getIntExtra(Constants.EXTENDED_DATA_STATUS, Constants.STATE_ACTION_COMPLETE)) {
                 case Constants.STATE_ACTION_COMPLETE:
+//                    handler.post(new Runnable() {
+//                        public void run() {
+//                            doFetchPhotoWork();
+//                        }
+//                    });
                     doFetchPhotoWork();
             }
         }
     }
 
-    class SwipeGestureDetector extends GestureDetector.SimpleOnGestureListener {
+    public class SwipeGestureDetector extends GestureDetector.SimpleOnGestureListener {
         @Override
         public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
             try {
                 if (e1.getX() - e2.getX() > SWIPE_MIN_DISTANCE && Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) {
                     flipperShowNext();
-                    return true;
                 } else if (e2.getX() - e1.getX() > SWIPE_MIN_DISTANCE && Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) {
                     flipperShowPrevious();
-                    return true;
                 }
+                return true;
             } catch (Exception e) {
                 e.printStackTrace();
             }
