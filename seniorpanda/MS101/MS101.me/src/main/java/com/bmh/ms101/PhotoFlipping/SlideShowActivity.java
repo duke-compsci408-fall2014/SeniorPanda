@@ -57,6 +57,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
     private static final Integer TAKE_PHOTO_REQUEST = 102;
     private static final int SWIPE_MIN_DISTANCE = 120;
     private static final int SWIPE_THRESHOLD_VELOCITY = 200;
+    private static final int TIME_UPDATE_INTERVAL = 10000;
 
     private ViewFlipper myFlipper;
     private TextView myDateTime;
@@ -86,7 +87,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         initButton(R.id.deletePhotoButton);
 
         visitedBitMaps = new HashSet<>();
-        S3PhotoIntentService.startActionFetchS3(this, null, null);
+        S3PhotoIntentService.startActionFetchS3(this);
 
         slide_in_left = AnimationUtils.loadAnimation(this, R.anim.slide_in_left);
         slide_in_right = AnimationUtils.loadAnimation(this, R.anim.silde_in_right);
@@ -154,12 +155,12 @@ public class SlideShowActivity extends Activity implements OnClickListener {
                 imageFilePath = createImageFile();
             } catch (IOException e) {
                 //TODO: pop up dialog
+                Log.w("PhotoShowActivity", "IOException occurs while dispatching take photo intent!");
                 return;
             }
             if (imageFilePath.getFile() != null) {
                 takePhotoIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(imageFilePath.getFile()));
                 startActivityForResult(takePhotoIntent, TAKE_PHOTO_REQUEST);
-
                 Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
                 File f = new File(imageFilePath.getPath());
                 Uri contentUri = Uri.fromFile(f);
@@ -263,7 +264,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
                 Uri imageURL = data.getData();
                 Map<String, String> imageMap = new HashMap<String, String>();
                 imageMap.put(imageURL.toString().substring(imageURL.toString().lastIndexOf("/") + 1), imageURL.toString());
-                S3PhotoIntentService.startActionUploadS3(this, imageMap, null);
+                S3PhotoIntentService.startActionUploadS3(this, imageMap);
             }
         } else if (requestCode == TAKE_PHOTO_REQUEST) {
             if (resultCode == RESULT_OK) {
@@ -345,16 +346,10 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         myFlipper.showNext();
     }
 
-    public void doUpdateTimeWork() {
+    public void doUpdateTimeWork(final String formatted) {
         runOnUiThread(new Runnable() {
             public void run() {
-                try {
-                    Calendar c = Calendar.getInstance();
-                    SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm a");
-                    String formatted = dateFormat.format(c.getTime());
-                    myDateTime.setText(formatted);
-                } catch (Exception e) {
-                }
+                myDateTime.setText(formatted);
             }
         });
     }
@@ -378,8 +373,11 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         public void run() {
             while (!Thread.currentThread().isInterrupted()) {
                 try {
-                    doUpdateTimeWork();
-                    Thread.sleep(10000);
+                    Calendar c = Calendar.getInstance();
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm a");
+                    String formatted = dateFormat.format(c.getTime());
+                    doUpdateTimeWork(formatted);
+                    Thread.sleep(TIME_UPDATE_INTERVAL);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 } catch (Exception e) {
