@@ -47,9 +47,9 @@ public class LockActivity extends Activity {
         RelativeLayout content = (RelativeLayout) findViewById(R.id.lock_screen);
         LinearLayout pinAndButton = (LinearLayout) content.findViewById(R.id.pin_and_button);
         mEtPin = (EditText) pinAndButton.findViewById(R.id.pin);
-        mEtUserName = (EditText) pinAndButton.findViewById(R.id.userName);
-
         mBtnConfirm = (Button) pinAndButton.findViewById(R.id.confirm_pin);
+
+        mEtUserName = (EditText) content.findViewById(R.id.userName);
         if (mIsSetup) {
             // Change the title of the activity
             setTitle(R.string.title_activity_create_pin);
