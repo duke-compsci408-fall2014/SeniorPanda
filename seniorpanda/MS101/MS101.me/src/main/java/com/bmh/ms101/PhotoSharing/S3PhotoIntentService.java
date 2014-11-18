@@ -7,6 +7,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.support.v4.content.LocalBroadcastManager;
 
+import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.auth.CognitoCachingCredentialsProvider;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3Client;
@@ -70,8 +71,8 @@ public class S3PhotoIntentService extends IntentService {
 
     public static synchronized AmazonS3Client getS3ClientInstance() {
         if (null == s3Client) {
-//            s3Client = new AmazonS3Client(new BasicAWSCredentials(AWS_KEY, AWS_SECRET));
-            s3Client = new AmazonS3Client(credentialsProvider);
+            s3Client = new AmazonS3Client(new BasicAWSCredentials(AWS_KEY, AWS_SECRET));
+//            s3Client = new AmazonS3Client(credentialsProvider);
         }
         return s3Client;
     }
