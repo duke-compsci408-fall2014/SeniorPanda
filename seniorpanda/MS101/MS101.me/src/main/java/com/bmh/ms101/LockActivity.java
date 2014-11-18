@@ -23,7 +23,10 @@ public class LockActivity extends Activity {
     private User mUser;
     private CryptHelper mCryptHelper;
     private EditText mEtPin;
+    private EditText mEtUserName;
     private Button mBtnConfirm;
+    private Boolean mHasPin = false; //default value set to false
+    private Boolean mHasName = false; //default value set to false
 
     private boolean mIsSetup;
 
@@ -44,6 +47,8 @@ public class LockActivity extends Activity {
         RelativeLayout content = (RelativeLayout) findViewById(R.id.lock_screen);
         LinearLayout pinAndButton = (LinearLayout) content.findViewById(R.id.pin_and_button);
         mEtPin = (EditText) pinAndButton.findViewById(R.id.pin);
+        mEtUserName = (EditText) pinAndButton.findViewById(R.id.userName);
+
         mBtnConfirm = (Button) pinAndButton.findViewById(R.id.confirm_pin);
         if (mIsSetup) {
             // Change the title of the activity
@@ -55,22 +60,41 @@ public class LockActivity extends Activity {
             tvPrompt.setText(R.string.create_pin_instructions);
             mBtnConfirm.setText(R.string.confirm);
         }
-        // We only want the button to be enabled if there are 4 digits in the pin field
+
+        // We only want the button to be enabled if : 1. there are 4 digits in the pin field 2. The userName field is entered
         mEtPin.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
             }
-
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if (s.length() == 4) mBtnConfirm.setEnabled(true);
+                if (s.length() == 4) {
+                    mHasPin = true;
+                    mBtnConfirm.setEnabled(mHasName && mHasPin);
+                }
                 else mBtnConfirm.setEnabled(false);
             }
-
             @Override
             public void afterTextChanged(Editable s) {
             }
         });
+        mEtUserName.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (s.length() != 0) {
+                    mHasName = true;
+                    mBtnConfirm.setEnabled(mHasName && mHasPin);
+                }
+                else mBtnConfirm.setEnabled(false);
+            }
+            @Override
+            public void afterTextChanged(Editable s) {
+            }
+        });
+
         // Set the pin edittext's focus change listener so that the keypad will pop up automatically
         mEtPin.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
@@ -81,6 +105,17 @@ public class LockActivity extends Activity {
                 }
             }
         });
+        // Set the userName edittext's focus change listener so that the keypad will pop up automatically
+        mEtUserName.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if (hasFocus) {
+                    getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN |
+                            WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+                }
+            }
+        });
+
         // Set up the buttons' on click listeners
         mBtnConfirm.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -108,14 +143,18 @@ public class LockActivity extends Activity {
      */
     private void doUnlock() {
         String pin = mEtPin.getText().toString();
+        String userName = mEtUserName.getText().toString();
+
         if (mIsSetup) {
             // If we're setting up the pin, then do that and then unlock
-            mUser.recordPin(encryptPin(pin));
+            mUser.recordPin(encryptInfo(pin));
+            mUser.recordUserName(encryptInfo(userName));
             setResult(RESULT_OK);
             finish();
         } else {
-            if (mUser.verifyPin(encryptPin(pin))) {
+            if (mUser.verifyPin(encryptInfo(pin)) && mUser.verifyUserName(encryptInfo(userName))) {
                 // Otherwise we need to check the pin to see if it's valid
+                mUser.setUserName(userName);
                 setResult(RESULT_OK);
                 finish();
             } else {
@@ -126,13 +165,13 @@ public class LockActivity extends Activity {
     }
 
     /**
-     * Encrypt the pin
-     * @param pin Text from the pin field
-     * @return Encrypted pin
+     * Encrypt the info
+     * @param info Text from the particular text field
+     * @return Encrypted info
      */
-    private String encryptPin(String pin) {
+    private String encryptInfo(String info) {
         try {
-            return mCryptHelper.encrypt(pin, mUser.getSecretKey()).trim();
+            return mCryptHelper.encrypt(info, mUser.getSecretKey()).trim();
         } catch (Exception e) {
             e.printStackTrace();
             return null;

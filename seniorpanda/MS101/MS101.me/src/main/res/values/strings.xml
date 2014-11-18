@@ -280,5 +280,9 @@
     <string name="title_activity_screen_slide_pager">ScreenSlidePagerActivity</string>
     <string name="title_activity_slide_show">SlideShowActivity</string>
     <string name="title_activity_upload_photo">UploadPhotoActivity</string>
+    <string name="user_name_prompt">Please enter your full name here</string>
+    <string name="demo_name">Example Demo</string>
+    <string name="user_name_input" />
+    <string name="user_name_inputnew">Example Demo</string>
 
 </resources>

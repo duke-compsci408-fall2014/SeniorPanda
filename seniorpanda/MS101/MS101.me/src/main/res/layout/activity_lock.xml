@@ -12,19 +12,20 @@
     <TextView android:id="@+id/lock_prompt"
               android:layout_width="wrap_content"
               android:layout_height="wrap_content"
-              android:layout_alignParentTop="true"
-              android:layout_centerHorizontal="true"
-              android:gravity="center_horizontal"
+        android:gravity="center_horizontal"
               android:text="@string/unlock_instructions"
-              style="@android:style/TextAppearance.Medium" />
+              style="@android:style/TextAppearance.Medium"
+        android:layout_marginTop="15dp"
+        android:layout_below="@+id/userName"
+        android:layout_centerHorizontal="true" />
 
     <LinearLayout android:id="@+id/pin_and_button"
                   android:layout_width="wrap_content"
                   android:layout_height="wrap_content"
                   android:orientation="horizontal"
-                  android:layout_below="@id/lock_prompt"
-                  android:layout_centerHorizontal="true"
-                  android:layout_marginTop="16dp" >
+        android:layout_marginTop="14dp"
+        android:layout_below="@+id/lock_prompt"
+        android:layout_centerHorizontal="true">
 
         <EditText android:id="@+id/pin"
                   android:layout_width="wrap_content"
@@ -48,8 +49,30 @@
     <TextView android:id="@+id/legal"
               android:layout_width="match_parent"
               android:layout_height="wrap_content"
-              android:layout_below="@id/pin_and_button"
-              android:layout_marginTop="4dp"
-              android:gravity="center_horizontal"
-              android:text="@string/legal" />
+        android:gravity="center_horizontal"
+              android:text="@string/legal"
+        android:layout_centerVertical="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
+
+    <TextView
+        style="@android:style/TextAppearance.Medium"
+        android:id="@+id/user_name_prompt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:text="@string/user_name_prompt"
+        android:layout_marginTop="16dp"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true" />
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:inputType="textPersonName"
+        android:text="@string/user_name_inputnew"
+        android:ems="10"
+        android:id="@+id/userName"
+        android:layout_below="@+id/user_name_prompt"
+        android:layout_centerHorizontal="true" />
 </RelativeLayout>

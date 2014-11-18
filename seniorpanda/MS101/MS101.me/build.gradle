@@ -52,4 +52,5 @@ dependencies {
     compile files('libs/aws-android-sdk-2.1.4/lib/debug/aws-android-sdk-2.1.4-ec2.debug.jar')
     compile files('libs/aws-android-sdk-2.1.4/lib/debug/aws-android-sdk-2.1.4-s3.debug.jar')
     compile files('libs/aws-android-sdk-2.1.4/lib/debug/aws-android-sdk-2.1.4-sdb.debug.jar')
+    compile files('libs/aws-android-sdk-2.1.4/lib/release/aws-android-sdk-2.1.4-cognito.jar')
 }

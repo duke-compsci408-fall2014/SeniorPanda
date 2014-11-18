@@ -13,8 +13,11 @@ import com.amazonaws.services.s3.model.DeleteObjectRequest;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
+import com.amazonaws.auth.CognitoCachingCredentialsProvider;
+import com.amazonaws.regions.Regions;
 import com.amazonaws.util.IOUtils;
 import com.bmh.ms101.Constants;
+import com.bmh.ms101.PhotoFlipping.SlideShowActivity;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -44,6 +47,7 @@ public class S3PhotoIntentService extends IntentService {
     private static Map<String, Bitmap> BitmapMap = new ConcurrentHashMap<String, Bitmap>();
 
     private static final String SLASH = "/";
+    private static Context myContext = null;
 
     /**
      * Consider putting the credential elsewhere:
@@ -53,23 +57,31 @@ public class S3PhotoIntentService extends IntentService {
      * http://docs.aws.amazon.com/AWSAndroidSDK/latest/javadoc/
      * http://docs.aws.amazon.com/mobile/sdkforandroid/developerguide/s3transfermanager.html
      */
+    // creating credential using COGNITO
+    private static CognitoCachingCredentialsProvider credentialsProvider = new CognitoCachingCredentialsProvider(
+            myContext, // get the context for the current activity
+            "AWS_ACCOUNT_ID",
+            "COGNITO_IDENTITY_POOL",
+            "arn:aws:iam::AWS_ACCOUNT_ID:role/UNAUTHENTICATED_ROLE",
+            "arn:aws:iam::AWS_ACCOUNT_ID:role/AUTHENTICATED_ROLE",
+            Regions.US_EAST_1
+    );
 
     // singleton
     private static AmazonS3Client s3Client = null;
 
     public static synchronized AmazonS3Client getS3ClientInstance() {
         if (null == s3Client) {
-            s3Client = new AmazonS3Client(new BasicAWSCredentials(AWS_KEY, AWS_SECRET));
+//            s3Client = new AmazonS3Client(new BasicAWSCredentials(AWS_KEY, AWS_SECRET));
+            s3Client = new AmazonS3Client(credentialsProvider);
         }
         return s3Client;
     }
 
+    //purpose of this one???
     public S3PhotoIntentService() {
         super("S3FetchPhotoJob");
     }
-
-    //purpose of this one???
-
     /**
      * Starts this service to perform action X with the given parameters.
      * If the service is already performing a task this action will be queued:
@@ -81,6 +93,7 @@ public class S3PhotoIntentService extends IntentService {
         Intent intent = new Intent(context, S3PhotoIntentService.class);
         intent.setAction(ACTION_FETCH_S3);
 //        intent.putExtra(EXTRA_PARAM1, param1);
+        setContext(context);
         context.startService(intent);
     }
 
@@ -88,6 +101,7 @@ public class S3PhotoIntentService extends IntentService {
         Intent intent = new Intent(context, S3PhotoIntentService.class);
         intent.setAction(ACTION_UPLOAD_S3);
         intent.putExtra(UPLOAD_MAP, ConcurrentUtils.SerializeHashMap(imageMap));
+        setContext(context);
         context.startService(intent);
     }
 
@@ -95,9 +109,13 @@ public class S3PhotoIntentService extends IntentService {
         Intent intent = new Intent(context, S3PhotoIntentService.class);
         intent.setAction(ACTION_DELETE_S3);
         intent.putExtra(IMAGE_NAME, imageName);
+        setContext(context);
         context.startService(intent);
     }
 
+    private static void setContext(Context context) {
+        myContext = context;
+    }
 
     @Override
     protected void onHandleIntent(Intent intent) {

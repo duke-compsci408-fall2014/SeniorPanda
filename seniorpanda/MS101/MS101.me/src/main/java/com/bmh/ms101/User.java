@@ -54,11 +54,13 @@ public class User {
     public static final String DF_PREF_PWD = "password";
     public static final String DF_PREF_SESSION_ID = "session_id";
     public static final String DF_PREF_SESSION_ID_EXPIRES = "session_id_expires";
+
+    public static final String PREF_USER_NAME = "key_userName"; /// added to specify bucket
+
     // (Duration is in seconds) Sessions may not be valid after 24 minutes.
     public static final int DF_SESSION_DURATION = 1440;
 
     private static final String SECRET_KEY = "ms101BAMBOOmobileHealth@ms101.me";
-
     ///
     private static final String PREF_SETUP_MEDS = "key_setup_meds";
 
@@ -71,6 +73,8 @@ public class User {
 
     // TODO - populate userId from user info
     private int userId = 1;
+    // userNameInfo used to 1. Verify with DF 2.
+    private String USER_NAME = "";
 
     /**
      * Create new User object using the given context
@@ -466,6 +470,16 @@ public class User {
         mPrefsUtil.getPrefs().edit().putString(PREF_PIN, pin).commit();
     }
 
+    /// parallel method like above (curently not used)
+    public void recordUserName(String userName){
+        mPrefsUtil.getPrefs().edit().putString(PREF_USER_NAME, userName).commit();
+    }
+
+    // method purpose similar to below
+    public boolean verifyUserName(String userName){
+        String storedUserName = mPrefsUtil.getPrefString(PREF_USER_NAME, null);
+        return storedUserName != null && userName.equals(storedUserName.trim());
+    }
     /**
      * Checks the pin the user provided against the stored pin to determine if it is valid
      * @param pin Encrypted pin that user provided
@@ -496,6 +510,12 @@ public class User {
      */
     public boolean isDev() {
         return mDevList.contains(getAccountName());
+    }
+
+    public String getUserName(){return USER_NAME; }
+
+    public void setUserName(String name){
+        this.USER_NAME = name;
     }
 
     public int getUserId() {

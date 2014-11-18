@@ -47,6 +47,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import com.amazonaws.auth.CognitoCachingCredentialsProvider;
+import com.amazonaws.regions.Regions;
+
 public class SlideShowActivity extends Activity implements OnClickListener {
 
     private static final Integer FLIP_INTERVAL = 50000;
@@ -422,4 +425,5 @@ public class SlideShowActivity extends Activity implements OnClickListener {
             return false;
         }
     }
+
 }
