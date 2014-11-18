@@ -137,9 +137,9 @@ public class SetupMedicationActivity extends Activity {
      */
     public void onEventMainThread(SendSubscribeDFEvent event) {
         if (event.wasSuccess) {
-            //       List<SubscribeDataModel> subscriptions =  (ArrayList<SubscribeDataModel>)event.response;
-            //        mUser.setSubscriptions(subscriptions);
-            //        mUser.setSubscriptionAlarms();
+            List<SubscribeDataModel> subscriptions =  (ArrayList<SubscribeDataModel>)event.response;
+            mUser.setSubscriptions(subscriptions);
+            mUser.setSubscriptionAlarms();
             jobsRunning.remove("SUBSCRIBE_SEND_DF");
             if (jobsRunning.isEmpty()) finishedSending();
         } else {

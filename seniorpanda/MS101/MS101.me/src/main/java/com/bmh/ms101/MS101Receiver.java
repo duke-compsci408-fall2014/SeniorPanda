@@ -33,7 +33,7 @@ public class MS101Receiver extends BroadcastReceiver {
     public static final String MD_TEC_IS_MORNING_DOSE = "isMorningDose";
 
     public enum Notif {
-        SYMP, STRESS, MEDS
+        SYMP, STRESS, MEDS, MEDS_MORNING, MEDS_AFTERNOON, MEDS_EVENING
     }
     // Request codes so we can differentiate between the alarms
     private static final int CANCEL_NOTIFS_ALARM = -999;
@@ -45,6 +45,10 @@ public class MS101Receiver extends BroadcastReceiver {
     private static final int CANCEL_TEC_ALARM_1 = -3;
     public static final int TEC_ALARM_2 = 4;
     private static final int CANCEL_TEC_ALARM_2 = -4;
+
+    private static final int MEDS_MORNING_ALARM = 101;
+    private static final int MEDS_AFTERNOON_ALARM = 102;
+    private static final int MEDS_EVENING_ALARM = 103;
 
     // Hours that alarms with fire
     private static final int DEFAULT_MIN = 0;
@@ -175,7 +179,20 @@ public class MS101Receiver extends BroadcastReceiver {
                 // Figure out what type of notification we want to send, then send it. Also start activity
                 switch (intent.getIntExtra("requestCode", -1)) {
                     case MEDS_ALARM:
+                        System.out.println("got default reminder MEDS");
                         context.startActivity(sendNotification(context, Notif.MEDS));
+                        break;
+                    case MEDS_MORNING_ALARM:
+                        System.out.println("got default reminder MEDS_MORNING");
+                        context.startActivity(sendNotification(context, Notif.MEDS_MORNING));
+                        break;
+                    case MEDS_AFTERNOON_ALARM:
+                        System.out.println("got default reminder MEDS_AFTERNOON");
+                        context.startActivity(sendNotification(context, Notif.MEDS_AFTERNOON));
+                        break;
+                    case MEDS_EVENING_ALARM:
+                        System.out.println("got default reminder MEDS_EVENING");
+                        context.startActivity(sendNotification(context, Notif.MEDS_EVENING));
                         break;
                     case SYMP_STRESS_ALARM:
                         Notif type = SYMP_STRESS_SCHEDULE[Calendar.getInstance().get(Calendar.DAY_OF_WEEK) - 1];
@@ -205,11 +222,39 @@ public class MS101Receiver extends BroadcastReceiver {
         Class<?> targetActivity = null;
         String notifTitle = null;
         String notifText = null;
+        boolean medsMorning = false;
+        boolean medsAfternoon = false;
+        boolean medsEvening = false;
+        // Intent used in notification's PendingIntent, and returned.
         switch (type) {
             case MEDS:
                 targetActivity = MedicationActivity.class;
                 notifTitle = context.getResources().getString(R.string.meds_notif_title);
                 notifText = context.getResources().getString(R.string.notif_subtext);
+                break;
+            case MEDS_MORNING:
+                targetActivity = MedicationActivity.class;
+                notifTitle = context.getResources().getString(R.string.meds_notif_morning_title);
+                notifText = context.getResources().getString(R.string.notif_subtext);
+                medsMorning = true;
+                medsAfternoon = false;
+                medsEvening = false;
+                break;
+            case MEDS_AFTERNOON:
+                targetActivity = MedicationActivity.class;
+                notifTitle = context.getResources().getString(R.string.meds_notif_afternoon_title);
+                notifText = context.getResources().getString(R.string.notif_subtext);
+                medsMorning = false;
+                medsAfternoon = true;
+                medsEvening = false;
+                break;
+            case MEDS_EVENING:
+                targetActivity = MedicationActivity.class;
+                notifTitle = context.getResources().getString(R.string.meds_notif_evening_title);
+                notifText = context.getResources().getString(R.string.notif_subtext);
+                medsMorning = false;
+                medsAfternoon = false;
+                medsEvening = true;
                 break;
             case STRESS:
                 targetActivity = SymptomsActivity.class;
@@ -226,7 +271,12 @@ public class MS101Receiver extends BroadcastReceiver {
         // Intent used in notification's PendingIntent, and returned.
         Intent intent = new Intent(context, targetActivity);
         intent.putExtra(EXTRA_NOTIF_TYPE, type.ordinal());
-        if (targetActivity == MedicationActivity.class) intent.putExtra("from_main", false);
+        if (targetActivity == MedicationActivity.class) {
+            intent.putExtra("from_main", false);
+            intent.putExtra("meds_morning", medsMorning);
+            intent.putExtra("meds_afternoon", medsAfternoon);
+            intent.putExtra("meds_evening", medsEvening);
+        }
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
 
         // Now build and send notification
@@ -296,29 +346,33 @@ public class MS101Receiver extends BroadcastReceiver {
         AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         Calendar c = Calendar.getInstance();
         if (oncePerDay) {
-            PendingIntent medsMorningPIntent = createAlarmPendingIntent(context, cls, MEDS_ALARM);
+            PendingIntent medsMorningPIntent = createAlarmPendingIntent(context, cls, MEDS_MORNING_ALARM);
             c.add(Calendar.HOUR_OF_DAY, MEDS_MORNING_DOSE_NOTIF_HOUR);
             am.setRepeating(AlarmManager.RTC_WAKEUP, c.getTimeInMillis(), (24* 60 * 60 * 60 *1000), medsMorningPIntent);
             System.out.println("Set once a day alarm");
         } else if (twicePerDay) {
-            PendingIntent medsMorningPIntent = createAlarmPendingIntent(context, cls, MEDS_ALARM);
-            c.add(Calendar.HOUR_OF_DAY, MEDS_MORNING_DOSE_NOTIF_HOUR);
-            am.setRepeating(AlarmManager.RTC_WAKEUP, c.getTimeInMillis(), (24* 60 * 60 * 60 *1000), medsMorningPIntent);
+            PendingIntent medsMorningPIntent = createAlarmPendingIntent(context, cls, MEDS_MORNING_ALARM);
+          /*  c.add(Calendar.HOUR_OF_DAY, MEDS_MORNING_DOSE_NOTIF_HOUR);
+            am.setRepeating(AlarmManager.RTC_WAKEUP, c.getTimeInMillis(), (24* 60 * 60 * 60 *1000), medsMorningPIntent);*/
+            c.add(Calendar.SECOND, 30);
+            am.setRepeating(AlarmManager.RTC_WAKEUP, c.getTimeInMillis(), (60 * 60 *1000), medsMorningPIntent);
 
-            PendingIntent medsEveningPIntent = createAlarmPendingIntent(context, cls, MEDS_ALARM);
-            c.add(Calendar.HOUR_OF_DAY, MEDS_EVENING_DOSE_NOTIF_HOUR);
-            am.setRepeating(AlarmManager.RTC_WAKEUP, c.getTimeInMillis(), (24* 60 * 60 * 60 *1000), medsEveningPIntent);
+            PendingIntent medsEveningPIntent = createAlarmPendingIntent(context, cls, MEDS_EVENING_ALARM);
+            /*c.add(Calendar.HOUR_OF_DAY, MEDS_EVENING_DOSE_NOTIF_HOUR);
+            am.setRepeating(AlarmManager.RTC_WAKEUP, c.getTimeInMillis(), (24* 60 * 60 * 60 *1000), medsEveningPIntent);*/
+            c.add(Calendar.SECOND, 50);
+            am.setRepeating(AlarmManager.RTC_WAKEUP, c.getTimeInMillis(), (60 * 60 *1000), medsEveningPIntent);
             System.out.println("Set twice a day alarms");
         } else if (thricePerDay) {
-            PendingIntent medsMorningPIntent = createAlarmPendingIntent(context, cls, MEDS_ALARM);
+            PendingIntent medsMorningPIntent = createAlarmPendingIntent(context, cls, MEDS_MORNING_ALARM);
             c.add(Calendar.HOUR_OF_DAY, MEDS_MORNING_DOSE_NOTIF_HOUR);
             am.setRepeating(AlarmManager.RTC_WAKEUP, c.getTimeInMillis(), (24* 60 * 60 * 60 *1000), medsMorningPIntent);
 
-            PendingIntent medsAfternoonPIntent = createAlarmPendingIntent(context, cls, MEDS_ALARM);
+            PendingIntent medsAfternoonPIntent = createAlarmPendingIntent(context, cls, MEDS_AFTERNOON_ALARM);
             c.add(Calendar.HOUR_OF_DAY, MEDS_AFTERNOON_DOSE_NOTIF_HOUR);
             am.setRepeating(AlarmManager.RTC_WAKEUP, c.getTimeInMillis(), (24* 60 * 60 * 60 *1000), medsMorningPIntent);
 
-            PendingIntent medsEveningPIntent = createAlarmPendingIntent(context, cls, MEDS_ALARM);
+            PendingIntent medsEveningPIntent = createAlarmPendingIntent(context, cls, MEDS_EVENING_ALARM);
             c.add(Calendar.HOUR_OF_DAY, MEDS_EVENING_DOSE_NOTIF_HOUR);
             am.setRepeating(AlarmManager.RTC_WAKEUP, c.getTimeInMillis(), (24* 60 * 60 * 60 *1000), medsEveningPIntent);
             System.out.println("Set thrice a day alarms");
