@@ -61,10 +61,6 @@
     <string name="symp_notif_title">How are you feeling?</string>
     <string name="stress_notif_title">How are you doing?</string>
 
-    <!-- Slide Show Activity -->
-    <string name="no_camera_message">You do not have the camera support</string>
-    <string name="no_camera_ok">OK</string>
-
     <!-- Log Activity -->
     <string name="title_activity_log">Your Data</string>
     <string name="log_meds_label">Medication Doses</string>
@@ -80,10 +76,24 @@
     <string name="toast_changes_saved">Changes saved.</string>
     <string name="toast_must_select_med">Please select medication.</string>
 
-    <!-- Manage PhotoFlipping Activity -->
+    <!-- Manage SlideShow Activity -->
     <string name="title_activity_photo_slideshow">Photo SlideShow</string>
-    <string name="photo">Photo here</string>
-    <string name="title_photo">Photo</string>
+    <string name="no_camera_message">You do not have the camera support</string>
+    <string name="no_camera_button_text">OK</string>
+    <!-- Weather Fragment -->
+    <string name="change_city">Change city</string>
+    <!-- Put your own APP ID here -->
+    <string name="open_weather_maps_app_id"></string>
+    <string name="weather_sunny"></string>
+    <string name="weather_clear_night"></string>
+    <string name="weather_foggy"></string>
+    <string name="weather_cloudy"></string>
+    <string name="weather_rainy"></string>
+    <string name="weather_snowy"></string>
+    <string name="weather_thunder"></string>
+    <string name="weather_drizzle"></string>
+    <string name="place_not_found">Sorry, no weather data found.</string>
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 
     <!-- Lock Activity -->
     <string name="title_activity_unlock">Enter PIN</string>

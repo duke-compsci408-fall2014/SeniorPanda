@@ -10,40 +10,55 @@
 
     <LinearLayout
         android:id="@+id/slide_show_panel"
-        android:layout_width="match_parent"
+        android:layout_width="fill_parent"
         android:layout_height="0dp"
         android:orientation="horizontal"
         android:layout_marginTop="15dp"
         android:layout_centerInParent="true"
-        android:layout_weight="17">
+        android:layout_weight="16">
 
         <LinearLayout
-            android:id="@+id/slide_show_date_time"
+            android:id="@+id/slide_show_extra_features"
             android:layout_width="0dp"
             android:layout_height="fill_parent"
             android:layout_weight="1"
             android:orientation="vertical"
-            android:layout_centerHorizontal="true">
-
-            <AnalogClock
-                android:id="@+id/slide_show_analog_clock"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content" />
+            android:layout_centerHorizontal="true"
+            android:background="#FF0099CC">
 
             <TextView
                 android:id="@+id/slide_show_display_date"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
-                android:layout_marginTop="10dp"
-                android:textSize="30dp" />
+                android:layout_marginTop="@dimen/activity_vertical_margin"
+                android:textSize="32dp"
+                android:text="0000-00-00" />
+
+            <TextView
+                android:id="@+id/slide_show_display_time"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="@dimen/activity_vertical_margin"
+                android:textSize="32dp"
+                android:text="00:00" />
+
+            <fragment
+                android:name="com.bmh.ms101.PhotoFlipping.WeatherFragment"
+                android:id="@+id/slide_show_weather_display"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                tools:layout="@layout/fragment_weather"></fragment>
+
         </LinearLayout>
 
         <ViewFlipper
             android:id="@+id/photoFlipper"
             android:layout_width="0dp"
             android:layout_weight="3"
-            android:layout_height="fill_parent"></ViewFlipper>
+            android:layout_height="fill_parent"
+            android:layout_marginLeft="16dp"></ViewFlipper>
 
     </LinearLayout>
 

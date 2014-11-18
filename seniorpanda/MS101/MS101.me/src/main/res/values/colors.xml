@@ -7,4 +7,5 @@
     <color name="font">#333</color>
     <color name="app_green">#7FBC7F</color>
     <color name="black">#000000</color>
+    <color name="black_overlay">#66000000</color>
 </resources>
