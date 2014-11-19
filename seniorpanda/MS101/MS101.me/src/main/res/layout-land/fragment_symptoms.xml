@@ -13,16 +13,16 @@
         android:id="@+id/items"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_above="@+id/sendButton"
         android:layout_alignParentTop="true"
-        android:orientation="vertical" >
+        android:orientation="vertical"
+        android:layout_alignParentBottom="true">
     </LinearLayout>
 
-    <Button
+    <!--<Button
         android:id="@+id/sendButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:text="@string/send" />
+        android:text="@string/send" />-->
 
 </RelativeLayout>
