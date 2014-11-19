@@ -27,7 +27,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:layout_marginTop="@dimen/activity_vertical_margin"
-                android:textSize="25dp"
+                android:textSize="20dp"
                 android:text="Wed, Nov 1 2014" />
 
             <TextView
@@ -35,7 +35,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:textSize="25dp"
+                android:textSize="20dp"
                 android:text="00:00" />
 
             <fragment
@@ -60,7 +60,6 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:layout_below="@id/photoFlipper"
         android:orientation="horizontal">
 
         <Button
