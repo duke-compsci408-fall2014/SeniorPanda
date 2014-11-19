@@ -126,12 +126,17 @@ public class SymptomsSectionFragment extends Fragment {
 
 
         // Loops through each RadioGroup to find which RadioButton is checked
+        Log.v("Debug##", "symptomsContainer.getChildCount() " + symptomsContainer.getChildCount());
         for (int i = 0; i < symptomsContainer.getChildCount(); i++) {
+            Log.v("Debug##", "i == " + i);
+            checkedBodyLocations.add(i, "");
             LinearLayout labelAndSlider = (LinearLayout) symptomsContainer.getChildAt(i);
             // Get the radio group
             RadioGroup radGrp = (RadioGroup) labelAndSlider.findViewById(R.id.symptomRatings);
             int checkedRadioButtonID = radGrp.getCheckedRadioButtonId();
+            Log.v("Debug##", "checkedRadioButtonID == " + checkedRadioButtonID);
             final int itemSelected = i;
+            Log.v("Debug##", "itemSelected == " + itemSelected);
             final CharSequence[] sympCheck = getsymptomsCheck(i);
             final String title = getTitle(i);
             radGrp.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
@@ -142,6 +147,8 @@ public class SymptomsSectionFragment extends Fragment {
                            /* Toast.makeText(rootView.getContext(),
                                     "No symptoms",
                                     Toast.).show();*/
+                         //   String display_checked_symptoms= "";
+                         //   checkedBodyLocations.add(itemSelected, display_checked_symptoms);
                             break;
                         case R.id.radio1:
                         case R.id.radio2:
@@ -169,6 +176,7 @@ public class SymptomsSectionFragment extends Fragment {
                                     public void onClick(DialogInterface dialog, int which, boolean isChecked) {
                                         // TODO Auto-generated method stub
                                     //storing the checked state of the items in an array
+                                        Log.v("Debug##", "which == " + which);
                                     checked_state[which]=isChecked;
                                     }
                                 })
@@ -177,15 +185,17 @@ public class SymptomsSectionFragment extends Fragment {
                                 public void onClick(DialogInterface dialog, int which) {
                                     // TODO Auto-generated method stub
                                     String display_checked_symptoms= "";
-                                    for(int i=0;i<6;i++){
-                                    	if(checked_state[i]==true){
-                                            display_checked_symptoms=display_checked_symptoms+":"+sympCheck[i];
+                                    for(int j=0;j<6;j++){
+                                    	if(checked_state[j]==true){
+                                            display_checked_symptoms=display_checked_symptoms+":"+sympCheck[j];
                                           }
                                         }
+                                    Log.v("Debug##", "display_checked_symptoms == " + display_checked_symptoms);
+                                    System.out.println("checkedBodyLocations.size " + checkedBodyLocations.size());
                                     Toast.makeText(rootView.getContext(),
                                             "The selected location(s) is"+display_checked_symptoms,
                                             Toast.LENGTH_LONG).show();
-                                    checkedBodyLocations.add(itemSelected, display_checked_symptoms);
+                                    checkedBodyLocations.set(itemSelected, display_checked_symptoms);
                                     //clears the String used to store the displayed text
                                 	display_checked_symptoms=null;
 

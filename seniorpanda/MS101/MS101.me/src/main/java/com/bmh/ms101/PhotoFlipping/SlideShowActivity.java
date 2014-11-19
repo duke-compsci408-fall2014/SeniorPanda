@@ -79,8 +79,8 @@ public class SlideShowActivity extends Activity implements OnClickListener {
             }
         });
 
-        initButton(R.id.previousSlideButton, false);
-        initButton(R.id.nextSlideButton, false);
+        initButton(R.id.uploadPhotoButton, false);
+        initButton(R.id.takePhotoButton, false);
         initButton(R.id.startSlideButton, false);
         initButton(R.id.pauseSlideButton, false);
         initButton(R.id.deletePhotoButton, false);
@@ -215,12 +215,6 @@ public class SlideShowActivity extends Activity implements OnClickListener {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.take_photo:
-                dispatchTakePhotoIntent();
-                return true;
-            case R.id.upload_photo:
-                uploadPhotoFromGallery();
-                return true;
             case R.id.update_slide_show:
                 S3PhotoIntentService.startActionFetchS3(this);
                 return true;
@@ -310,11 +304,11 @@ public class SlideShowActivity extends Activity implements OnClickListener {
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
-            case R.id.nextSlideButton:
-                showNextInFlipper();
+            case R.id.takePhotoButton:
+                dispatchTakePhotoIntent();
                 break;
-            case R.id.previousSlideButton:
-                showPreviousInFlipper();
+            case R.id.uploadPhotoButton:
+                uploadPhotoFromGallery();
                 break;
             case R.id.startSlideButton:
                 startFlipping();

@@ -87,7 +87,7 @@ public class User {
         mPrefsUtil = new PrefsUtil(mCtx);
         mDevList.add("9076224588@ms101.me");
         mDevList.add("8284541964@ms101.me");
-        mDevList.add("test1@pd101.me");
+        //mDevList.add("test1@pd101.me");
         // Populate an array with the list of meds at indices corresponding to their ID numbers
         if (MED_NAMES == null) {
             String[] meds = mCtx.getResources().getStringArray(R.array.medications);

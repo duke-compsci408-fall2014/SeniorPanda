@@ -53,6 +53,9 @@ import de.greenrobot.event.EventBus;
  * from.
  */
 public class MedicationActivity extends Activity {
+    public static final int MORNING_TIME = 201;
+    public static final int AFTERNOON_TIME = 202;
+    public static final int EVENING_TIME = 203;
 
     private final EventBus eventBus = EventBus.getDefault();
 
@@ -192,9 +195,22 @@ public class MedicationActivity extends Activity {
         System.out.println("is afternoon dose : " + afternoonDose);
         System.out.println("is evening dose : " + eveningDose);
         if (mIsFromMain) {
-            setTitle(R.string.title_activity_medication_confirm);
-            tvHeader.setText("Fill in the number of doses taken during the current time interval");
-        } else if (morningDose) {
+            int curTimeInterval = getCurrentTimeInterval();
+            if (curTimeInterval == MORNING_TIME) {
+                morningDose = true;
+            } else if (curTimeInterval == AFTERNOON_TIME) {
+                afternoonDose = true;
+            } else if (curTimeInterval == EVENING_TIME) {
+                eveningDose = true;
+            }
+        //    setTitle(R.string.title_activity_medication_confirm);
+        //    tvHeader.setText("Fill in the number of doses taken during the current time interval");
+            System.out.println("From main time interval : ");
+            System.out.println("Morning dose time  : " + morningDose);
+            System.out.println("Afternoon dose time  : " + afternoonDose);
+            System.out.println("Evening dose time  : " + eveningDose);
+        }
+        if (morningDose) {
             setTitle("Morning Dose");
             tvHeader.setText("Fill in your morning dose");
         } else if (afternoonDose) {
@@ -589,4 +605,38 @@ public class MedicationActivity extends Activity {
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         context.startActivity(intent);
     }
+
+    /*Calendar c = Calendar.getInstance();
+    c.setTimeInMillis(currItemDate);
+    int currDayOfYear = c.get(Calendar.DAY_OF_YEAR);
+    c.setTimeInMillis(prevItemDate);
+    int prevDayOfYear = c.get(Calendar.DAY_OF_YEAR);
+    if (currDayOfYear != prevDayOfYear) {
+        viewHolder.date.setVisibility(View.VISIBLE);
+    } else {
+        // Otherwise hide the date header
+        viewHolder.date.setVisibility(View.GONE);
+    }*/
+
+    public int getCurrentTimeInterval() {
+        int currentTimeInterval = 0;
+        Calendar c = Calendar.getInstance();
+        int currentHour = c.get(Calendar.HOUR_OF_DAY);
+        System.out.println("current hour : " + currentHour);
+        if (currentHour >= MS101Receiver.MEDS_MORNING_DOSE_NOTIF_HOUR &&
+                currentHour < MS101Receiver.MEDS_AFTERNOON_DOSE_NOTIF_HOUR) {
+            currentTimeInterval = MORNING_TIME;
+            System.out.println("current time Interval : MORNING_TIME");
+        } else if (currentHour >= MS101Receiver.MEDS_AFTERNOON_DOSE_NOTIF_HOUR &&
+                currentHour < MS101Receiver.MEDS_EVENING_DOSE_NOTIF_HOUR) {
+            currentTimeInterval = AFTERNOON_TIME;
+            System.out.println("current time Interval : AFTERNOON_TIME");
+        } else if (currentHour >= MS101Receiver.MEDS_EVENING_DOSE_NOTIF_HOUR) {
+            currentTimeInterval = EVENING_TIME;
+            System.out.println("current time Interval : EVENING_TIME");
+        }
+        System.out.println("current timeInterval : " + currentTimeInterval);
+        return currentTimeInterval;
+    }
+
 }

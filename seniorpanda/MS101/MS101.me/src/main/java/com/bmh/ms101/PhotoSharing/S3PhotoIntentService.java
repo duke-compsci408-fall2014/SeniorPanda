@@ -54,6 +54,7 @@ public class S3PhotoIntentService extends IntentService {
     private static CognitoCachingCredentialsProvider credentialsProvider;
     // creating credential using COGNITO
     private static AmazonS3Client s3Client = null;
+
     public static synchronized AmazonS3Client getS3ClientInstance() {
         if (null == s3Client) {
 //            s3Client = new AmazonS3Client(new BasicAWSCredentials(AWS_KEY, AWS_SECRET));
@@ -70,17 +71,15 @@ public class S3PhotoIntentService extends IntentService {
     }
 
     /**
-     *
-     CognitoSyncManager syncClient = new CognitoSyncManager(
-     myActivity.getContext(),
-     "us-east-1:0bf55fd1-baf0-4676-a290-ac9f07623024",
-     Regions.US_EAST_1,
-     cognitoProvider);
-
-     Dataset dataset = syncClient.openOrCreateDataset('myDataset');
-     dataset.put("myKey", "myValue");
-     dataset.synchronize(this, syncCallback);
-     *
+     * CognitoSyncManager syncClient = new CognitoSyncManager(
+     * myActivity.getContext(),
+     * "us-east-1:0bf55fd1-baf0-4676-a290-ac9f07623024",
+     * Regions.US_EAST_1,
+     * cognitoProvider);
+     * <p/>
+     * Dataset dataset = syncClient.openOrCreateDataset('myDataset');
+     * dataset.put("myKey", "myValue");
+     * dataset.synchronize(this, syncCallback);
      */
 
     //purpose
@@ -148,6 +147,7 @@ public class S3PhotoIntentService extends IntentService {
                     Bitmap bitmap = (Bitmap) intent.getExtras().get(IMAGE_NAME);
                     Log.w("deleting photo", " bitMap is " + bitmap.toString());
                     final String nameKey = folderName + Constants.SLASH + getImageName(bitmap);
+                    Log.w("Delete photo", getImageName(bitmap));
                     handleActionDeleteS3(AWS_KEY, AWS_SECRET, nameKey, bucketName);
                     return;
             }

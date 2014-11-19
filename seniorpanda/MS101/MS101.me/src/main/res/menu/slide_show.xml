@@ -3,17 +3,6 @@
     tools:context="com.bmh.ms101.PhotoFlipping.SlideShowActivity">
 
     <item
-        android:id="@+id/upload_photo"
-        android:title="Upload Photo"
-        android:orderInCategory="100"
-        android:showAsAction="never" />
-    <item
-        android:id="@+id/take_photo"
-        android:title="Take Photo"
-        android:orderInCategory="100"
-        android:showAsAction="never" />
-
-    <item
         android:id="@+id/update_slide_show"
         android:title="Update"
         android:orderInCategory="100"

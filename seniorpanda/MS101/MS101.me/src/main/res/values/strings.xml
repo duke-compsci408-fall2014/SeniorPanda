@@ -35,8 +35,8 @@
     <!-- Meds Activity -->
     <string name="title_activity_medication_confirm">Medication Doses</string>
     <string name="title_activity_medication_alarm">Today\'s Doses</string>
-    <string name="report_meds_header">Fill in the number of doses you took for this time period.</string>
-    <string name="reminder_meds_header">Fill in the number of doses you took for this time period.</string>
+    <string name="report_meds_header">Fill in the number of pills you took for this time period.</string>
+    <string name="reminder_meds_header">Fill in the number of pills you took for this time period.</string>
     <string name="dosage_NS">NS</string>
     <string name="dosage_0">0</string>
     <string name="dosage_1">1</string>
@@ -171,33 +171,33 @@
 
     <!-- Help Content -->
     <string name="help_meds_title">Dosage Reporting</string>
-    <string name="help_meds_content">To report the doses of medication you\'ve taken during the day,
-        simply fill in the bubble of how many doses of each medication you\'ve taken today.
+    <string name="help_meds_content">To report the amount of medication you\'ve taken during the current time interval,
+        simply fill in the bubble of how many pills of each medication you\'ve taken.
         \n
-        \nFill in 0 if you\'ve missed all doses for today.</string>
+        \nFill in 0 if you have\'nt taken any pills for the current time interval.</string>
     <string name="help_medication_title">Dosage Reminder</string>
-    <string name="help_medication_content">To report the doses of medication you\'ve taken during the day,
-        simply fill in the bubble of how many doses of each medication you\'ve taken today.
+    <string name="help_medication_content">To report the amount of medication you\'ve taken during the current time interval,
+        simply fill in the bubble of how many pills of each medication you\'ve taken.
         \n
-        \nFill in 0 if you\'ve missed all doses for today.</string>
+        \nFill in 0 if you have\'nt taken any pills for the current time interval.</string>
     <string name="help_morning_medication_title">Morning Dosage Reminder</string>
-    <string name="help_morning_medication_content">To report the doses of morning medication you\'ve taken during the day,
-        simply fill in the bubble of how many doses of each medication you\'ve taken this morning.
+    <string name="help_morning_medication_content">To report the amount of medication you\'ve taken in the morning,
+        simply fill in the bubble of how many pills of each medication you\'ve taken.
         \n
-        \nFill in 0 if you\'ve missed all doses for today.</string>
+        \nFill in 0 if you have\'nt taken any pills in the morning.</string>
     <string name="help_afternoon_medication_title">Afternoon Dosage Reminder</string>
-    <string name="help_afternoon_medication_content">To report the doses of afternoon medication you\'ve taken during the day,
-        simply fill in the bubble of how many doses of each medication you\'ve taken this afternoon.
+    <string name="help_afternoon_medication_content">To report the amount of medication you\'ve taken in the afternoon,
+        simply fill in the bubble of how many pills of each medication you\'ve taken.
         \n
-        \nFill in 0 if you\'ve missed all doses for today.</string>
+        \nFill in 0 if you have\'nt taken any pills in the afternoon.</string>
     <string name="help_evening_medication_title">Evening Dosage Reminder</string>
-    <string name="help_evening_medication_content">To report the doses of evening medication you\'ve taken during the day,
-        simply fill in the bubble of how many doses of each medication you\'ve taken this afternoon.
+    <string name="help_evening_medication_content">To report the amount of medication you\'ve taken in the evening,
+        simply fill in the bubble of how many pills of each medication you\'ve taken.
         \n
-        \nFill in 0 if you\'ve missed all doses for today.</string>
+        \nFill in 0 if you have\'nt taken any pills in the evening.</string>
     <string name="help_symptom_scales_title">Symptom Scales</string>
     <string name="help_stress_factor_scales_title">Stress Factor Scales</string>
-    <string name="help_symptom_scales_content">ADL: Activities of daily living (Dressing, showering, cooking, eating)
+    <!--<string name="help_symptom_scales_content">ADL: Activities of daily living (Dressing, showering, cooking, eating)
         \n
         \n <b>Pain</b>         \n0: No pain
         \n1: Mild - Can do 100\%% ADL
@@ -225,7 +225,11 @@
         \n2: Moderate - Easily confused, can only focus on one task at a time
         \n3: High - Trouble finding words; poor focus; effect on mood
         \n4: Severe - Trouble speaking; withdrawn; frustrated
-        \n5: Very Severe - Withdrawn; can\'t recall personal info</string>
+        \n5: Very Severe - Withdrawn; can\'t recall personal info</string>-->
+    <string name="help_symptom_scales_content">This information is meant to be submitted once per day.
+        \n If the information needs to be edited, simply submit again.
+        \n
+    </string>
     <string name="help_stress_factor_scales_content"><b>Family Stress</b>         \n0: None
         \n1: Mild - Stress takes &lt;10\%% of mental focus
         \n2: Moderate - Stress takes 10\%%-25\%% of mental focus
