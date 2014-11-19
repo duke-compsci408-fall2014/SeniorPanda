@@ -23,10 +23,4 @@
         android:orderInCategory="100"
         android:showAsAction="never" />
 
-    <item
-        android:id="@+id/change_city"
-        android:orderInCategory="1"
-        android:title="@string/change_city"
-        android:showAsAction="never" />
-
 </menu>

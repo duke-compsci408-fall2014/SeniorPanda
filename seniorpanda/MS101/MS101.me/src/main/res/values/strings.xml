@@ -79,9 +79,12 @@
     <!-- Manage SlideShow Activity -->
     <string name="title_activity_photo_slideshow">Photo SlideShow</string>
     <string name="no_camera_message">You do not have the camera support</string>
-    <string name="no_camera_button_text">OK</string>
+    <string name="dialog_ok_button_text">OK</string>
+    <string name="fail_create_image_file">Failed to create image file. Please check file name and storage directory.</string>
     <!-- Weather Fragment -->
-    <string name="change_city">Change city</string>
+    <string name="dialog_change_city_title">Change City</string>
+    <string name="dialog_change_city_button">Go</string>
+    <string name="dialog_alert_title">Alert</string>
     <!-- Put your own APP ID here -->
     <string name="open_weather_maps_app_id"></string>
     <string name="weather_sunny"></string>

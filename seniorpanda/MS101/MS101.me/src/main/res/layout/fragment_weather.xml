@@ -3,8 +3,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:paddingBottom="@dimen/activity_vertical_margin"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.bmh.ms101.PhotoFlipping.WeatherFragment">
 
@@ -16,7 +14,8 @@
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="Shanghai" />
+        android:textSize="30dp"
+        android:text="Shanghai, CN" />
 
     <TextView
         android:id="@+id/updated_field"
@@ -25,9 +24,20 @@
         android:layout_below="@+id/city_field"
         android:layout_centerHorizontal="true"
         android:textAppearance="?android:attr/textAppearanceMedium"
-        android:textSize="13sp"
+        android:textSize="15sp"
         android:text="Sunny" />
 
+    <Button
+        android:id="@+id/slide_show_weather_change_city"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Change City"
+        android:textSize="25dp"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:layout_centerHorizontal="true"
+        android:textColor="@color/white"
+        android:layout_below="@+id/updated_field" />
 
     <TextView
         android:id="@+id/weather_icon"
@@ -46,7 +56,7 @@
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        android:textSize="40sp"
+        android:textSize="30sp"
         android:text="35C" />
 
     <TextView
