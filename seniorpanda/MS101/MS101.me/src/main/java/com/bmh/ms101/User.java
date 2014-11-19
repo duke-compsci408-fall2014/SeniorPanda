@@ -472,7 +472,7 @@ public class User {
         mPrefsUtil.getPrefs().edit().putString(PREF_PIN, pin).commit();
     }
 
-    /// parallel method like above (curently not used)
+    ///
     public void recordUserName(String userName){
         mPrefsUtil.getPrefs().edit().putString(PREF_USER_NAME, userName).commit();
     }
@@ -482,6 +482,12 @@ public class User {
         String storedUserName = mPrefsUtil.getPrefString(PREF_USER_NAME, null);
         return storedUserName != null && userName.equals(storedUserName.trim());
     }
+
+    public String getStoredUserName(){
+        String storedUserName = mPrefsUtil.getPrefString(PREF_USER_NAME, null);
+        return storedUserName;
+    }
+
     /**
      * Checks the pin the user provided against the stored pin to determine if it is valid
      * @param pin Encrypted pin that user provided

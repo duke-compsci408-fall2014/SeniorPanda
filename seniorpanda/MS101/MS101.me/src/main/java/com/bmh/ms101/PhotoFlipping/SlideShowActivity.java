@@ -65,13 +65,15 @@ public class SlideShowActivity extends Activity implements OnClickListener {
     private ResponseReceiver myResponseReceiver;
     private GestureDetector myTouchDetector;
     private Animation slide_in_left, slide_in_right, slide_out_left, slide_out_right;
-    private Map<Integer, String> imageNames;
+    private Map<Integer, String> counterToImageNameMap;
     private int imageCounter = 0;
     private String myCurrentPhotoName = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+
         setContentView(R.layout.activity_slide_show);
         myFlipper = (ViewFlipper) findViewById(R.id.photoFlipper);
         myFlipper.setOnTouchListener(new View.OnTouchListener() {
@@ -88,7 +90,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         initButton(R.id.pauseSlideButton, false);
         initButton(R.id.deletePhotoButton, false);
         initButton(R.id.slide_show_weather_change_city, true);
-        imageNames = new HashMap<Integer, String>();
+        counterToImageNameMap = new HashMap<Integer, String>();
         S3PhotoIntentService.startActionFetchS3(this);
 
         slide_in_left = AnimationUtils.loadAnimation(this, R.anim.slide_in_left);
@@ -137,7 +139,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
     public void addPhoto(Bitmap bitmap, String imageName) {
         ImageView imageView = new ImageView(this);
         imageView.setTag(imageCounter);
-        imageNames.put(imageCounter, imageName);
+        counterToImageNameMap.put(imageCounter, imageName);
         imageView.setImageBitmap(bitmap);
         myFlipper.addView(imageView);
         imageCounter++;
@@ -324,7 +326,9 @@ public class SlideShowActivity extends Activity implements OnClickListener {
                 break;
             case R.id.deletePhotoButton:
                 ImageView currentView = (ImageView) myFlipper.getCurrentView();
-                String imageName = imageNames.get(currentView.getTag());
+                int counter = ((Integer) currentView.getTag()).intValue();
+                String imageName = counterToImageNameMap.get(counter);
+                counterToImageNameMap.remove(counter);
                 myFlipper.removeView(currentView);
                 S3PhotoIntentService.startActionDeleteS3(this, imageName);
                 break;
