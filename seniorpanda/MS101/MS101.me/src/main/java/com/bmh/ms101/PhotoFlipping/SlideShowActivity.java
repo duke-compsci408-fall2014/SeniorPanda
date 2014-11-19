@@ -67,6 +67,8 @@ public class SlideShowActivity extends Activity implements OnClickListener {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+
         setContentView(R.layout.activity_slide_show);
         myFlipper = (ViewFlipper) findViewById(R.id.photoFlipper);
         myFlipper.setOnTouchListener(new View.OnTouchListener() {
@@ -325,8 +327,8 @@ public class SlideShowActivity extends Activity implements OnClickListener {
                 break;
             case R.id.deletePhotoButton:
                 ImageView currentView = (ImageView) myFlipper.getCurrentView();
-                myFlipper.removeView(currentView);
                 S3PhotoIntentService.startActionDeleteS3(this, ((BitmapDrawable) currentView.getDrawable()).getBitmap());
+                myFlipper.removeView(currentView);
                 break;
         }
     }

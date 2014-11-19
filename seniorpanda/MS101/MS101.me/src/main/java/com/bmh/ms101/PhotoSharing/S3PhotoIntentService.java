@@ -10,6 +10,7 @@ import android.util.Log;
 
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.auth.CognitoCachingCredentialsProvider;
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.DeleteObjectRequest;
 import com.amazonaws.services.s3.model.PutObjectRequest;
@@ -17,6 +18,7 @@ import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.amazonaws.util.IOUtils;
 import com.bmh.ms101.Constants;
+import com.bmh.ms101.User;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -30,6 +32,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p/>
  */
 public class S3PhotoIntentService extends IntentService {
+    private User mUser;
 
     private static final String ACTION_UPLOAD_S3 = "com.bmh.ms101.jobs.action.UPLOAD_S3";
     private static final String ACTION_FETCH_S3 = "com.bmh.ms101.jobs.action.FETCH_S3";
@@ -37,6 +40,7 @@ public class S3PhotoIntentService extends IntentService {
 
     private static final String IMAGE_NAME = "com.bmh.ms101.jobs.extra.IMAGE_NAME";
     private static final String UPLOAD_MAP = "com.bmh.ms101.jobs.extra.UPLOAD_MAP";
+    private static final String USER_NAME = "com.bmh.ms101.jobs.extra.USER_NAME";
 
     private static final String AWS_KEY = "";
     private static final String AWS_SECRET = "";
@@ -48,28 +52,19 @@ public class S3PhotoIntentService extends IntentService {
     private static Context myContext = null;
 
     private static CognitoCachingCredentialsProvider credentialsProvider;
-    /**
-     * Consider putting the credential elsewhere:
-     * 1. Try Amazon Cognito4
-     * 2. Try creating a user for app access specifically: dynamics ones vs static ones
-     * http://docs.aws.amazon.com/IAM/latest/APIReference/API_CreateAccessKey.html
-     * http://docs.aws.amazon.com/AWSAndroidSDK/latest/javadoc/
-     * http://docs.aws.amazon.com/mobile/sdkforandroid/developerguide/s3transfermanager.html
-     */
     // creating credential using COGNITO
-
     private static AmazonS3Client s3Client = null;
     public static synchronized AmazonS3Client getS3ClientInstance() {
         if (null == s3Client) {
-            s3Client = new AmazonS3Client(new BasicAWSCredentials(AWS_KEY, AWS_SECRET));
-//            s3Client = new AmazonS3Client(new CognitoCachingCredentialsProvider(
-//                    myContext, // get the context for the current activity
-//                    "123492269978",
-//                    "us-east-1:0bf55fd1-baf0-4676-a290-ac9f07623024",
-//                    "arn:aws:iam::123492269978:role/Cognito_SeniorPandaNewUnauth_DefaultRole",
-//                    "arn:aws:iam::123492269978:role/Cognito_SeniorPandaNewAuth_DefaultRole",
-//                    Regions.US_EAST_1
-//            ));
+//            s3Client = new AmazonS3Client(new BasicAWSCredentials(AWS_KEY, AWS_SECRET));
+            s3Client = new AmazonS3Client(new CognitoCachingCredentialsProvider(
+                    myContext, // get the context for the current activity
+                    "123492269978",
+                    "us-east-1:0bf55fd1-baf0-4676-a290-ac9f07623024",
+                    "arn:aws:iam::123492269978:role/Cognito_SeniorPandaNewUnauth_DefaultRole",
+                    "arn:aws:iam::123492269978:role/Cognito_SeniorPandaNewAuth_DefaultRole",
+                    Regions.US_EAST_1
+            ));
         }
         return s3Client;
     }
@@ -88,7 +83,7 @@ public class S3PhotoIntentService extends IntentService {
      *
      */
 
-    //purpose ???
+    //purpose
     public S3PhotoIntentService() {
         super("S3FetchPhotoJob");
     }
@@ -132,21 +127,26 @@ public class S3PhotoIntentService extends IntentService {
     @Override
     protected void onHandleIntent(Intent intent) {
         if (intent != null) {
+            mUser = new User(this);
+
             final String action = intent.getAction();
             final String bucketName = BUCKET_NAME;
             final String folderName = FOLDER_NAME;
+
+            final String userName = mUser.getStoredUserName();
             switch (action) {
                 case ACTION_FETCH_S3:
-                    handleActionFetchS3(AWS_KEY, AWS_SECRET);
+                    handleActionFetchS3(AWS_KEY, AWS_SECRET, userName);
                     return;
                 case ACTION_UPLOAD_S3:
                     // TODO: automate this information fetching from DB
-                    Map<String, String> imageMap =
+                    Map<String, String> uploadImgMap =
                             ConcurrentUtils.DeserializeHashMap(intent.getSerializableExtra(UPLOAD_MAP));
-                    handleActionUploadS3(AWS_KEY, AWS_SECRET, imageMap, bucketName, folderName);
+                    handleActionUploadS3(AWS_KEY, AWS_SECRET, uploadImgMap, bucketName, userName);
                     return;
                 case ACTION_DELETE_S3:
                     Bitmap bitmap = (Bitmap) intent.getExtras().get(IMAGE_NAME);
+                    Log.w("deleting photo", " bitMap is " + bitmap.toString());
                     final String nameKey = folderName + Constants.SLASH + getImageName(bitmap);
                     handleActionDeleteS3(AWS_KEY, AWS_SECRET, nameKey, bucketName);
                     return;
@@ -158,6 +158,7 @@ public class S3PhotoIntentService extends IntentService {
         try {
             AmazonS3Client s3Client = getS3ClientInstance();
             s3Client.deleteObject(new DeleteObjectRequest(bucketName, nameKey));
+            Log.w("S3PhotoIntentService", "bName: " + bucketName + " and nameKey is " + nameKey);
         } catch (Exception T) {
             T.printStackTrace();
             throw new UnsupportedOperationException("Cannot handle Delete S3 Action");
@@ -169,16 +170,15 @@ public class S3PhotoIntentService extends IntentService {
      * Handle action UploadS3 in the provided background thread with the provided parameters.
      *
      * @param awsKey, awsSecret
-     *                Bucket: imageSharing (should not change)
-     *                // 1. check against database to determine the 2. use Amazon's credential
+     *                Bucket: seniorpandadevnew (should not change)
      *                caller must have Permission.Write permission to the bucket to upload an object.
      */
-    private void handleActionUploadS3(String awsKey, String awsSecret, Map<String, String> imageMap, String bucketName, String folderName) {
+    private void handleActionUploadS3(String awsKey, String awsSecret, Map<String,String> uploadImageMap, String bucketName, String folderName) {
         try {
             AmazonS3Client s3Client = getS3ClientInstance();
             s3Client.listBuckets();
-            for (Map.Entry<String, String> entry : imageMap.entrySet()) {
-                PutObjectRequest por = new PutObjectRequest(bucketName, entry.getKey(), new java.io.File(entry.getValue()));
+            for (Map.Entry<String, String> entry : uploadImageMap.entrySet()) {
+                PutObjectRequest por = new PutObjectRequest(bucketName, folderName + Constants.SLASH+ entry.getKey(), new java.io.File(entry.getValue()));
                 s3Client.putObject(por);
             }
         } catch (Exception T) {
@@ -189,12 +189,13 @@ public class S3PhotoIntentService extends IntentService {
 
     /**
      * Handle action FetchS3 in the provided background thread with the provided parameters.
+     * @param folderName is derived from the userName
      */
-    private void handleActionFetchS3(String key, String secret) {
+    private void handleActionFetchS3(String key, String secret, String folderName) {
 //            AWS_KEY = key; AWS_SECRET = key; // in case those credentials are fed from outsides. i.e. properties file
 //            AmazonS3 s3 = new AmazonS3Client(AWSCredentials);
         AmazonS3Client s3Client = getS3ClientInstance();
-        List<S3ObjectSummary> summaries = s3Client.listObjects(BUCKET_NAME).getObjectSummaries();
+        List<S3ObjectSummary> summaries = s3Client.listObjects(BUCKET_NAME, folderName+ Constants.SLASH).getObjectSummaries();
         String[] keysNames = new String[summaries.size()]; // think about update issue:
 
         for (int i = 0; i < keysNames.length; i++) {
@@ -237,6 +238,7 @@ public class S3PhotoIntentService extends IntentService {
 
     private String getImageName(Bitmap bitmap) {
         for (String name : myBitmapMap.keySet()) {
+            System.out.println(name);
             if (myBitmapMap.get(name).equals(bitmap)) {
                 return name;
             }
