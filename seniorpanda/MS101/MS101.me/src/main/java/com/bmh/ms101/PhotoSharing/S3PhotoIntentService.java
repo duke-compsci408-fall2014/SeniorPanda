@@ -34,7 +34,7 @@ public class S3PhotoIntentService extends IntentService {
 
     private static final String ACTION_UPLOAD_S3 = "com.bmh.ms101.jobs.action.UPLOAD_S3";
     private static final String ACTION_FETCH_S3 = "com.bmh.ms101.jobs.action.FETCH_S3";
-    private static final String ACTION_DELETE_S3 = "com.bmh.ms101.jobs.action.DELETE_S3"; // ?? no such class ??
+    private static final String ACTION_DELETE_S3 = "com.bmh.ms101.jobs.action.DELETE_S3";
 
     private static final String IMAGE_NAME = "com.bmh.ms101.jobs.extra.IMAGE_NAME";
     private static final String UPLOAD_MAP = "com.bmh.ms101.jobs.extra.UPLOAD_MAP";
@@ -48,6 +48,7 @@ public class S3PhotoIntentService extends IntentService {
     private static Map<String, Bitmap> myBitmapMap = new ConcurrentHashMap<String, Bitmap>();
     private static Context myContext = null;
 
+    private static CognitoCachingCredentialsProvider credentialsProvider;
     /**
      * Consider putting the credential elsewhere:
      * 1. Try Amazon Cognito4
@@ -57,16 +58,36 @@ public class S3PhotoIntentService extends IntentService {
      * http://docs.aws.amazon.com/mobile/sdkforandroid/developerguide/s3transfermanager.html
      */
     // creating credential using COGNITO
-    private static CognitoCachingCredentialsProvider credentialsProvider;
-    private static AmazonS3Client s3Client = null;
 
+    private static AmazonS3Client s3Client = null;
     public static synchronized AmazonS3Client getS3ClientInstance() {
         if (null == s3Client) {
-            s3Client = new AmazonS3Client(new BasicAWSCredentials(AWS_KEY, AWS_SECRET));
-//            s3Client = new AmazonS3Client(credentialsProvider);
+//            s3Client = new AmazonS3Client(new BasicAWSCredentials(AWS_KEY, AWS_SECRET));
+            s3Client = new AmazonS3Client(new CognitoCachingCredentialsProvider(
+                    myContext, // get the context for the current activity
+                    "123492269978",
+                    "us-east-1:0bf55fd1-baf0-4676-a290-ac9f07623024",
+                    "arn:aws:iam::123492269978:role/Cognito_SeniorPandaNewUnauth_DefaultRole",
+                    "arn:aws:iam::123492269978:role/Cognito_SeniorPandaNewAuth_DefaultRole",
+                    Regions.US_EAST_1
+            ));
         }
         return s3Client;
     }
+
+    /**
+     *
+     CognitoSyncManager syncClient = new CognitoSyncManager(
+     myActivity.getContext(),
+     "us-east-1:0bf55fd1-baf0-4676-a290-ac9f07623024",
+     Regions.US_EAST_1,
+     cognitoProvider);
+
+     Dataset dataset = syncClient.openOrCreateDataset('myDataset');
+     dataset.put("myKey", "myValue");
+     dataset.synchronize(this, syncCallback);
+     *
+     */
 
     //purpose ???
     public S3PhotoIntentService() {
@@ -83,14 +104,6 @@ public class S3PhotoIntentService extends IntentService {
     public static void startActionFetchS3(Context context) {
         if (myContext == null) {
             setContext(context);
-            credentialsProvider = new CognitoCachingCredentialsProvider(
-                    myContext, // get the context for the current activity
-                    "AWS_ACCOUNT_ID",
-                    "COGNITO_IDENTITY_POOL",
-                    "arn:aws:iam::AWS_ACCOUNT_ID:role/UNAUTHENTICATED_ROLE",
-                    "arn:aws:iam::AWS_ACCOUNT_ID:role/AUTHENTICATED_ROLE",
-                    Regions.US_EAST_1
-            );
         }
         Intent intent = new Intent(context, S3PhotoIntentService.class);
         intent.setAction(ACTION_FETCH_S3);
