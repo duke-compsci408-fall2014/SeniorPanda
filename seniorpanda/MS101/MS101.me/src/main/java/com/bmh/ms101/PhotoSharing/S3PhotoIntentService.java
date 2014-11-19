@@ -116,10 +116,10 @@ public class S3PhotoIntentService extends IntentService {
         context.startService(intent);
     }
 
-    public static void startActionDeleteS3(Context context, Bitmap bitmap) {
+    public static void startActionDeleteS3(Context context, String imageName) {
         Intent intent = new Intent(context, S3PhotoIntentService.class);
         intent.setAction(ACTION_DELETE_S3);
-        intent.putExtra(IMAGE_NAME, bitmap);
+        intent.putExtra(IMAGE_NAME, imageName);
         setContext(context);
         context.startService(intent);
     }
@@ -145,9 +145,9 @@ public class S3PhotoIntentService extends IntentService {
                     handleActionUploadS3(AWS_KEY, AWS_SECRET, imageMap, bucketName, folderName);
                     return;
                 case ACTION_DELETE_S3:
-                    Bitmap bitmap = (Bitmap) intent.getExtras().get(IMAGE_NAME);
-                    final String nameKey = folderName + Constants.SLASH + getImageName(bitmap);
-                    Log.w("Delete photo", getImageName(bitmap));
+                    String imageName = (String) intent.getExtras().get(IMAGE_NAME);
+                    final String nameKey = folderName + Constants.SLASH + imageName;
+                    Log.w("Delete photo", imageName);
                     handleActionDeleteS3(AWS_KEY, AWS_SECRET, nameKey, bucketName);
                     return;
             }
@@ -207,7 +207,9 @@ public class S3PhotoIntentService extends IntentService {
                 try {
                     Bitmap bitmap = fetchImageAsBitMap(BUCKET_NAME, picName);
                     myBitmapMap.put(picName, bitmap);
-                    Intent fetchedIntent = new Intent(Constants.ACTION_FETCHED_PHOTO).putExtra(Constants.INTENT_FETCHED_PHOTO, bitmap);
+                    Intent fetchedIntent = new Intent(Constants.ACTION_FETCHED_PHOTO);
+                    fetchedIntent.putExtra(Constants.INTENT_FETCHED_PHOTO, bitmap);
+                    fetchedIntent.putExtra(Constants.INTENT_PHOTO_NAME, picName);
                     LocalBroadcastManager.getInstance(this).sendBroadcast(fetchedIntent);
                     Log.w("S3PhotoIntentService", "Bitmap of " + picName + " put in");
                 } catch (Exception e) {
@@ -233,15 +235,6 @@ public class S3PhotoIntentService extends IntentService {
         byte[] bytes = IOUtils.toByteArray(content);
         Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
         return bitmap;
-    }
-
-    private String getImageName(Bitmap bitmap) {
-        for (String name : myBitmapMap.keySet()) {
-            if (myBitmapMap.get(name).equals(bitmap)) {
-                return name;
-            }
-        }
-        return null;
     }
 
 // //thinking of improving the sign-in:

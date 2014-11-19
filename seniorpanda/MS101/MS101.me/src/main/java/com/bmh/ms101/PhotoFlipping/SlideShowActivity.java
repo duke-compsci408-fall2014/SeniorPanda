@@ -11,7 +11,6 @@ import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Typeface;
-import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -55,6 +54,9 @@ public class SlideShowActivity extends Activity implements OnClickListener {
     private static final int SWIPE_MIN_DISTANCE = 120;
     private static final int SWIPE_THRESHOLD_VELOCITY = 200;
     private static final int TIME_UPDATE_INTERVAL = 10000;
+    private static final String JPEG_FILE_PREFIX = "IMG_";
+    private static final String JPEG_FILE_SUFFIX = ".jpg";
+    private static final String DATE_TIME_FORMAT = "EEE, MMM dd yyy HH:mm a";
 
     private ViewFlipper myFlipper;
     private TextView myDateTextView;
@@ -63,6 +65,9 @@ public class SlideShowActivity extends Activity implements OnClickListener {
     private ResponseReceiver myResponseReceiver;
     private GestureDetector myTouchDetector;
     private Animation slide_in_left, slide_in_right, slide_out_left, slide_out_right;
+    private Map<Integer, String> imageNames;
+    private int imageCounter = 0;
+    private String myCurrentPhotoName = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,14 +81,14 @@ public class SlideShowActivity extends Activity implements OnClickListener {
                 return true;
             }
         });
-
+        setTitle(R.string.title_activity_photo_slideshow);
         initButton(R.id.uploadPhotoButton, false);
         initButton(R.id.takePhotoButton, false);
         initButton(R.id.startSlideButton, false);
         initButton(R.id.pauseSlideButton, false);
         initButton(R.id.deletePhotoButton, false);
         initButton(R.id.slide_show_weather_change_city, true);
-
+        imageNames = new HashMap<Integer, String>();
         S3PhotoIntentService.startActionFetchS3(this);
 
         slide_in_left = AnimationUtils.loadAnimation(this, R.anim.slide_in_left);
@@ -129,10 +134,13 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         super.onDestroy();
     }
 
-    public void addPhoto(Bitmap bitmap) {
+    public void addPhoto(Bitmap bitmap, String imageName) {
         ImageView imageView = new ImageView(this);
+        imageView.setTag(imageCounter);
+        imageNames.put(imageCounter, imageName);
         imageView.setImageBitmap(bitmap);
         myFlipper.addView(imageView);
+        imageCounter++;
     }
 
     private void dispatchTakePhotoIntent() {
@@ -166,7 +174,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
     private void showInfoDialog(int title, int inputText, int buttonText) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(title);
-        final EditText input = new EditText(this);
+        final TextView input = new TextView(this);
         input.setInputType(InputType.TYPE_CLASS_TEXT);
         input.setText(inputText);
         builder.setView(input);
@@ -254,14 +262,10 @@ public class SlideShowActivity extends Activity implements OnClickListener {
 
     private ImageFilePath createImageFile() throws IOException {
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        String imageFileName = "JPEG_" + timeStamp + "_";
+        myCurrentPhotoName = JPEG_FILE_PREFIX + timeStamp + "_";
         File storageDir = Environment.getExternalStoragePublicDirectory(
                 Environment.DIRECTORY_PICTURES);
-        File image = File.createTempFile(
-                imageFileName,  /* prefix */
-                ".jpg",         /* suffix */
-                storageDir      /* directory */
-        );
+        File image = File.createTempFile(myCurrentPhotoName, JPEG_FILE_SUFFIX, storageDir);
         // Save a file: path for use with ACTION_VIEW intents
         String path = "file:" + image.getAbsolutePath();
         ImageFilePath imageFilePath = new ImageFilePath(image, path);
@@ -281,7 +285,8 @@ public class SlideShowActivity extends Activity implements OnClickListener {
             if (resultCode == RESULT_OK) {
                 Bundle extras = data.getExtras();
                 Bitmap bitmap = (Bitmap) extras.get("data");
-                addPhoto(bitmap);
+                addPhoto(bitmap, myCurrentPhotoName);
+                //TODO: startActionUploadS3
             }
         }
     }
@@ -319,8 +324,9 @@ public class SlideShowActivity extends Activity implements OnClickListener {
                 break;
             case R.id.deletePhotoButton:
                 ImageView currentView = (ImageView) myFlipper.getCurrentView();
+                String imageName = imageNames.get(currentView.getTag());
                 myFlipper.removeView(currentView);
-                S3PhotoIntentService.startActionDeleteS3(this, ((BitmapDrawable) currentView.getDrawable()).getBitmap());
+                S3PhotoIntentService.startActionDeleteS3(this, imageName);
                 break;
         }
     }
@@ -367,11 +373,11 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         });
     }
 
-    public void doFetchPhotoWork(final Bitmap bitmap) {
+    public void doFetchPhotoWork(final Bitmap bitmap, final String imageName) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                addPhoto(bitmap);
+                addPhoto(bitmap, imageName);
                 startFlipping();
             }
         });
@@ -382,7 +388,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
             while (!Thread.currentThread().isInterrupted()) {
                 try {
                     Calendar c = Calendar.getInstance();
-                    SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm a");
+                    SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_TIME_FORMAT);
                     String formatted = dateFormat.format(c.getTime());
                     doUpdateTimeWork(formatted.substring(0, 10), formatted.substring(11));
                     Thread.sleep(TIME_UPDATE_INTERVAL);
@@ -406,7 +412,8 @@ public class SlideShowActivity extends Activity implements OnClickListener {
                 case Constants.ACTION_FETCHED_PHOTO:
                     Bundle extras = intent.getExtras();
                     Bitmap bitmap = (Bitmap) extras.get(Constants.INTENT_FETCHED_PHOTO);
-                    doFetchPhotoWork(bitmap);
+                    String imageName = (String) extras.get(Constants.INTENT_PHOTO_NAME);
+                    doFetchPhotoWork(bitmap, imageName);
             }
         }
     }

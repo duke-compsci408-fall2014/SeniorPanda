@@ -3,23 +3,20 @@
     android:id="@+id/photo_slide_show_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingLeft="16dp"
-    android:paddingRight="16dp"
     tools:context="com.bmh.ms101.PhotoFlipping.SlideShowActivity"
     android:orientation="vertical">
 
     <LinearLayout
         android:id="@+id/slide_show_panel"
-        android:layout_width="fill_parent"
+        android:layout_width="match_parent"
         android:layout_height="0dp"
         android:orientation="horizontal"
-        android:layout_weight="16"
-        android:baselineAligned="false">
+        android:layout_weight="16">
 
         <LinearLayout
             android:id="@+id/slide_show_extra_features"
             android:layout_width="0dp"
-            android:layout_height="fill_parent"
+            android:layout_height="match_parent"
             android:layout_weight="1"
             android:orientation="vertical"
             android:background="#FF0099CC">
@@ -30,22 +27,22 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:layout_marginTop="@dimen/activity_vertical_margin"
-                android:textSize="32dp"
-                android:text="0000-00-00" />
+                android:textSize="25dp"
+                android:text="Wed, Nov 1 2014" />
 
             <TextView
                 android:id="@+id/slide_show_display_time"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:textSize="32dp"
+                android:textSize="25dp"
                 android:text="00:00" />
 
             <fragment
                 android:name="com.bmh.ms101.PhotoFlipping.WeatherFragment"
                 android:id="@+id/slide_show_weather_display"
-                android:layout_width="fill_parent"
-                android:layout_height="fill_parent"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
                 tools:layout="@layout/fragment_weather"></fragment>
 
         </LinearLayout>
@@ -54,7 +51,7 @@
             android:id="@+id/photoFlipper"
             android:layout_width="0dp"
             android:layout_weight="3"
-            android:layout_height="fill_parent"
+            android:layout_height="match_parent"
             android:layout_marginLeft="8dp"></ViewFlipper>
 
     </LinearLayout>
@@ -69,35 +66,35 @@
         <Button
             android:id="@+id/uploadPhotoButton"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_weight="1"
             android:text="Upload" />
 
         <Button
             android:id="@+id/takePhotoButton"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_weight="1"
             android:text="Camera" />
 
         <Button
             android:id="@+id/startSlideButton"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_weight="1"
             android:text="Start" />
 
         <Button
             android:id="@+id/pauseSlideButton"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_weight="1"
             android:text="Pause" />
 
         <Button
             android:id="@+id/deletePhotoButton"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_weight="1"
             android:text="Delete" />
 
