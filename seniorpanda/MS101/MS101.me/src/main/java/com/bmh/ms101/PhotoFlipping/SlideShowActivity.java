@@ -91,14 +91,13 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         initButton(R.id.deletePhotoButton, false);
         initButton(R.id.slide_show_weather_change_city, true);
         counterToImageNameMap = new HashMap<Integer, String>();
+        registerReceiver();
         S3PhotoIntentService.startActionFetchS3(this);
 
         slide_in_left = AnimationUtils.loadAnimation(this, R.anim.slide_in_left);
         slide_in_right = AnimationUtils.loadAnimation(this, R.anim.silde_in_right);
         slide_out_left = AnimationUtils.loadAnimation(this, R.anim.slide_out_left);
         slide_out_right = AnimationUtils.loadAnimation(this, R.anim.slide_out_right);
-
-        registerReceiver();
         myTouchDetector = new GestureDetector(myFlipper.getContext(), new SwipeGestureDetector());
 
         //set up the date time text views
@@ -132,6 +131,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
     @Override
     public void onDestroy() {
         unregisterReceiver();
+        S3PhotoIntentService.clearMap();
         myDateTimeThread.interrupt();
         super.onDestroy();
     }

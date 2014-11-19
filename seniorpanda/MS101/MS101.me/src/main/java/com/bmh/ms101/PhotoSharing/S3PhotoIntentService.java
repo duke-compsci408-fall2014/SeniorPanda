@@ -41,8 +41,6 @@ public class S3PhotoIntentService extends IntentService {
     private static final String UPLOAD_MAP = "com.bmh.ms101.jobs.extra.UPLOAD_MAP";
     private static final String USER_NAME = "com.bmh.ms101.jobs.extra.USER_NAME";
 
-    private static final String AWS_KEY = "";
-    private static final String AWS_SECRET = "";
     private static final String BUCKET_NAME = "seniorpandadevnew"; // use the User.userName
     private static final String FOLDER_NAME = "PhotoSharing";
 
@@ -122,25 +120,25 @@ public class S3PhotoIntentService extends IntentService {
             final String userName = mUser.getStoredUserName();
             switch (action) {
                 case ACTION_FETCH_S3:
-                    handleActionFetchS3(AWS_KEY, AWS_SECRET, userName);
-                    return;
+                    handleActionFetchS3(userName);
+                    break;
                 case ACTION_UPLOAD_S3:
                     // TODO: automate this information fetching from DB
                     Map<String, String> uploadImgMap =
                             ConcurrentUtils.DeserializeHashMap(intent.getSerializableExtra(UPLOAD_MAP));
-                    handleActionUploadS3(AWS_KEY, AWS_SECRET, uploadImgMap, bucketName, userName);
-                    return;
+                    handleActionUploadS3(uploadImgMap, bucketName, userName);
+                    break;
                 case ACTION_DELETE_S3:
                     String imageName = (String) intent.getExtras().get(IMAGE_NAME);
                     final String nameKey = folderName + Constants.SLASH + imageName;
                     Log.w("Delete photo", imageName);
-                    handleActionDeleteS3(AWS_KEY, AWS_SECRET, nameKey, bucketName);
-                    return;
+                    handleActionDeleteS3(nameKey, userName);
+                    break;
             }
         }
     }
 
-    private void handleActionDeleteS3(String awsKey, String awsSecret, String nameKey, String bucketName) {
+    private void handleActionDeleteS3(String nameKey, String bucketName) {
         try {
             AmazonS3Client s3Client = getS3ClientInstance();
             s3Client.deleteObject(new DeleteObjectRequest(bucketName, nameKey));
@@ -151,15 +149,15 @@ public class S3PhotoIntentService extends IntentService {
         }
     }
 
+    public static void clearMap() {
+        myBitmapMap.clear();
+    }
+
 
     /**
      * Handle action UploadS3 in the provided background thread with the provided parameters.
-     *
-     * @param awsKey, awsSecret
-     *                Bucket: seniorpandadevnew (should not change)
-     *                caller must have Permission.Write permission to the bucket to upload an object.
      */
-    private void handleActionUploadS3(String awsKey, String awsSecret, Map<String, String> uploadImageMap, String bucketName, String folderName) {
+    private void handleActionUploadS3(Map<String, String> uploadImageMap, String bucketName, String folderName) {
         try {
             AmazonS3Client s3Client = getS3ClientInstance();
             s3Client.listBuckets();
@@ -178,12 +176,12 @@ public class S3PhotoIntentService extends IntentService {
      *
      * @param folderName is derived from the userName
      */
-    private void handleActionFetchS3(String key, String secret, String folderName) {
+    private void handleActionFetchS3(String folderName) {
 //            AWS_KEY = key; AWS_SECRET = key; // in case those credentials are fed from outsides. i.e. properties file
 //            AmazonS3 s3 = new AmazonS3Client(AWSCredentials);
         AmazonS3Client s3Client = getS3ClientInstance();
         Log.w("folderName here is ", folderName);
-        List<S3ObjectSummary> summaries = s3Client.listObjects(BUCKET_NAME, folderName+ Constants.SLASH).getObjectSummaries();
+        List<S3ObjectSummary> summaries = s3Client.listObjects(BUCKET_NAME, folderName + Constants.SLASH).getObjectSummaries();
 
         String[] keysNames = new String[summaries.size()]; // think about update issue:
 
@@ -195,6 +193,9 @@ public class S3PhotoIntentService extends IntentService {
         for (String picName : keysNames) {
             if (!checkEmptyDirectory(picName)) {
                 try {
+                    if (myBitmapMap.containsKey(picName)) {
+                        continue;
+                    }
                     Bitmap bitmap = fetchImageAsBitMap(BUCKET_NAME, picName);
                     myBitmapMap.put(picName, bitmap);
                     Intent fetchedIntent = new Intent(Constants.ACTION_FETCHED_PHOTO);
