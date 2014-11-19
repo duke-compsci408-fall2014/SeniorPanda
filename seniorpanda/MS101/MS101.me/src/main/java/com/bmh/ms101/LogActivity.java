@@ -22,20 +22,27 @@ import android.widget.TextView;
 import com.bmh.ms101.PhotoFlipping.SlideShowActivity;
 import com.bmh.ms101.events.DFLoginResponseEvent;
 import com.bmh.ms101.events.GetDataDFEvent;
+import com.bmh.ms101.events.GetLogsDFEvent;
 import com.bmh.ms101.ex.DFCredentialsInvalidException;
 import com.bmh.ms101.jobs.DreamFactoryGetJob;
 import com.bmh.ms101.jobs.DreamFactoryLoginJob;
 import com.bmh.ms101.models.BaseRecordModel;
+import com.bmh.ms101.models.LogDataModel;
 import com.bmh.ms101.models.MedRecordModel;
 import com.bmh.ms101.models.StressFactorRecordModel;
+import com.bmh.ms101.models.SymptomDataModel;
 import com.bmh.ms101.models.SymptomRecordModel;
+import com.bmh.ms101.models.TakenDataModel;
 import com.path.android.jobqueue.JobManager;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 
 import de.greenrobot.event.EventBus;
 
@@ -161,9 +168,15 @@ public class LogActivity extends Activity {
     /**
      * Called to load log data.
      */
-    private void loadLogData() {
+   /* private void loadLogData() {
         prepareLoadLogData();
         mJobManager.addJobInBackground(new DreamFactoryGetJob(lastFrom, lastTo));
+    }*/
+
+    private void loadLogData() {
+        prepareLoadLogData();
+        //     mJobManager.addJobInBackground(new DreamFactoryGetJob(lastFrom, lastTo));
+        mJobManager.addJobInBackground(new DreamFactoryGetJob(User.LOGS_DATA_TYPE));
     }
 
     /**
@@ -201,12 +214,70 @@ public class LogActivity extends Activity {
      * ones to create a list of LogItems, then tells the LogAdapter to refresh.
      * Used with the DF backend.
      *
-     * @param userRecords ArrayList of objects that extend BaseRecordRequest
+     *
      */
-    private void populateLogDF(ArrayList<BaseRecordModel> userRecords) {
+    private void populateLogsFromDF(ArrayList<LogDataModel> logDataList) {
+        LogDataModel logData = logDataList.get(0);
         mLogItems.clear();
         // Turn the user data items into LogItems and add them to the list
-        for (BaseRecordModel record : userRecords) {
+        List<TakenDataModel> medsTakenList;
+        medsTakenList = logData.getMedsTakenData();
+
+        List<SymptomDataModel> symptomsList;
+        symptomsList = logData.getSymptomsData();
+        boolean first = true;
+        //  StringBuilder logItemText = new StringBuilder();
+        for (TakenDataModel medsTakenData : medsTakenList) {
+            StringBuilder logItemText = new StringBuilder();
+            long time = 0;
+            String title = "";
+            String text = "";
+    /*        if (first) {
+                title = getString(R.string.log_meds_label);
+                first = false;
+            } else {
+                logItemText.delete(0, logItemText.length());
+                title = "";
+            }*/
+            //   title = getString(R.string.log_meds_label);
+            title = "";
+            time = getTime(medsTakenData.getDateTimeTaken());
+            logItemText.append("Medication : ");
+            logItemText.append(medsTakenData.getMedicationName());
+            logItemText.append("         ");
+            logItemText.append("Pills Taken : ");
+            logItemText.append(medsTakenData.getPillsTaken());
+            text = logItemText.toString();
+            mLogItems.add(new LogItem(time, title, text));
+        }
+
+        for (SymptomDataModel symptomData : symptomsList) {
+            StringBuilder logItemText = new StringBuilder();
+            long time = 0;
+            String title = "";
+            String text = "";
+          /*  if (first) {
+                title = getString(R.string.log_symp_label);
+                first = false;
+            } else {
+                logItemText.delete(0, logItemText.length());
+                title = "";
+            }*/
+            time = getTime(symptomData.getDateTime());
+            logItemText.append("Symptom : ");
+            logItemText.append(symptomData.getSymptomType());
+            logItemText.append("         ");
+            logItemText.append("Duration : ");
+            logItemText.append(symptomData.getDuration());
+            logItemText.append("         ");
+            logItemText.append("Location : ");
+            logItemText.append(symptomData.getBodyLocation());
+
+            text = logItemText.toString();
+            // text = String.valueOf(medsTakenData.getPillsTaken());
+            mLogItems.add(new LogItem(time, title, text));
+        }
+        /*for (BaseRecordModel record : userRecords) {
             // Wrapped in a try/catch in case any data is incorrectly formatted
             try {
                 long time = record.getLongTime();
@@ -260,27 +331,27 @@ public class LogActivity extends Activity {
                 }
                 mLogItems.add(new LogItem(time, title, text));
             } catch (Exception e) {
-                /*
+                *//*
                 We may have exceptions if our data is malformatted or the like, but the need to
                 not crash outweighs the need to figure out the data type and move it around, since
                 that would create high code complexity, so we'll just skip over the offending data.
-                 */
+                 *//*
                 e.printStackTrace();
             }
-        }
+        }*/
         // Sort in descending order then tell the LogAdapter to refresh
-        Collections.sort(mLogItems);
+        //  Collections.sort(mLogItems);
         mAdapter.notifyDataSetChanged();
     }
-
     /**
      * Called when we get a response from DreamFactory after requesting some of the User's data.
      * @param event GetDataDFEvent
      */
-    public void onEventMainThread(GetDataDFEvent event) {
+    public void onEventMainThread(GetLogsDFEvent event) {
         if (event.wasSuccess) {
-            ArrayList<BaseRecordModel> userRecords = (ArrayList<BaseRecordModel>) event.response;
-            populateLogDF(userRecords);
+            ArrayList<LogDataModel> logDataList = (ArrayList<LogDataModel>) event.response;
+            //   populateLogDF(userRecords);
+            populateLogsFromDF(logDataList);
             afterLoadLogData(true);
         } else {
             if (event.response instanceof DFCredentialsInvalidException) {
@@ -291,7 +362,6 @@ public class LogActivity extends Activity {
             }
         }
     }
-
     /**
      * Called when we get a response from DreamFactory after trying to log in.
      * @param event DFLoginResponseEvent
@@ -383,5 +453,18 @@ public class LogActivity extends Activity {
             }
             return rowView;
         }
+    }
+
+    private long getTime(String dateTimeStr) {
+        long time = 0;
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+        try {
+            //   time = sdf.parse("1970-01-01 " + dateTimeStr).getTime();
+            time = sdf.parse(dateTimeStr).getTime();
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return time;
     }
 }

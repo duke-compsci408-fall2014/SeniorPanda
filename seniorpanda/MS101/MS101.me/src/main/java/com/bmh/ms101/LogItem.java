@@ -26,10 +26,16 @@ public class LogItem implements Comparable<LogItem> {
      * @param date long time in milliseconds
      * @return Date string
      */
-    private String toStringDate(long date) {
+   /* private String toStringDate(long date) {
         Calendar c = Calendar.getInstance();
         c.setTimeInMillis(date);
         return new SimpleDateFormat("MM'/'dd'/'yyyy").format(c.getTime());
+    }*/
+
+    private String toStringDate(long date) {
+        Calendar c = Calendar.getInstance();
+        c.setTimeInMillis(date);
+        return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(c.getTime());
     }
 
     public long getDate() {

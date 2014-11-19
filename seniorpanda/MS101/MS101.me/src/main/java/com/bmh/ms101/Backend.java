@@ -11,6 +11,7 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 
 import com.bmh.ms101.ex.DFCredentialsInvalidException;
+import com.bmh.ms101.models.LogDataModel;
 import com.bmh.ms101.models.BaseDataModel;
 import com.bmh.ms101.models.BaseRecordModel;
 import com.bmh.ms101.models.LoginModel;
@@ -19,8 +20,6 @@ import com.bmh.ms101.models.MedicationDataModel;
 import com.bmh.ms101.models.StressFactorRecordModel;
 import com.bmh.ms101.models.SubscribeDataModel;
 import com.bmh.ms101.models.SymptomRecordModel;
-import com.bmh.ms101.models.SymptomDataModel;
-import com.bmh.ms101.models.UserDataModel;
 
 import org.droidparts.net.http.HTTPException;
 import org.droidparts.net.http.HTTPResponse;
@@ -81,8 +80,12 @@ public class Backend {
     public static final String DF_GET_DATA_SUFFIX = DF_DB_SUFIX + "/%s?filter=uid%%3D\"%s\"%%20AND%%20date_created%%20BETWEEN%%20\"%s%%2000%%3A00%%3A00\"%%20AND%%20\"%s%%2023%%3A59%%3A59\"&order=date_created%%20DESC&fields=*";
     public static final String DF_POST_DATA_SUFIX = DF_DB_SUFIX + "/%s?fields=*";
     public static final String DF_PUT_DATA_SUFIX = DF_DB_SUFIX + "/%s?fields=*&related=subscribes_by_uid,medications_by_subscribe";
-    public static final String DF_RELATED_MED_BY_SUBSCIBE = "medications_by_subscribe";
     public static final String DF_RELATED_SUBSCRIBE_BY_UID = "subscribes_by_uid";
+    public static final String DF_RELATED_MED_BY_SUBSCIBE = "medications_by_subscribe";
+    public static final String DF_RELATED_TAKEN_BY_UID = "takens_by_uid";
+    public static final String DF_RELATED_SYMPTOM_BY_UID = "symptoms_by_uid";
+    public static final String DF_RELATED_MEDS_BY_TAKEN = "medications_by_taken";
+
     public static final String VER_MED = "MS101:med:1";
     public static final String VER_SYMP = "MS101:symp:1";
     public static final String VER_STRESS = "MS101:env:1";
@@ -259,21 +262,19 @@ public class Backend {
                 for (int i = 0; i < subscribeData.size(); i++) {
                     data.add(subscribeData.get(i));
                 }
-                /*JSONArray userDataObjectsJson = mDFRestClient.getJSONObject(getSubscribeURL).getJSONArray("record");
-                JSONObject userDataObjectJson = null;
-                for (int i = 0; i < userDataObjectsJson.length(); i++) {
-                    JSONObject json = userDataObjectsJson.getJSONObject(i);
-                    int id = json.getInt("id");
-                    if (id == mUser.getUserId()) {
-                        userDataObjectJson = json;
-                        break;
-                    }
+                break;
+            case User.LOGS_DATA_TYPE:
+                data = new ArrayList<BaseDataModel>();
+
+                String getLogsURL = DF_URL + DF_DB_SUFIX + "/" + DF_USER_TABLE + "?related="
+                        + DF_RELATED_TAKEN_BY_UID + "," + DF_RELATED_SYMPTOM_BY_UID + ","
+                        + DF_RELATED_MEDS_BY_TAKEN;
+                System.out.println("getURL :: " + getLogsURL);
+                JSONObject userActivityData = mDFRestClient.getJSONObject(getLogsURL);
+                List<LogDataModel> logsData = DataUtil.getLogsFromUserData(userActivityData, mUser.getUserId());
+                for (int i = 0; i < logsData.size(); i++) {
+                    data.add(logsData.get(i));
                 }
-                UserDataModel userDataModel = new UserDataModel(userDataObjectJson);
-                List<SubscribeDataModel> subscribeData = userDataModel.getSubscriptionData();
-                for (int i = 0; i < subscribeData.size(); i++) {
-                    data.add(subscribeData.get(i));
-                }*/
                 break;
         }
 
