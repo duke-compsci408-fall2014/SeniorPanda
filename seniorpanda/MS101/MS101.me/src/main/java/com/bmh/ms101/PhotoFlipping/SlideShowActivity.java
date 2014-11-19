@@ -91,10 +91,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         slide_out_left = AnimationUtils.loadAnimation(this, R.anim.slide_out_left);
         slide_out_right = AnimationUtils.loadAnimation(this, R.anim.slide_out_right);
 
-        IntentFilter statusIntentFilter = new IntentFilter(Constants.ACTION_FETCHED_PHOTO);
-        statusIntentFilter.addCategory(Intent.CATEGORY_DEFAULT);
-        myResponseReceiver = new ResponseReceiver();
-        LocalBroadcastManager.getInstance(this).registerReceiver(myResponseReceiver, statusIntentFilter);
+        registerReceiver();
         myTouchDetector = new GestureDetector(myFlipper.getContext(), new SwipeGestureDetector());
 
         //set up the date time text views
@@ -105,6 +102,13 @@ public class SlideShowActivity extends Activity implements OnClickListener {
 
         myDateTimeThread = new Thread(new DateTimeRunner());
         myDateTimeThread.start();
+    }
+
+    private void registerReceiver() {
+        IntentFilter statusIntentFilter = new IntentFilter(Constants.ACTION_FETCHED_PHOTO);
+        statusIntentFilter.addCategory(Intent.CATEGORY_DEFAULT);
+        myResponseReceiver = new ResponseReceiver();
+        LocalBroadcastManager.getInstance(this).registerReceiver(myResponseReceiver, statusIntentFilter);
     }
 
     private void initTextView(TextView textView) {
@@ -120,10 +124,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
 
     @Override
     public void onDestroy() {
-        if (myResponseReceiver != null) {
-            LocalBroadcastManager.getInstance(this).unregisterReceiver(myResponseReceiver);
-            myResponseReceiver = null;
-        }
+        unregisterReceiver();
         myDateTimeThread.interrupt();
         super.onDestroy();
     }
@@ -180,9 +181,17 @@ public class SlideShowActivity extends Activity implements OnClickListener {
 
     @Override
     protected void onStop() {
+        unregisterReceiver();
         stopFlipping();
         myDateTimeThread.interrupt();
         super.onStop();
+    }
+
+    private void unregisterReceiver() {
+        if (myResponseReceiver != null) {
+            LocalBroadcastManager.getInstance(this).unregisterReceiver(myResponseReceiver);
+            myResponseReceiver = null;
+        }
     }
 
     @Override
@@ -190,6 +199,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         startFlipping();
         myDateTimeThread = new Thread(new DateTimeRunner());
         myDateTimeThread.start();
+        registerReceiver();
         super.onResume();
     }
 
@@ -210,8 +220,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
                 uploadPhotoFromGallery();
                 return true;
             case R.id.update_slide_show:
-                Intent fetchedIntent = new Intent(Constants.ACTION_FETCHED_PHOTO).putExtra(Constants.INTENT_FETCHED_PHOTO, Constants.STATE_ACTION_COMPLETE);
-                LocalBroadcastManager.getInstance(this).sendBroadcast(fetchedIntent);
+                S3PhotoIntentService.startActionFetchS3(this);
                 return true;
             case android.R.id.home:
                 NavUtils.navigateUpFromSameTask(this);
