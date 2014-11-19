@@ -183,6 +183,7 @@ public class S3PhotoIntentService extends IntentService {
 //            AWS_KEY = key; AWS_SECRET = key; // in case those credentials are fed from outsides. i.e. properties file
 //            AmazonS3 s3 = new AmazonS3Client(AWSCredentials);
         AmazonS3Client s3Client = getS3ClientInstance();
+        Log.w("folderName here is ", folderName);
         List<S3ObjectSummary> summaries = s3Client.listObjects(BUCKET_NAME, folderName+ Constants.SLASH).getObjectSummaries();
         String[] keysNames = new String[summaries.size()]; // think about update issue:
 

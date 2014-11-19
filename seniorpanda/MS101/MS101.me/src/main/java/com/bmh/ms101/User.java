@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.util.Log;
 
 import com.bmh.ms101.ex.DFNotAddedException;
 import com.bmh.ms101.ex.UserMedsNotAddedException;
@@ -485,7 +486,13 @@ public class User {
 
     public String getStoredUserName(){
         String storedUserName = mPrefsUtil.getPrefString(PREF_USER_NAME, null);
-        return storedUserName;
+        try {
+            return CryptHelper.decrypt(storedUserName, this.getSecretKey()).trim();
+        } catch (Exception e) {
+            e.printStackTrace();
+            Log.w("User.getStoredKey failed ", storedUserName);
+            return null;
+        }
     }
 
     /**
@@ -542,4 +549,5 @@ public class User {
         System.out.println("Setting subscriptions");
         this.mSubscriptions = mSubscriptions;
     }
+
 }

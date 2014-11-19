@@ -21,11 +21,11 @@ import javax.crypto.spec.SecretKeySpec;
  */
 public class CryptHelper {
 
-    private final String characterEncoding = "UTF-8";
-    private final String cipherTransformation = "AES/CBC/PKCS5Padding";
-    private final String aesEncryptionAlgorithm = "AES";
+    private static final String characterEncoding = "UTF-8";
+    private static final String cipherTransformation = "AES/CBC/PKCS5Padding";
+    private static final String aesEncryptionAlgorithm = "AES";
 
-    public byte[] decrypt(byte[] cipherText, byte[] key, byte [] initialVector) throws NoSuchAlgorithmException,
+    public static byte[] decrypt(byte[] cipherText, byte[] key, byte[] initialVector) throws NoSuchAlgorithmException,
             NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException,
             IllegalBlockSizeException, BadPaddingException {
         Cipher cipher = Cipher.getInstance(cipherTransformation);
@@ -47,7 +47,7 @@ public class CryptHelper {
         return plainText;
     }
 
-    private byte[] getKeyBytes(String key) throws UnsupportedEncodingException {
+    private static byte[] getKeyBytes(String key) throws UnsupportedEncodingException {
         byte[] keyBytes= new byte[16];
         byte[] parameterKeyBytes= key.getBytes(characterEncoding);
         System.arraycopy(parameterKeyBytes, 0, keyBytes, 0, Math.min(parameterKeyBytes.length, keyBytes.length));
@@ -82,9 +82,10 @@ public class CryptHelper {
      * @throws GeneralSecurityException
      * @throws IOException
      */
-    public String decrypt(String encryptedText, String key) throws GeneralSecurityException, IOException {
+    public static String decrypt(String encryptedText, String key) throws GeneralSecurityException, IOException {
         byte[] cipheredBytes = Base64.decode(encryptedText, Base64.DEFAULT);
         byte[] keyBytes = getKeyBytes(key);
         return new String(decrypt(cipheredBytes, keyBytes, keyBytes), characterEncoding);
     }
+
 }
