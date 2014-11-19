@@ -67,18 +67,18 @@
         android:orientation="horizontal">
 
         <Button
-            android:id="@+id/previousSlideButton"
+            android:id="@+id/uploadPhotoButton"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Previous" />
+            android:text="Upload" />
 
         <Button
-            android:id="@+id/nextSlideButton"
+            android:id="@+id/takePhotoButton"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Next" />
+            android:text="Camera" />
 
         <Button
             android:id="@+id/startSlideButton"
