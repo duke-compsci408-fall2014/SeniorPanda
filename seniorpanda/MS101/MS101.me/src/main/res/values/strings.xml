@@ -2,14 +2,14 @@
 <resources>
 
     <!-- General & Misc. -->
-    <string name="app_name">MS101.me</string>
+    <string name="app_name">PD101.me</string>
     <string name="okay">Okay</string>
     <string name="cancel">Cancel</string>
     <string name="next">Next</string>
     <string name="sending">Sending…</string>
     <string name="action_show_help">Help</string>
     <string name="notif_subtext">Tap to respond</string>
-    <string name="toast_thanks">Thanks for updating your MS101.me</string>
+    <string name="toast_thanks">Thanks for updating your PD101.me</string>
     <string name="toast_error_offline">You need to be online.</string>
     <string name="toast_error_io">Oops! Please try again or contact support.</string>
     <string name="toast_error_no_sheet">No spreadsheet found, please contact support.</string>
@@ -33,10 +33,10 @@
     <string name="toast_logout_success">You have been logged out.</string>
 
     <!-- Meds Activity -->
-    <string name="title_activity_medication_confirm">Today\'s Doses</string>
+    <string name="title_activity_medication_confirm">Medication Doses</string>
     <string name="title_activity_medication_alarm">Today\'s Doses</string>
-    <string name="report_meds_header">Fill in the number of doses you\'ll have taken by the end of the day. (NS: Dose not scheduled or needed)</string>
-    <string name="reminder_meds_header">Fill in the number of doses you\'ll have taken by the end of the day. (NS: Dose not scheduled or needed)</string>
+    <string name="report_meds_header">Fill in the number of doses you took for this time period.</string>
+    <string name="reminder_meds_header">Fill in the number of doses you took for this time period.</string>
     <string name="dosage_NS">NS</string>
     <string name="dosage_0">0</string>
     <string name="dosage_1">1</string>
@@ -114,14 +114,14 @@
     <string name="confirm">Confirm</string>
 
     <!-- Login Activity -->
-    <string name="title_activity_login">Do you have @ms101.me login?</string>
+    <string name="title_activity_login">Do you have @pd101.me login?</string>
     <string name="email_addr">Email Address</string>
     <string name="password">Password</string>
     <string name="login">Login</string>
     <string name="df_login_prompt">Please Login</string>
-    <string name="account_must_be">Must be YOUR_ID@ms101.me</string>
+    <string name="account_must_be">Must be YOUR_ID@pd101.me</string>
     <string name="toast_added_account">Will use account: %1$s</string>
-    <string name="toast_no_credentials">Please visit http://ms101.me</string>
+    <string name="toast_no_credentials">Please visit http://pd101.me</string>
     <string name="toast_add_account">You need to add @%1$s account.</string>
     <string name="toast_login_cancelled">Login Cancelled</string>
 
@@ -174,31 +174,26 @@
     <string name="help_meds_content">To report the doses of medication you\'ve taken during the day,
         simply fill in the bubble of how many doses of each medication you\'ve taken today.
         \n
-        \nFill in NS if you aren\'t scheduled or if you don\'t need the medication today.\n
         \nFill in 0 if you\'ve missed all doses for today.</string>
     <string name="help_medication_title">Dosage Reminder</string>
     <string name="help_medication_content">To report the doses of medication you\'ve taken during the day,
         simply fill in the bubble of how many doses of each medication you\'ve taken today.
         \n
-        \nFill in NS if you aren\'t scheduled or if you don\'t need the medication today.\n
         \nFill in 0 if you\'ve missed all doses for today.</string>
     <string name="help_morning_medication_title">Morning Dosage Reminder</string>
     <string name="help_morning_medication_content">To report the doses of morning medication you\'ve taken during the day,
         simply fill in the bubble of how many doses of each medication you\'ve taken this morning.
         \n
-        \nFill in NS if you aren\'t scheduled or if you don\'t need the medication this morning.\n
         \nFill in 0 if you\'ve missed all doses for today.</string>
     <string name="help_afternoon_medication_title">Afternoon Dosage Reminder</string>
     <string name="help_afternoon_medication_content">To report the doses of afternoon medication you\'ve taken during the day,
         simply fill in the bubble of how many doses of each medication you\'ve taken this afternoon.
         \n
-        \nFill in NS if you aren\'t scheduled or if you don\'t need the medication this morning.\n
         \nFill in 0 if you\'ve missed all doses for today.</string>
     <string name="help_evening_medication_title">Evening Dosage Reminder</string>
     <string name="help_evening_medication_content">To report the doses of evening medication you\'ve taken during the day,
         simply fill in the bubble of how many doses of each medication you\'ve taken this afternoon.
         \n
-        \nFill in NS if you aren\'t scheduled or if you don\'t need the medication this morning.\n
         \nFill in 0 if you\'ve missed all doses for today.</string>
     <string name="help_symptom_scales_title">Symptom Scales</string>
     <string name="help_stress_factor_scales_title">Stress Factor Scales</string>
@@ -269,10 +264,10 @@
     </string-array>
     -->
     <string-array name="symptoms">
-        <item>Tremors</item>
-        <item>Slowness of Movement</item>
-        <item>Rigidity</item>
-        <item>Freezing</item>
+        <item>Select the duration and location of Tremors experienced today</item>
+        <item>Select the duration and location of Slowness of Movement experienced today</item>
+        <item>Select the duration and location of Rigidity experienced today</item>
+        <item>Select the duration and location of Freezing experienced today</item>
     </string-array>
     <string-array name="stress_factors">
         <item>Family Stress</item>

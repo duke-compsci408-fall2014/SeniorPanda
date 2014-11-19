@@ -121,7 +121,7 @@ public class SymptomsSectionFragment extends Fragment {
         final CharSequence[] rigidity_check={"Green1","Black2","White3"};
         final CharSequence[] freezing_check={"Green","Black","White"};
         //The array that holds the checked state of the checkbox items
-        final boolean checked_state[]={false,false,false};
+        final boolean checked_state[]={false,false,false,false,false,false};
 
 
 
@@ -177,7 +177,7 @@ public class SymptomsSectionFragment extends Fragment {
                                 public void onClick(DialogInterface dialog, int which) {
                                     // TODO Auto-generated method stub
                                     String display_checked_symptoms= "";
-                                    for(int i=0;i<3;i++){
+                                    for(int i=0;i<6;i++){
                                     	if(checked_state[i]==true){
                                             display_checked_symptoms=display_checked_symptoms+":"+sympCheck[i];
                                           }
@@ -243,27 +243,39 @@ public class SymptomsSectionFragment extends Fragment {
     }
 
     public CharSequence[] getsymptomsCheck(int i) {
-        CharSequence[] sympCheck = new CharSequence[3];
+        CharSequence[] sympCheck = new CharSequence[6];
         switch (i) {
             case 0:
-                sympCheck[0] = "left foot";
-                sympCheck[1] = "right foot";
-                sympCheck[2] = "left hand";
+                sympCheck[0] = "Left arm or hand";
+                sympCheck[1] = "Right arm or hand";
+                sympCheck[2] = "Left leg or foot";
+                sympCheck[3] = "Right leg or foot";
+                sympCheck[4] = "Body";
+                sympCheck[5] = "Head";
                 break;
             case 1:
-                sympCheck[0] = "left foot";
-                sympCheck[1] = "right foot";
-                sympCheck[2] = "entire body";
+                sympCheck[0] = "Left arm or hand";
+                sympCheck[1] = "Right arm or hand";
+                sympCheck[2] = "Left leg or foot";
+                sympCheck[3] = "Right leg or foot";
+                sympCheck[4] = "Body";
+                sympCheck[5] = "Head";
                 break;
             case 2:
-                sympCheck[0] = "left foot";
-                sympCheck[1] = "right foot";
-                sympCheck[2] = "other";
+                sympCheck[0] = "Left arm or hand";
+                sympCheck[1] = "Right arm or hand";
+                sympCheck[2] = "Left leg or foot";
+                sympCheck[3] = "Right leg or foot";
+                sympCheck[4] = "Body";
+                sympCheck[5] = "Head";
                 break;
             case 3:
-                sympCheck[0] = "left foot";
-                sympCheck[1] = "right foot";
-                sympCheck[2] = "wrist";
+                sympCheck[0] = "Left arm or hand";
+                sympCheck[1] = "Right arm or hand";
+                sympCheck[2] = "Left leg or foot";
+                sympCheck[3] = "Right leg or foot";
+                sympCheck[4] = "Body";
+                sympCheck[5] = "Head";
                 break;
             default:
                 break;

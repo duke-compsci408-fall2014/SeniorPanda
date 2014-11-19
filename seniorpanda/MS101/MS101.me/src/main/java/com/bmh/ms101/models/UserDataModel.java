@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class UserDataModel extends BaseDataModel {
+
     private int id = 0;
 
     private JSONObject json = null;
@@ -25,8 +26,8 @@ public class UserDataModel extends BaseDataModel {
     public List<SubscribeDataModel> getSubscriptionData() {
         List<SubscribeDataModel> subscriptions = new ArrayList<SubscribeDataModel>();
         try {
-            JSONArray subscribeUidJsonArray = json.getJSONArray("subscribes_by_uid");
-            JSONArray medicationsSubscribeJsonArray = json.getJSONArray("medications_by_subscribe");
+            JSONArray subscribeUidJsonArray = json.getJSONArray(ModelConstants.SUBSCRIBES_BY_UID);
+            JSONArray medicationsSubscribeJsonArray = json.getJSONArray(ModelConstants.MEDICATIONS_BY_SUBSCRIBE);
             for (int i = 0; i < subscribeUidJsonArray.length(); i++) {
                 SubscribeDataModel subscribeData = new SubscribeDataModel();
                 JSONObject subscribeDataJson = subscribeUidJsonArray.getJSONObject(i);
@@ -44,6 +45,54 @@ public class UserDataModel extends BaseDataModel {
 
         }
         return subscriptions;
+    }
+
+    public List<TakenDataModel> getMedicationsTakenData() {
+        List<TakenDataModel> medicationsTaken = new ArrayList<TakenDataModel>();
+        try {
+            JSONArray takenUidJsonArray = json.getJSONArray(ModelConstants.TAKEN_BY_UID);
+            JSONArray medicationsJsonArray = json.getJSONArray(ModelConstants.MEDICATIONS_BY_TAKEN);
+            for (int i = 0; i < takenUidJsonArray.length(); i++) {
+                TakenDataModel takenData = new TakenDataModel();
+                JSONObject takenDataJson = takenUidJsonArray.getJSONObject(i);
+                takenData.setId(takenDataJson.getInt(ModelConstants.ID));
+                takenData.setUserId(takenDataJson.getInt(ModelConstants.UID));
+                takenData.setMedicationId(takenDataJson.getInt(ModelConstants.MEDICATION_ID));
+                takenData.setPillsTaken(takenDataJson.getInt(ModelConstants.PILLS_TAKEN));
+                takenData.setDateTimeTaken(takenDataJson.getString(ModelConstants.DATE_TAKEN));
+                JSONObject medJson = getMedicationDataJson(medicationsJsonArray, takenData.getMedicationId());
+                MedicationDataModel medData = MedicationDataModel.fromJson(medJson);
+                takenData.setMedicationName(medData.getName());
+                medicationsTaken.add(takenData);
+            }
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return medicationsTaken;
+    }
+
+    public List<SymptomDataModel> getSymptomsData() {
+        List<SymptomDataModel> symptoms = new ArrayList<SymptomDataModel>();
+        try {
+            JSONArray subscribesUidJsonArray = json.getJSONArray(ModelConstants.SYMPTOM_BY_UID);
+
+            for (int i = 0; i < subscribesUidJsonArray.length(); i++) {
+                SymptomDataModel symptomData = new SymptomDataModel();
+                JSONObject symptomDataJson = subscribesUidJsonArray.getJSONObject(i);
+                symptomData.setId(symptomDataJson.getInt(ModelConstants.ID));
+                symptomData.setUserId(symptomDataJson.getInt(ModelConstants.UID));
+                symptomData.setSymptomType(symptomDataJson.getString("symptom_type"));
+                symptomData.setBodyLocation(symptomDataJson.getString("body_location"));
+                symptomData.setDuration(symptomDataJson.getString("duration"));
+                symptomData.setDateTime(symptomDataJson.getString("date"));
+                symptoms.add(symptomData);
+            }
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return symptoms;
     }
 
     JSONObject getMedicationDataJson(JSONArray medicationsArray, int medId) {

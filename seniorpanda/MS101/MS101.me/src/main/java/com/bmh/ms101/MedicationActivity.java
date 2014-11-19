@@ -193,7 +193,7 @@ public class MedicationActivity extends Activity {
         System.out.println("is evening dose : " + eveningDose);
         if (mIsFromMain) {
             setTitle(R.string.title_activity_medication_confirm);
-            tvHeader.setText(R.string.report_meds_header);
+            tvHeader.setText("Fill in the number of doses taken during the current time interval");
         } else if (morningDose) {
             setTitle("Morning Dose");
             tvHeader.setText("Fill in your morning dose");

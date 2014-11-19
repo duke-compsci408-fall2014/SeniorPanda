@@ -15,7 +15,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal" >
 
-        <RadioButton android:id="@+id/radioNS"
+       <!-- <RadioButton android:id="@+id/radioNS"
                      android:layout_width="0dp"
                      android:layout_height="wrap_content"
                      android:checked="true"
@@ -58,7 +58,109 @@
                      android:tag="4"
                      android:text="@string/dosage_4_plus"
                      android:layout_weight="1.1"
+                     android:singleLine="true" />-->
+         <!--<RadioButton android:id="@+id/radioNS"
+                     android:layout_width="0dp"
+                     android:layout_height="wrap_content"
+                     android:checked="true"
+                     android:tag="-1"
+                     android:text="@string/dosage_NS"
+                     android:layout_weight="1.2"
+                     android:button="@drawable/custom_radio_button"
+                     android:singleLine="true" />-->
+
+        <RadioButton android:id="@+id/radio0"
+                     android:layout_width="0dp"
+                     android:layout_height="wrap_content"
+                     android:checked="true"
+                     android:tag="0"
+                     android:text="@string/dosage_0"
+                     android:button="@drawable/custom_radio_button"
+                     android:layout_weight="1" />
+
+        <RadioButton android:id="@+id/radio1"
+                     android:layout_width="0dp"
+                     android:layout_height="wrap_content"
+                     android:tag="1"
+                     android:text="@string/dosage_1"
+                     android:button="@drawable/custom_radio_button"
+                     android:layout_weight="1" />
+
+        <RadioButton android:id="@+id/radio2"
+                     android:layout_width="0dp"
+                     android:layout_height="wrap_content"
+                     android:tag="2"
+                     android:text="@string/dosage_2"
+                     android:button="@drawable/custom_radio_button"
+                     android:layout_weight="1" />
+
+        <RadioButton android:id="@+id/radio3"
+                     android:layout_width="0dp"
+                     android:layout_height="wrap_content"
+                     android:tag="3"
+                     android:text="@string/dosage_3"
+                     android:button="@drawable/custom_radio_button"
+                     android:layout_weight="1" />
+
+        <RadioButton android:id="@+id/radio4Plus"
+                     android:layout_width="0dp"
+                     android:layout_height="wrap_content"
+                     android:tag="4"
+                     android:text="@string/dosage_4_plus"
+                     android:layout_weight="1.1"
+                     android:button="@drawable/custom_radio_button"
                      android:singleLine="true" />
+        <!--<RadioButton android:id="@+id/radioNS"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:tag="-1"
+            android:text="@string/dosage_NS"
+            android:layout_weight="1.2"
+            android:button="@drawable/custom_radio_black_small"
+            android:singleLine="true" />
+
+        <RadioButton android:id="@+id/radio0"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:tag="0"
+            android:text="@string/dosage_0"
+            android:button="@drawable/custom_radio_black_small"
+            android:layout_weight="1" />
+
+        <RadioButton android:id="@+id/radio1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:tag="1"
+            android:text="@string/dosage_1"
+            android:button="@drawable/custom_radio_black_small"
+            android:layout_weight="1" />
+
+        <RadioButton android:id="@+id/radio2"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:tag="2"
+            android:text="@string/dosage_2"
+            android:button="@drawable/custom_radio_black_small"
+            android:layout_weight="1" />
+
+        <RadioButton android:id="@+id/radio3"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:tag="3"
+            android:text="@string/dosage_3"
+            android:button="@drawable/custom_radio_black_small"
+            android:layout_weight="1" />
+
+        <RadioButton android:id="@+id/radio4Plus"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:tag="4"
+            android:text="@string/dosage_4_plus"
+            android:layout_weight="1.1"
+            android:button="@drawable/custom_radio_black_small"
+            android:singleLine="true" />-->
+
     </RadioGroup>
 
 </LinearLayout>
