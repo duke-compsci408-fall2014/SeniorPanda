@@ -2,6 +2,7 @@ package com.bmh.ms101;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
 import android.view.LayoutInflater;
@@ -227,28 +228,35 @@ public class LogActivity extends Activity {
         symptomsList = logData.getSymptomsData();
         boolean first = true;
         //  StringBuilder logItemText = new StringBuilder();
+
         for (TakenDataModel medsTakenData : medsTakenList) {
             StringBuilder logItemText = new StringBuilder();
             long time = 0;
             String title = "";
             String text = "";
-    /*        if (first) {
-                title = getString(R.string.log_meds_label);
-                first = false;
-            } else {
-                logItemText.delete(0, logItemText.length());
-                title = "";
-            }*/
-            //   title = getString(R.string.log_meds_label);
-            title = "";
+            int type = LogItem.MEDS_TAKEN_TYPE;
+            String name = "";
+
             time = getTime(medsTakenData.getDateTimeTaken());
             logItemText.append("Medication : ");
             logItemText.append(medsTakenData.getMedicationName());
             logItemText.append("         ");
             logItemText.append("Pills Taken : ");
             logItemText.append(medsTakenData.getPillsTaken());
+            logItemText.append("         ");
+            logItemText.append("Submitted : ");
+            String timestamp = medsTakenData.getDateTimeTaken();
+            System.out.println("UTC time : " + timestamp);
+            long dbTime = getTime(timestamp);
+            String localeTime = getTimeString(dbTime);
+            System.out.println("Locale time : " + localeTime);
+            int index = localeTime.indexOf(" ");
+            String t = localeTime.substring(index);
+         //   logItemText.append(medsTakenData.getDateTimeTaken());
+            logItemText.append(t);
             text = logItemText.toString();
-            mLogItems.add(new LogItem(time, title, text));
+            name = medsTakenData.getMedicationName();
+            mLogItems.add(new LogItem(time, title, text, type, name));
         }
 
         for (SymptomDataModel symptomData : symptomsList) {
@@ -256,13 +264,8 @@ public class LogActivity extends Activity {
             long time = 0;
             String title = "";
             String text = "";
-          /*  if (first) {
-                title = getString(R.string.log_symp_label);
-                first = false;
-            } else {
-                logItemText.delete(0, logItemText.length());
-                title = "";
-            }*/
+            int type = LogItem.SYMPTOMS_TYPE;
+            String name = "";
             time = getTime(symptomData.getDateTime());
             logItemText.append("Symptom : ");
             logItemText.append(symptomData.getSymptomType());
@@ -272,75 +275,22 @@ public class LogActivity extends Activity {
             logItemText.append("         ");
             logItemText.append("Location : ");
             logItemText.append(symptomData.getBodyLocation());
-
+            logItemText.append("         ");
+            logItemText.append("Submitted : ");
+            String timestamp = symptomData.getDateTime();
+            long dbTime = getTime(timestamp);
+            String localeTime = getTimeString(dbTime);
+            System.out.println("Locale time : " + localeTime);
+            int index = localeTime.indexOf(" ");
+            String t = localeTime.substring(index);
+         //   logItemText.append(symptomData.getDateTime());
+            logItemText.append(t);
             text = logItemText.toString();
-            // text = String.valueOf(medsTakenData.getPillsTaken());
-            mLogItems.add(new LogItem(time, title, text));
+            name = symptomData.getSymptomType();
+            mLogItems.add(new LogItem(time, title, text, type, name));
         }
-        /*for (BaseRecordModel record : userRecords) {
-            // Wrapped in a try/catch in case any data is incorrectly formatted
-            try {
-                long time = record.getLongTime();
-                String title = "";
-                String text = "";
-                if (record instanceof MedRecordModel) {
-                    String medRow = ((MedRecordModel) record).getMedication();
-                    // We only care about the new med reporting format, ignore the old way
-                    if (medRow.contains("took") || medRow.contains("miss") || medRow.contains("skipped"))
-                        continue;
-                    title = getString(R.string.log_meds_label);
-                    int[][] medRowData = mBackend.decodeMedsRow(medRow);
-                    // Construct the text of the log item
-                    StringBuilder logItemText = new StringBuilder();
-                    for (int j = 0; j < medRowData[0].length; j++) {
-                        // Replace any "-1" dosage with "NS" and any "4" dosage with "4+"
-                        logItemText.append(User.MED_NAMES[medRowData[0][j]]).append(": ")
-                                .append(String.valueOf(medRowData[1][j])
-                                        .replace("-1", getString(R.string.dosage_NS))
-                                        .replace("4", getString(R.string.dosage_4_plus)))
-                                .append("\n");
-                    }
-                    // Trim the trailing "\n"
-                    text = logItemText.delete(logItemText.length() - 1, logItemText.length()).toString();
-                } else if (record instanceof SymptomRecordModel) {
-                    title = getString(R.string.log_symp_label);
-                    String sympRow = ((SymptomRecordModel) record).getSymptoms();
-                    String[] sympLabels = getResources().getStringArray(R.array.symptoms);
-                    String[] sympRowData = sympRow.split(",");
-                    StringBuilder logItemText = new StringBuilder();
-                    for (String sympRowItem : sympRowData) {
-                        String[] sympItem = sympRowItem.split(":");
-                        logItemText.append(sympLabels[Integer.parseInt(sympItem[0]) - 1]).append(": ")
-                                .append(sympItem[1]).append("\n");
-                    }
-                    // Trim the trailing "\n"
-                    text = logItemText.delete(logItemText.length() - 1, logItemText.length()).toString();
-                } else if (record instanceof StressFactorRecordModel) {
-                    title = getString(R.string.log_env_label);
-                    String envRow = ((StressFactorRecordModel) record).getStressFactors();
-                    String[] envLabels = getResources().getStringArray(R.array.stress_factors);
-                    String[] envRowData = envRow.split(",");
-                    StringBuilder logItemText = new StringBuilder();
-                    for (String envRowItem : envRowData) {
-                        String[] envItem = envRowItem.split(":");
-                        logItemText.append(envLabels[Integer.parseInt(envItem[0]) - 1]).append(": ")
-                                .append(envItem[1]).append("\n");
-                    }
-                    // Trim the trailing "\n"
-                    text = logItemText.delete(logItemText.length() - 1, logItemText.length()).toString();
-                }
-                mLogItems.add(new LogItem(time, title, text));
-            } catch (Exception e) {
-                *//*
-                We may have exceptions if our data is malformatted or the like, but the need to
-                not crash outweighs the need to figure out the data type and move it around, since
-                that would create high code complexity, so we'll just skip over the offending data.
-                 *//*
-                e.printStackTrace();
-            }
-        }*/
         // Sort in descending order then tell the LogAdapter to refresh
-        //  Collections.sort(mLogItems);
+        Collections.sort(mLogItems);
         mAdapter.notifyDataSetChanged();
     }
     /**
@@ -425,6 +375,7 @@ public class LogActivity extends Activity {
                 viewHolder.title = (TextView) rowView.findViewById(R.id.log_item_title);
                 viewHolder.text = (TextView) rowView.findViewById(R.id.log_item_text);
                 rowView.setTag(viewHolder);
+                rowView.setBackgroundColor(Color.rgb(240, 255, 240));
             }
             // Fill in data
             ViewHolder viewHolder = (ViewHolder) rowView.getTag();
@@ -437,6 +388,7 @@ public class LogActivity extends Activity {
             if (prevItemDate == 0) {
                 // Show the date header if this is the first item
                 viewHolder.date.setVisibility(View.VISIBLE);
+                viewHolder.date.setBackgroundColor(Color.GREEN);
             } else {
                 // Or show the date header if this and the previous item have a different day of year
                 Calendar c = Calendar.getInstance();
@@ -450,7 +402,13 @@ public class LogActivity extends Activity {
                     // Otherwise hide the date header
                     viewHolder.date.setVisibility(View.GONE);
                 }
+                viewHolder.date.setBackgroundColor(Color.GREEN);
             }
+           /* if (position%2 == 0) {
+                viewHolder.title.setBackgroundColor(Color.LTGRAY);
+                viewHolder.text.setBackgroundColor(Color.LTGRAY);
+              //  rowView.setBackgroundColor(Color.LTGRAY);
+            }*/
             return rowView;
         }
     }
@@ -466,5 +424,15 @@ public class LogActivity extends Activity {
             e.printStackTrace();
         }
         return time;
+    }
+
+    private String getTimeString(long time) {
+        String dateTimeString;
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        sdf.setTimeZone(TimeZone.getTimeZone("EST"));
+
+        dateTimeString = sdf.format(time);
+
+        return dateTimeString;
     }
 }

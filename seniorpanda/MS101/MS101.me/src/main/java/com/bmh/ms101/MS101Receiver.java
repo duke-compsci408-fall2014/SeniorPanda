@@ -57,9 +57,9 @@ public class MS101Receiver extends BroadcastReceiver {
     private static final int REFRESH_SESSION_HOUR = 9; // 9 AM
     private static final int MEDS_NOTIF_HOUR = 18; // 6 PM
     private static final int SYMP_STRESS_NOTIF_HOUR = 12; // 12 Noon
-    private static final int MEDS_MORNING_DOSE_NOTIF_HOUR = 7; // 8AM
-    private static final int MEDS_AFTERNOON_DOSE_NOTIF_HOUR = 14; // 2PM
-    private static final int MEDS_EVENING_DOSE_NOTIF_HOUR = 21; // 9PM
+    public static final int MEDS_MORNING_DOSE_NOTIF_HOUR = 7; // 7AM
+    public static final int MEDS_AFTERNOON_DOSE_NOTIF_HOUR = 14; // 2PM
+    public static final int MEDS_EVENING_DOSE_NOTIF_HOUR = 21; // 9PM
     //// Tecfidera Widget alarms
     private static final int TEC_1_START_HOUR = 0;
     private static final int TEC_1_START_MIN = 5; // 12:05 AM
