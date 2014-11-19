@@ -132,7 +132,7 @@ public class S3PhotoIntentService extends IntentService {
                     return;
                 case ACTION_DELETE_S3:
                     String imageName = (String) intent.getExtras().get(IMAGE_NAME);
-                    final String nameKey = folderName + Constants.SLASH + imageName;
+                    final String nameKey = imageName;  // the image name contains the folder name already
                     Log.w("Delete photo", imageName);
                     handleActionDeleteS3(AWS_KEY, AWS_SECRET, nameKey, bucketName);
                     return;
