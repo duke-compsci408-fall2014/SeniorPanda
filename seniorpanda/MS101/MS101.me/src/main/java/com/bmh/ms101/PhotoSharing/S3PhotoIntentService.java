@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
 
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.auth.CognitoCachingCredentialsProvider;
@@ -44,9 +45,7 @@ public class S3PhotoIntentService extends IntentService {
     private static final String FOLDER_NAME = "PhotoSharing";
 
     private static List<String> KeyList = new ArrayList<String>(); // for later usage;
-    private static Map<String, Bitmap> BitmapMap = new ConcurrentHashMap<String, Bitmap>();
-
-    private static final String SLASH = "/";
+    private static Map<String, Bitmap> myBitmapMap = new ConcurrentHashMap<String, Bitmap>();
     private static Context myContext = null;
 
     /**
@@ -59,8 +58,6 @@ public class S3PhotoIntentService extends IntentService {
      */
     // creating credential using COGNITO
     private static CognitoCachingCredentialsProvider credentialsProvider;
-
-    // singleton
     private static AmazonS3Client s3Client = null;
 
     public static synchronized AmazonS3Client getS3ClientInstance() {
@@ -108,10 +105,10 @@ public class S3PhotoIntentService extends IntentService {
         context.startService(intent);
     }
 
-    public static void startActionDeleteS3(Context context, String imageName) {
+    public static void startActionDeleteS3(Context context, Bitmap bitmap) {
         Intent intent = new Intent(context, S3PhotoIntentService.class);
         intent.setAction(ACTION_DELETE_S3);
-        intent.putExtra(IMAGE_NAME, imageName);
+        intent.putExtra(IMAGE_NAME, bitmap);
         setContext(context);
         context.startService(intent);
     }
@@ -137,8 +134,8 @@ public class S3PhotoIntentService extends IntentService {
                     handleActionUploadS3(AWS_KEY, AWS_SECRET, imageMap, bucketName, folderName);
                     return;
                 case ACTION_DELETE_S3:
-                    final String imageName = intent.getStringExtra(IMAGE_NAME);
-                    final String nameKey = folderName + "/" + imageName;
+                    Bitmap bitmap = (Bitmap) intent.getExtras().get(IMAGE_NAME);
+                    final String nameKey = folderName + Constants.SLASH + getImageName(bitmap);
                     handleActionDeleteS3(AWS_KEY, AWS_SECRET, nameKey, bucketName);
                     return;
             }
@@ -182,38 +179,36 @@ public class S3PhotoIntentService extends IntentService {
      * Handle action FetchS3 in the provided background thread with the provided parameters.
      */
     private void handleActionFetchS3(String key, String secret) {
-        try {
 //            AWS_KEY = key; AWS_SECRET = key; // in case those credentials are fed from outsides. i.e. properties file
 //            AmazonS3 s3 = new AmazonS3Client(AWSCredentials);
+        AmazonS3Client s3Client = getS3ClientInstance();
+        List<S3ObjectSummary> summaries = s3Client.listObjects(BUCKET_NAME).getObjectSummaries();
+        String[] keysNames = new String[summaries.size()]; // think about update issue:
 
-            AmazonS3Client s3Client = getS3ClientInstance();
-
-            List<S3ObjectSummary> summaries = s3Client.listObjects(BUCKET_NAME).getObjectSummaries();
-            String[] keysNames = new String[summaries.size()]; // think about update issue:
-
-            for (int i = 0; i < keysNames.length; i++) {
-                keysNames[i] = summaries.get(i).getKey();
-                System.out.println(summaries.get(i).getKey()); // print out test
-            }
-
-            for (String picName : keysNames) {
-                if (!checkEmptyDirectory(picName)) {
-                    BitmapMap.put(picName, fetchImageAsBitMap(BUCKET_NAME, picName));
-                    System.out.println("Bitmap of " + picName + " put in");
-                }
-            }
-            Intent fetchedIntent = new Intent(Constants.BROADCAST_ACTION).putExtra(Constants.EXTENDED_DATA_STATUS, Constants.STATE_ACTION_COMPLETE);
-            LocalBroadcastManager.getInstance(this).sendBroadcast(fetchedIntent);
-        } catch (Throwable T) {
-            T.printStackTrace();
-            throw new UnsupportedOperationException("Cannot handle Fetch S3 Action");
+        for (int i = 0; i < keysNames.length; i++) {
+            keysNames[i] = summaries.get(i).getKey();
+            Log.w("S3PhotoIntentService", summaries.get(i).getKey());
         }
 
+        for (String picName : keysNames) {
+            if (!checkEmptyDirectory(picName)) {
+                try {
+                    Bitmap bitmap = fetchImageAsBitMap(BUCKET_NAME, picName);
+                    myBitmapMap.put(picName, bitmap);
+                    Intent fetchedIntent = new Intent(Constants.ACTION_FETCHED_PHOTO).putExtra(Constants.INTENT_FETCHED_PHOTO, bitmap);
+                    LocalBroadcastManager.getInstance(this).sendBroadcast(fetchedIntent);
+                    Log.w("S3PhotoIntentService", "Bitmap of " + picName + " put in");
+                } catch (Exception e) {
+                    Log.w("S3PhotoIntentService", "current picName " + picName + " not found in fetching");
+                    continue;
+                }
+            }
+        }
     }
 
     // check if it is the empty directory with /
     private boolean checkEmptyDirectory(String picName) {
-        return (picName.charAt(picName.length() - 1) == SLASH.charAt(0));
+        return (picName.charAt(picName.length() - 1) == Constants.SLASH.charAt(0));
     }
 
     /**
@@ -228,18 +223,9 @@ public class S3PhotoIntentService extends IntentService {
         return bitmap;
     }
 
-    /**
-     * Getter for the ConcurrentHashMap
-     *
-     * @return
-     */
-    public static Map<String, Bitmap> getBitmapMap() {
-        return BitmapMap;
-    }
-
-    public static String getImageName(Bitmap bitmap) {
-        for (String name : BitmapMap.keySet()) {
-            if (BitmapMap.get(name).equals(bitmap)) {
+    private String getImageName(Bitmap bitmap) {
+        for (String name : myBitmapMap.keySet()) {
+            if (myBitmapMap.get(name).equals(bitmap)) {
                 return name;
             }
         }

@@ -155,9 +155,6 @@
             android:name=".PhotoSharing.S3PhotoIntentService"
             android:exported="false"></service>
 
-        <activity
-            android:name=".UploadPhotoActivity"
-            android:label="@string/title_activity_upload_photo"></activity>
     </application>
 
 </manifest>

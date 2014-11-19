@@ -5,8 +5,9 @@ package com.bmh.ms101;
  */
 public final class Constants {
 
-    public static final String BROADCAST_ACTION = "com.bmh.ms101.slideShow.BROADCAST";
-    public static final String EXTENDED_DATA_STATUS = "com.bmh.ms101.slideShow.STATUS";
+    public static final String ACTION_FETCHED_PHOTO = "com.bmh.ms101.slideShow.PHOTO_FETCHED";
+    public static final String INTENT_FETCHED_PHOTO = "com.bmh.ms101.slideShow.PHOTO_NAME";
+    public static final String SLASH = "/";
 
     public static final int STATE_ACTION_STARTED = 0;
     public static final int STATE_ACTION_CONNECTING = 1;

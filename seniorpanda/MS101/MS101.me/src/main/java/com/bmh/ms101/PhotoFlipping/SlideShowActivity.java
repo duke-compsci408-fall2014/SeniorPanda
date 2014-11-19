@@ -45,15 +45,12 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 public class SlideShowActivity extends Activity implements OnClickListener {
 
     private static final Integer FLIP_INTERVAL = 20000;
     private static final Integer SELECT_PHOTO_FROM_GALLERY_REQUEST = 100;
-    private static final Integer DELETE_PHOTO_REQUEST = 101;
     private static final Integer TAKE_PHOTO_REQUEST = 102;
     private static final int SWIPE_MIN_DISTANCE = 120;
     private static final int SWIPE_THRESHOLD_VELOCITY = 200;
@@ -65,7 +62,6 @@ public class SlideShowActivity extends Activity implements OnClickListener {
     private Thread myDateTimeThread;
     private ResponseReceiver myResponseReceiver;
     private GestureDetector myTouchDetector;
-    private Set<String> visitedBitMaps;
     private Animation slide_in_left, slide_in_right, slide_out_left, slide_out_right;
 
     @Override
@@ -88,7 +84,6 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         initButton(R.id.deletePhotoButton, false);
         initButton(R.id.slide_show_weather_change_city, true);
 
-        visitedBitMaps = new HashSet<>();
         S3PhotoIntentService.startActionFetchS3(this);
 
         slide_in_left = AnimationUtils.loadAnimation(this, R.anim.slide_in_left);
@@ -96,7 +91,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         slide_out_left = AnimationUtils.loadAnimation(this, R.anim.slide_out_left);
         slide_out_right = AnimationUtils.loadAnimation(this, R.anim.slide_out_right);
 
-        IntentFilter statusIntentFilter = new IntentFilter(Constants.BROADCAST_ACTION);
+        IntentFilter statusIntentFilter = new IntentFilter(Constants.ACTION_FETCHED_PHOTO);
         statusIntentFilter.addCategory(Intent.CATEGORY_DEFAULT);
         myResponseReceiver = new ResponseReceiver();
         LocalBroadcastManager.getInstance(this).registerReceiver(myResponseReceiver, statusIntentFilter);
@@ -215,7 +210,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
                 uploadPhotoFromGallery();
                 return true;
             case R.id.update_slide_show:
-                Intent fetchedIntent = new Intent(Constants.BROADCAST_ACTION).putExtra(Constants.EXTENDED_DATA_STATUS, Constants.STATE_ACTION_COMPLETE);
+                Intent fetchedIntent = new Intent(Constants.ACTION_FETCHED_PHOTO).putExtra(Constants.INTENT_FETCHED_PHOTO, Constants.STATE_ACTION_COMPLETE);
                 LocalBroadcastManager.getInstance(this).sendBroadcast(fetchedIntent);
                 return true;
             case android.R.id.home:
@@ -322,9 +317,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
             case R.id.deletePhotoButton:
                 ImageView currentView = (ImageView) myFlipper.getCurrentView();
                 myFlipper.removeView(currentView);
-                String imageName = S3PhotoIntentService.getImageName(((BitmapDrawable) currentView.getDrawable()).getBitmap());
-                Log.w("PhotoShowActivity", "Delete photo is called " + imageName);
-                S3PhotoIntentService.startActionDeleteS3(this, imageName);
+                S3PhotoIntentService.startActionDeleteS3(this, ((BitmapDrawable) currentView.getDrawable()).getBitmap());
                 break;
         }
     }
@@ -371,16 +364,11 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         });
     }
 
-    public synchronized void doFetchPhotoWork() {
+    public void doFetchPhotoWork(final Bitmap bitmap) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                Map<String, Bitmap> bitmapMap = S3PhotoIntentService.getBitmapMap();
-                for (Bitmap bitmap : bitmapMap.values()) {
-                    if (!visitedBitMaps.contains(bitmap)) {
-                        addPhoto(bitmap);
-                    }
-                }
+                addPhoto(bitmap);
                 startFlipping();
             }
         });
@@ -411,14 +399,11 @@ public class SlideShowActivity extends Activity implements OnClickListener {
 
         @Override
         public void onReceive(Context context, Intent intent) {
-            switch (intent.getIntExtra(Constants.EXTENDED_DATA_STATUS, Constants.STATE_ACTION_COMPLETE)) {
-                case Constants.STATE_ACTION_COMPLETE:
-//                    handler.post(new Runnable() {
-//                        public void run() {
-//                            doFetchPhotoWork();
-//                        }
-//                    });
-                    doFetchPhotoWork();
+            switch (intent.getAction()) {
+                case Constants.ACTION_FETCHED_PHOTO:
+                    Bundle extras = intent.getExtras();
+                    Bitmap bitmap = (Bitmap) extras.get(Constants.INTENT_FETCHED_PHOTO);
+                    doFetchPhotoWork(bitmap);
             }
         }
     }
