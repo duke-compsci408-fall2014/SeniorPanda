@@ -70,18 +70,6 @@ public class S3PhotoIntentService extends IntentService {
         return s3Client;
     }
 
-    /**
-     * CognitoSyncManager syncClient = new CognitoSyncManager(
-     * myActivity.getContext(),
-     * "us-east-1:0bf55fd1-baf0-4676-a290-ac9f07623024",
-     * Regions.US_EAST_1,
-     * cognitoProvider);
-     * <p/>
-     * Dataset dataset = syncClient.openOrCreateDataset('myDataset');
-     * dataset.put("myKey", "myValue");
-     * dataset.synchronize(this, syncCallback);
-     */
-
     //purpose
     public S3PhotoIntentService() {
         super("S3FetchPhotoJob");
@@ -263,3 +251,16 @@ public class S3PhotoIntentService extends IntentService {
 //        return sCredProvider;
 //    }
 }
+
+
+/**
+ * CognitoSyncManager syncClient = new CognitoSyncManager(
+ * myActivity.getContext(),
+ * "us-east-1:0bf55fd1-baf0-4676-a290-ac9f07623024",
+ * Regions.US_EAST_1,
+ * cognitoProvider);
+ * <p/>
+ * Dataset dataset = syncClient.openOrCreateDataset('myDataset');
+ * dataset.put("myKey", "myValue");
+ * dataset.synchronize(this, syncCallback);
+ */
