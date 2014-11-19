@@ -1,6 +1,7 @@
 package com.bmh.ms101;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
 import android.view.LayoutInflater;
@@ -18,6 +19,7 @@ import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import com.bmh.ms101.PhotoFlipping.SlideShowActivity;
 import com.bmh.ms101.events.DFLoginResponseEvent;
 import com.bmh.ms101.events.GetDataDFEvent;
 import com.bmh.ms101.ex.DFCredentialsInvalidException;
@@ -49,6 +51,7 @@ public class LogActivity extends Activity {
 
     private ProgressBar mLoading;
     private Button mReloadBtn;
+    private Button mVisBtn;
     private Spinner mTimeRange;
     private FrameLayout mListContainer;
 
@@ -107,6 +110,7 @@ public class LogActivity extends Activity {
     private void setupUi() {
         mLoading = (ProgressBar) findViewById(R.id.log_loading);
         mReloadBtn = (Button) findViewById(R.id.log_reload);
+        mVisBtn = (Button) findViewById(R.id.check_calendar);
         ListView listView = (ListView) findViewById(R.id.log_list);
         listView.setEmptyView(findViewById(R.id.empty_list));
         // Hide the listview for now because we don't want to show the empty view while loading.
@@ -123,6 +127,14 @@ public class LogActivity extends Activity {
             }
         });
         setupTimeRangeSelector();
+
+        mVisBtn.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Util.trackUiEvent("click_visualization_button_calendar", LogActivity.this);
+                startActivity(new Intent(LogActivity.this, WebCalendarVisualization.class));
+            }
+        });
     }
 
     /**

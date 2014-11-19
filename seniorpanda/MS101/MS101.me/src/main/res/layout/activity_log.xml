@@ -18,14 +18,27 @@
     <Spinner android:id="@+id/log_time_range"
              android:layout_width="wrap_content"
              android:layout_height="wrap_content"
-             android:layout_alignBaseline="@+id/log_section_label"
-             android:layout_toRightOf="@+id/log_section_label" />
+        android:layout_below="@+id/log_section_label"
+        android:layout_alignLeft="@+id/log_section_label"
+        android:layout_alignStart="@+id/log_section_label"
+        android:layout_alignRight="@+id/log_section_label"
+        android:layout_alignEnd="@+id/log_section_label" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/check_calendar"
+        android:id="@+id/check_calendar"
+        android:layout_alignParentTop="true"
+        android:layout_alignRight="@+id/frameLayout"
+        android:layout_alignEnd="@+id/frameLayout" />
 
     <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_alignParentBottom="true"
-            android:layout_below="@+id/log_time_range" >
+            android:layout_below="@+id/log_time_range"
+        android:id="@+id/frameLayout">
 
         <FrameLayout android:id="@+id/log_list_container"
                      android:layout_width="match_parent"
@@ -59,4 +72,5 @@
                 android:textAppearance="?android:attr/textAppearanceLarge"
                 android:visibility="gone" />
     </FrameLayout>
+
 </RelativeLayout>

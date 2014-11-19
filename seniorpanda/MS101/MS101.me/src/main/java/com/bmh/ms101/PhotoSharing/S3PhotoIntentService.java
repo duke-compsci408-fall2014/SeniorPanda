@@ -41,7 +41,7 @@ public class S3PhotoIntentService extends IntentService {
 
     private static final String AWS_KEY = "";
     private static final String AWS_SECRET = "";
-    private static final String BUCKET_NAME = "seniorpandadevnew"; // think about alternative
+    private static final String BUCKET_NAME = "seniorpandadevnew"; // use the User.userName
     private static final String FOLDER_NAME = "PhotoSharing";
 
     private static List<String> KeyList = new ArrayList<String>(); // for later usage;
@@ -68,7 +68,7 @@ public class S3PhotoIntentService extends IntentService {
         return s3Client;
     }
 
-    //purpose of this one???
+    //purpose ???
     public S3PhotoIntentService() {
         super("S3FetchPhotoJob");
     }
