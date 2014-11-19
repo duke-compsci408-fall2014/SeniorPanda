@@ -10,7 +10,6 @@ import android.util.Log;
 
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.auth.CognitoCachingCredentialsProvider;
-import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.DeleteObjectRequest;
 import com.amazonaws.services.s3.model.PutObjectRequest;
@@ -62,15 +61,15 @@ public class S3PhotoIntentService extends IntentService {
     private static AmazonS3Client s3Client = null;
     public static synchronized AmazonS3Client getS3ClientInstance() {
         if (null == s3Client) {
-//            s3Client = new AmazonS3Client(new BasicAWSCredentials(AWS_KEY, AWS_SECRET));
-            s3Client = new AmazonS3Client(new CognitoCachingCredentialsProvider(
-                    myContext, // get the context for the current activity
-                    "123492269978",
-                    "us-east-1:0bf55fd1-baf0-4676-a290-ac9f07623024",
-                    "arn:aws:iam::123492269978:role/Cognito_SeniorPandaNewUnauth_DefaultRole",
-                    "arn:aws:iam::123492269978:role/Cognito_SeniorPandaNewAuth_DefaultRole",
-                    Regions.US_EAST_1
-            ));
+            s3Client = new AmazonS3Client(new BasicAWSCredentials(AWS_KEY, AWS_SECRET));
+//            s3Client = new AmazonS3Client(new CognitoCachingCredentialsProvider(
+//                    myContext, // get the context for the current activity
+//                    "123492269978",
+//                    "us-east-1:0bf55fd1-baf0-4676-a290-ac9f07623024",
+//                    "arn:aws:iam::123492269978:role/Cognito_SeniorPandaNewUnauth_DefaultRole",
+//                    "arn:aws:iam::123492269978:role/Cognito_SeniorPandaNewAuth_DefaultRole",
+//                    Regions.US_EAST_1
+//            ));
         }
         return s3Client;
     }
