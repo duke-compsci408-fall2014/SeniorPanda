@@ -8,7 +8,6 @@ import android.graphics.BitmapFactory;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
-import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.auth.CognitoCachingCredentialsProvider;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3Client;
@@ -99,10 +98,10 @@ public class S3PhotoIntentService extends IntentService {
         context.startService(intent);
     }
 
-    public static void startActionDeleteS3(Context context, Bitmap bitmap) {
+    public static void startActionDeleteS3(Context context, String imageName) {
         Intent intent = new Intent(context, S3PhotoIntentService.class);
         intent.setAction(ACTION_DELETE_S3);
-        intent.putExtra(IMAGE_NAME, bitmap);
+        intent.putExtra(IMAGE_NAME, imageName);
         setContext(context);
         context.startService(intent);
     }
@@ -132,10 +131,9 @@ public class S3PhotoIntentService extends IntentService {
                     handleActionUploadS3(AWS_KEY, AWS_SECRET, uploadImgMap, bucketName, userName);
                     return;
                 case ACTION_DELETE_S3:
-                    Bitmap bitmap = (Bitmap) intent.getExtras().get(IMAGE_NAME);
-                    Log.w("deleting photo", " bitMap is " + bitmap.toString());
-                    final String nameKey = folderName + Constants.SLASH + getImageName(bitmap);
-                    Log.w("Delete photo", getImageName(bitmap));
+                    String imageName = (String) intent.getExtras().get(IMAGE_NAME);
+                    final String nameKey = folderName + Constants.SLASH + imageName;
+                    Log.w("Delete photo", imageName);
                     handleActionDeleteS3(AWS_KEY, AWS_SECRET, nameKey, bucketName);
                     return;
             }
@@ -161,12 +159,12 @@ public class S3PhotoIntentService extends IntentService {
      *                Bucket: seniorpandadevnew (should not change)
      *                caller must have Permission.Write permission to the bucket to upload an object.
      */
-    private void handleActionUploadS3(String awsKey, String awsSecret, Map<String,String> uploadImageMap, String bucketName, String folderName) {
+    private void handleActionUploadS3(String awsKey, String awsSecret, Map<String, String> uploadImageMap, String bucketName, String folderName) {
         try {
             AmazonS3Client s3Client = getS3ClientInstance();
             s3Client.listBuckets();
             for (Map.Entry<String, String> entry : uploadImageMap.entrySet()) {
-                PutObjectRequest por = new PutObjectRequest(bucketName, folderName + Constants.SLASH+ entry.getKey(), new java.io.File(entry.getValue()));
+                PutObjectRequest por = new PutObjectRequest(bucketName, folderName + Constants.SLASH + entry.getKey(), new java.io.File(entry.getValue()));
                 s3Client.putObject(por);
             }
         } catch (Exception T) {
@@ -177,6 +175,7 @@ public class S3PhotoIntentService extends IntentService {
 
     /**
      * Handle action FetchS3 in the provided background thread with the provided parameters.
+     *
      * @param folderName is derived from the userName
      */
     private void handleActionFetchS3(String key, String secret, String folderName) {
@@ -185,6 +184,7 @@ public class S3PhotoIntentService extends IntentService {
         AmazonS3Client s3Client = getS3ClientInstance();
         Log.w("folderName here is ", folderName);
         List<S3ObjectSummary> summaries = s3Client.listObjects(BUCKET_NAME, folderName+ Constants.SLASH).getObjectSummaries();
+
         String[] keysNames = new String[summaries.size()]; // think about update issue:
 
         for (int i = 0; i < keysNames.length; i++) {
@@ -197,7 +197,9 @@ public class S3PhotoIntentService extends IntentService {
                 try {
                     Bitmap bitmap = fetchImageAsBitMap(BUCKET_NAME, picName);
                     myBitmapMap.put(picName, bitmap);
-                    Intent fetchedIntent = new Intent(Constants.ACTION_FETCHED_PHOTO).putExtra(Constants.INTENT_FETCHED_PHOTO, bitmap);
+                    Intent fetchedIntent = new Intent(Constants.ACTION_FETCHED_PHOTO);
+                    fetchedIntent.putExtra(Constants.INTENT_FETCHED_PHOTO, bitmap);
+                    fetchedIntent.putExtra(Constants.INTENT_PHOTO_NAME, picName);
                     LocalBroadcastManager.getInstance(this).sendBroadcast(fetchedIntent);
                     Log.w("S3PhotoIntentService", "Bitmap of " + picName + " put in");
                 } catch (Exception e) {
@@ -223,16 +225,6 @@ public class S3PhotoIntentService extends IntentService {
         byte[] bytes = IOUtils.toByteArray(content);
         Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
         return bitmap;
-    }
-
-    private String getImageName(Bitmap bitmap) {
-        for (String name : myBitmapMap.keySet()) {
-            System.out.println(name);
-            if (myBitmapMap.get(name).equals(bitmap)) {
-                return name;
-            }
-        }
-        return null;
     }
 
 // //thinking of improving the sign-in:
