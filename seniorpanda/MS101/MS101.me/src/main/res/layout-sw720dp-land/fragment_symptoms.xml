@@ -16,6 +16,12 @@
         android:layout_alignParentTop="true"
         android:adjustViewBounds="true"
         android:src="@drawable/faces" />-->
+    <ImageView
+        android:id="@+id/pain_scale"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:adjustViewBounds="true" />
  <!--   <TextView android:id="@+id/symptoms_header"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
