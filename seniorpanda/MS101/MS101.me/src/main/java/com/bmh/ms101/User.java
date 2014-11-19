@@ -41,6 +41,7 @@ public class User {
 
     public static final int SUBSCRIBE_DATA_TYPE = 14;
     public static final int TAKEN_DATA_TYPE = 15;
+    public static final int LOGS_DATA_TYPE = 16;
 
     // Key strings to get values from the pref file
     private static final String PREF_MEDS = "key_meds";
@@ -61,6 +62,7 @@ public class User {
     public static final int DF_SESSION_DURATION = 1440;
 
     private static final String SECRET_KEY = "ms101BAMBOOmobileHealth@ms101.me";
+
     ///
     private static final String PREF_SETUP_MEDS = "key_setup_meds";
 

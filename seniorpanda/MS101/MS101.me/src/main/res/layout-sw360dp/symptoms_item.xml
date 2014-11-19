@@ -17,48 +17,96 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal" >
 
-        <RadioButton
+        <!--<RadioButton
                 android:id="@+id/radio0"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:checked="true"
-                android:text="0" />
+                android:text="0 min" />
 
         <RadioButton
                 android:id="@+id/radio1"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="1-30" />
+                android:text="1-30 min" />
 
         <RadioButton
                 android:id="@+id/radio2"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="31-60" />
+                android:text="31-60 min" />
 
         <RadioButton
                 android:id="@+id/radio3"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="61-120" />
+                android:text="61-120 min" />
 
         <RadioButton
                 android:id="@+id/radio4"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="121-360" />
+                android:text="121-360 min" />
 
         <RadioButton
                 android:id="@+id/radio5"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text=">360" />
+                android:text=">360 min" />-->
+        <RadioButton
+            android:id="@+id/radio0"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:checked="true"
+            android:button="@drawable/custom_radio_button"
+            android:text="0 min" />
+
+        <RadioButton
+            android:id="@+id/radio1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:button="@drawable/custom_radio_button"
+            android:text="1-30 min" />
+
+        <RadioButton
+            android:id="@+id/radio2"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:button="@drawable/custom_radio_button"
+            android:text="31-60 min" />
+
+        <RadioButton
+            android:id="@+id/radio3"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:button="@drawable/custom_radio_button"
+            android:text="61-120 min" />
+
+        <RadioButton
+            android:id="@+id/radio4"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:button="@drawable/custom_radio_button"
+            android:text="121-360 min" />
+
+        <RadioButton
+            android:id="@+id/radio5"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:button="@drawable/custom_radio_button"
+            android:text=">360 min" />
     </RadioGroup>
 
 </LinearLayout>

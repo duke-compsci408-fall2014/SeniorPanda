@@ -70,6 +70,9 @@ public class DreamFactorySendJob extends Job {
             case User.TAKEN_DATA_TYPE:
                 EventBus.getDefault().post(new SendTakenDFEvent(true, ""));
                 break;
+            case User.SYMP_DATA_TYPE:
+                EventBus.getDefault().post(new SendSympDFEvent(true, ""));
+                break;
             case User.SUBSCRIBE_DATA_TYPE:
                 List<BaseDataModel> data = new ArrayList<>();
                 JSONObject httpResponseDataJson = new JSONObject(httpResponse.body);
