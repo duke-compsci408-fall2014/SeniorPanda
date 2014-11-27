@@ -10,6 +10,8 @@ public final class Constants {
     public static final String INTENT_PHOTO_NAME = "com.bmh.ms101.slideShow.PHOTO_NAME";
     public static final String SLASH = "/";
 
+    public static final String COLOR_GREEN = "Color_Green";
+
     public static final int STATE_ACTION_STARTED = 0;
     public static final int STATE_ACTION_CONNECTING = 1;
     public static final int STATE_ACTION_WRITING = 2;

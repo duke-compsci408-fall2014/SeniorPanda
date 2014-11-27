@@ -21,8 +21,10 @@ import com.bmh.ms101.User;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -32,6 +34,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class S3PhotoIntentService extends IntentService {
     private User mUser;
+    private static final int CACHE_SIZE = 10;
 
     private static final String ACTION_UPLOAD_S3 = "com.bmh.ms101.jobs.action.UPLOAD_S3";
     private static final String ACTION_FETCH_S3 = "com.bmh.ms101.jobs.action.FETCH_S3";
@@ -46,6 +49,7 @@ public class S3PhotoIntentService extends IntentService {
 
     private static List<String> KeyList = new ArrayList<String>(); // for later usage;
     private static Map<String, Bitmap> myBitmapMap = new ConcurrentHashMap<String, Bitmap>();
+    private Queue<String> myPicNames = new LinkedList<>();
     private static Context myContext = null;
 
     private static CognitoCachingCredentialsProvider credentialsProvider;
@@ -193,17 +197,20 @@ public class S3PhotoIntentService extends IntentService {
         for (String picName : keysNames) {
             if (!checkEmptyDirectory(picName)) {
                 try {
-                    if (myBitmapMap.containsKey(picName)) {
+                    if (!myBitmapMap.containsKey(picName)) {
+                        if (myBitmapMap.size() > CACHE_SIZE) {
+                            myBitmapMap.remove(myPicNames.remove());
+                        }
+                        Bitmap bitmap = fetchImageAsBitMap(BUCKET_NAME, picName);
+                        myBitmapMap.put(picName, bitmap);
+                        Intent fetchedIntent = new Intent(Constants.ACTION_FETCHED_PHOTO);
+                        fetchedIntent.putExtra(Constants.INTENT_FETCHED_PHOTO, bitmap);
+                        fetchedIntent.putExtra(Constants.INTENT_PHOTO_NAME, picName);
+                        LocalBroadcastManager.getInstance(this).sendBroadcast(fetchedIntent);
+                        Log.w(this.getClass().getName(), "Bitmap of " + picName + " put in");
+                    } else {
                         Log.w(this.getClass().getName(), "Bitmap already contains picture " + picName);
-                        continue;
                     }
-                    Bitmap bitmap = fetchImageAsBitMap(BUCKET_NAME, picName);
-                    myBitmapMap.put(picName, bitmap);
-                    Intent fetchedIntent = new Intent(Constants.ACTION_FETCHED_PHOTO);
-                    fetchedIntent.putExtra(Constants.INTENT_FETCHED_PHOTO, bitmap);
-                    fetchedIntent.putExtra(Constants.INTENT_PHOTO_NAME, picName);
-                    LocalBroadcastManager.getInstance(this).sendBroadcast(fetchedIntent);
-                    Log.w(this.getClass().getName(), "Bitmap of " + picName + " put in");
                 } catch (Exception e) {
                     Log.w(this.getClass().getName(), "current picName " + picName + " not found in fetching");
                     continue;

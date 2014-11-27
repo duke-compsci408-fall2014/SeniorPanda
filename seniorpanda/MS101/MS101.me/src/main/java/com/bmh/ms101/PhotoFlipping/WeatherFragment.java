@@ -22,13 +22,19 @@ import java.util.Locale;
 
 public class WeatherFragment extends Fragment {
 
-    Typeface weatherFont;
-    TextView cityField;
-    TextView updatedField;
-    TextView detailsField;
-    TextView currentTemperatureField;
-    TextView weatherIcon;
-    android.os.Handler handler;
+    public static final String CELSIUS_DEGREE = "℃";
+    public static final String FAHREN_DEGREE = "℉";
+    private static final double CELSIUS_TO_FAHREN_MULTIPLIER = 33.8;
+
+    private Typeface weatherFont;
+    private TextView cityField;
+    private TextView updatedField;
+    private TextView detailsField;
+    private TextView currentTemperatureField;
+    private TextView weatherIcon;
+    private android.os.Handler handler;
+    private String formattedCalcius;
+    private String formattedFahren;
 
     public WeatherFragment() {
         handler = new Handler();
@@ -95,8 +101,11 @@ public class WeatherFragment extends Fragment {
                             "\n" + "Humidity: " + main.getString("humidity") + "%" +
                             "\n" + "Pressure: " + main.getString("pressure") + " hPa");
 
-            currentTemperatureField.setText(
-                    String.format("%.2f", main.getDouble("temp")) + " ℃");
+            double tempCelsius = main.getDouble("temp");
+            formattedCalcius = String.format("%.2f", tempCelsius) + CELSIUS_DEGREE;
+            double tempFahren = tempCelsius * CELSIUS_TO_FAHREN_MULTIPLIER;
+            formattedFahren = String.format("%.2f", tempFahren) + FAHREN_DEGREE;
+            currentTemperatureField.setText(formattedFahren);
 
             DateFormat df = DateFormat.getDateTimeInstance();
             String updatedOn = df.format(new Date(json.getLong("dt") * 1000));
@@ -148,5 +157,16 @@ public class WeatherFragment extends Fragment {
 
     public void changeCity(String city) {
         updateWeatherData(city);
+    }
+
+    public String changeUnit() {
+        Log.w(this.getClass().getName(), "current temperature is " + currentTemperatureField.getText());
+        if (currentTemperatureField.getText().equals(formattedCalcius)) {
+            currentTemperatureField.setText(formattedFahren);
+            return FAHREN_DEGREE;
+        } else {
+            currentTemperatureField.setText(formattedCalcius);
+            return CELSIUS_DEGREE;
+        }
     }
 }

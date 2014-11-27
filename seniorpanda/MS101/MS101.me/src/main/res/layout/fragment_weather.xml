@@ -52,10 +52,22 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
+        android:layout_marginBottom="5sp"
         android:layout_centerHorizontal="true"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:textSize="25sp"
         android:text="Temperature" />
+
+    <Button
+        android:id="@+id/temperature_convert_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_toRightOf="@id/current_temperature_field"
+        android:layout_marginLeft="10sp"
+        android:textSize="20sp"
+        android:textColor="@color/white"
+        android:text="@string/celsius_unit"/>
 
     <TextView
         android:id="@+id/details_field"
