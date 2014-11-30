@@ -25,7 +25,7 @@
         android:layout_alignEnd="@+id/log_section_label" />
 
     <Button
-        android:layout_width="wrap_content"
+        android:layout_width="100sp"
         android:layout_height="wrap_content"
         android:text="@string/check_calendar"
         android:background="@color/app_green"
