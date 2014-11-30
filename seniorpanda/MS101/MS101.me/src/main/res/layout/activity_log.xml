@@ -28,6 +28,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/check_calendar"
+        android:background="@color/app_green"
         android:id="@+id/check_calendar"
         android:layout_alignParentTop="true"
         android:layout_alignRight="@+id/frameLayout"

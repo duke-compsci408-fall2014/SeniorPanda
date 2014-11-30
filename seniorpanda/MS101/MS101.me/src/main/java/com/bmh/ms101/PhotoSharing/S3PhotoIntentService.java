@@ -191,7 +191,7 @@ public class S3PhotoIntentService extends IntentService {
 
         for (int i = 0; i < keysNames.length; i++) {
             keysNames[i] = summaries.get(i).getKey();
-            Log.w(this.getClass().getName(), summaries.get(i).getKey());
+            //Log.w(this.getClass().getName(), summaries.get(i).getKey());
         }
 
         for (String picName : keysNames) {
@@ -199,7 +199,10 @@ public class S3PhotoIntentService extends IntentService {
                 try {
                     if (!myBitmapMap.containsKey(picName)) {
                         if (myBitmapMap.size() > CACHE_SIZE) {
-                            myBitmapMap.remove(myPicNames.remove());
+                            String name = myPicNames.remove();
+                            myBitmapMap.remove(name);
+                            Log.w(this.getClass().getName(), "remove picture with name " + name);
+
                         }
                         Bitmap bitmap = fetchImageAsBitMap(BUCKET_NAME, picName);
                         myBitmapMap.put(picName, bitmap);
@@ -207,9 +210,9 @@ public class S3PhotoIntentService extends IntentService {
                         fetchedIntent.putExtra(Constants.INTENT_FETCHED_PHOTO, bitmap);
                         fetchedIntent.putExtra(Constants.INTENT_PHOTO_NAME, picName);
                         LocalBroadcastManager.getInstance(this).sendBroadcast(fetchedIntent);
-                        Log.w(this.getClass().getName(), "Bitmap of " + picName + " put in");
+                        Log.w(this.getClass().getName(), "put in picture with name " + picName);
                     } else {
-                        Log.w(this.getClass().getName(), "Bitmap already contains picture " + picName);
+                        Log.w(this.getClass().getName(), "already contains picture with name " + picName);
                     }
                 } catch (Exception e) {
                     Log.w(this.getClass().getName(), "current picName " + picName + " not found in fetching");
