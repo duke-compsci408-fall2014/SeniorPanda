@@ -2,7 +2,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingBottom="@dimen/activity_vertical_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.bmh.ms101.PhotoFlipping.WeatherFragment">
 
@@ -15,7 +14,7 @@
         android:layout_centerHorizontal="true"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:textSize="25dp"
-        android:text="Shanghai, CN" />
+        android:text="Location" />
 
     <TextView
         android:id="@+id/updated_field"
@@ -25,7 +24,7 @@
         android:layout_centerHorizontal="true"
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:textSize="10sp"
-        android:text="Sunny" />
+        android:text="Please update location and ensure internet connection" />
 
     <Button
         android:id="@+id/slide_show_weather_change_city"
@@ -46,17 +45,29 @@
         android:layout_centerHorizontal="true"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:textSize="50sp"
-        android:text="Sunny Sign" />
+        android:text="Not Available" />
 
     <TextView
         android:id="@+id/current_temperature_field"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
+        android:layout_marginBottom="5sp"
         android:layout_centerHorizontal="true"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:textSize="25sp"
-        android:text="35C" />
+        android:text="Temperature" />
+
+    <Button
+        android:id="@+id/temperature_convert_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_toRightOf="@id/current_temperature_field"
+        android:layout_marginLeft="10sp"
+        android:textSize="20sp"
+        android:textColor="@color/white"
+        android:text="@string/celsius_unit"/>
 
     <TextView
         android:id="@+id/details_field"
@@ -66,6 +77,6 @@
         android:layout_centerHorizontal="true"
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:textSize="15sp"
-        android:text="Too hot today" />
+        android:text="Details" />
 
 </RelativeLayout>

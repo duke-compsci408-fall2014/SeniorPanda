@@ -21,8 +21,10 @@ import com.bmh.ms101.User;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -32,6 +34,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class S3PhotoIntentService extends IntentService {
     private User mUser;
+    private static final int CACHE_SIZE = 10;
 
     private static final String ACTION_UPLOAD_S3 = "com.bmh.ms101.jobs.action.UPLOAD_S3";
     private static final String ACTION_FETCH_S3 = "com.bmh.ms101.jobs.action.FETCH_S3";
@@ -46,6 +49,7 @@ public class S3PhotoIntentService extends IntentService {
 
     private static List<String> KeyList = new ArrayList<String>(); // for later usage;
     private static Map<String, Bitmap> myBitmapMap = new ConcurrentHashMap<String, Bitmap>();
+    private Queue<String> myPicNames = new LinkedList<>();
     private static Context myContext = null;
 
     private static CognitoCachingCredentialsProvider credentialsProvider;
@@ -130,8 +134,13 @@ public class S3PhotoIntentService extends IntentService {
                     break;
                 case ACTION_DELETE_S3:
                     String imageName = (String) intent.getExtras().get(IMAGE_NAME);
+
                     final String nameKey = imageName;  // the image name contains the folder name already
                     Log.w("Delete photo", imageName);
+
+//                    final String nameKey = folderName + Constants.SLASH + imageName;
+//                    Log.w(this.getClass().getName(), "Delete photo " + imageName);
+
                     handleActionDeleteS3(nameKey, userName);
                     break;
             }
@@ -142,14 +151,14 @@ public class S3PhotoIntentService extends IntentService {
         try {
             AmazonS3Client s3Client = getS3ClientInstance();
             s3Client.deleteObject(new DeleteObjectRequest(bucketName, nameKey));
-            Log.w("S3PhotoIntentService", "bName: " + bucketName + " and nameKey is " + nameKey);
-        } catch (Exception T) {
-            T.printStackTrace();
-            throw new UnsupportedOperationException("Cannot handle Delete S3 Action");
+            Log.w(this.getClass().getName(), "bName: " + bucketName + " and nameKey is " + nameKey);
+        } catch (Throwable T) {
+            //T.printStackTrace();
+            //throw new UnsupportedOperationException("Cannot handle Delete S3 Action");
         }
     }
 
-    public static void clearMap() {
+    public static void clearPhotos() {
         myBitmapMap.clear();
     }
 
@@ -187,24 +196,31 @@ public class S3PhotoIntentService extends IntentService {
 
         for (int i = 0; i < keysNames.length; i++) {
             keysNames[i] = summaries.get(i).getKey();
-            Log.w("S3PhotoIntentService", summaries.get(i).getKey());
+            //Log.w(this.getClass().getName(), summaries.get(i).getKey());
         }
 
         for (String picName : keysNames) {
             if (!checkEmptyDirectory(picName)) {
                 try {
-                    if (myBitmapMap.containsKey(picName)) {
-                        continue;
+                    if (!myBitmapMap.containsKey(picName)) {
+                        if (myBitmapMap.size() > CACHE_SIZE) {
+                            String name = myPicNames.remove();
+                            myBitmapMap.remove(name);
+                            Log.w(this.getClass().getName(), "remove picture with name " + name);
+
+                        }
+                        Bitmap bitmap = fetchImageAsBitMap(BUCKET_NAME, picName);
+                        myBitmapMap.put(picName, bitmap);
+                        Intent fetchedIntent = new Intent(Constants.ACTION_FETCHED_PHOTO);
+                        fetchedIntent.putExtra(Constants.INTENT_FETCHED_PHOTO, bitmap);
+                        fetchedIntent.putExtra(Constants.INTENT_PHOTO_NAME, picName);
+                        LocalBroadcastManager.getInstance(this).sendBroadcast(fetchedIntent);
+                        Log.w(this.getClass().getName(), "put in picture with name " + picName);
+                    } else {
+                        Log.w(this.getClass().getName(), "already contains picture with name " + picName);
                     }
-                    Bitmap bitmap = fetchImageAsBitMap(BUCKET_NAME, picName);
-                    myBitmapMap.put(picName, bitmap);
-                    Intent fetchedIntent = new Intent(Constants.ACTION_FETCHED_PHOTO);
-                    fetchedIntent.putExtra(Constants.INTENT_FETCHED_PHOTO, bitmap);
-                    fetchedIntent.putExtra(Constants.INTENT_PHOTO_NAME, picName);
-                    LocalBroadcastManager.getInstance(this).sendBroadcast(fetchedIntent);
-                    Log.w("S3PhotoIntentService", "Bitmap of " + picName + " put in");
                 } catch (Exception e) {
-                    Log.w("S3PhotoIntentService", "current picName " + picName + " not found in fetching");
+                    Log.w(this.getClass().getName(), "current picName " + picName + " not found in fetching");
                     continue;
                 }
             }

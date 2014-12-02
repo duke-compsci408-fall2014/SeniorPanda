@@ -31,6 +31,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.ViewFlipper;
 
 import com.bmh.ms101.Constants;
@@ -72,8 +73,6 @@ public class SlideShowActivity extends Activity implements OnClickListener {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-
         setContentView(R.layout.activity_slide_show);
         myFlipper = (ViewFlipper) findViewById(R.id.photoFlipper);
         myFlipper.setOnTouchListener(new View.OnTouchListener() {
@@ -84,15 +83,17 @@ public class SlideShowActivity extends Activity implements OnClickListener {
             }
         });
         setTitle(R.string.title_activity_photo_slideshow);
-        initButton(R.id.uploadPhotoButton, false);
-        initButton(R.id.takePhotoButton, false);
-        initButton(R.id.startSlideButton, false);
-        initButton(R.id.pauseSlideButton, false);
-        initButton(R.id.deletePhotoButton, false);
-        initButton(R.id.slide_show_weather_change_city, true);
+        initButton(R.id.uploadPhotoButton, Constants.COLOR_GREEN);
+        initButton(R.id.takePhotoButton, Constants.COLOR_GREEN);
+        initButton(R.id.startSlideButton, Constants.COLOR_GREEN);
+        initButton(R.id.pauseSlideButton, Constants.COLOR_GREEN);
+        initButton(R.id.deletePhotoButton, Constants.COLOR_GREEN);
+        initButton(R.id.slide_show_weather_change_city, Constants.COLOR_GREEN);
+        initButton(R.id.temperature_convert_button, Constants.COLOR_GREEN);
         counterToImageNameMap = new HashMap<Integer, String>();
         registerReceiver();
         S3PhotoIntentService.startActionFetchS3(this);
+        showToast("Start loading pictures", Toast.LENGTH_SHORT);
 
         slide_in_left = AnimationUtils.loadAnimation(this, R.anim.slide_in_left);
         slide_in_right = AnimationUtils.loadAnimation(this, R.anim.silde_in_right);
@@ -100,12 +101,10 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         slide_out_right = AnimationUtils.loadAnimation(this, R.anim.slide_out_right);
         myTouchDetector = new GestureDetector(myFlipper.getContext(), new SwipeGestureDetector());
 
-        //set up the date time text views
         myDateTextView = (TextView) findViewById(R.id.slide_show_display_date);
         myTimeTextView = (TextView) findViewById(R.id.slide_show_display_time);
         initTextView(myDateTextView);
         initTextView(myTimeTextView);
-
         myDateTimeThread = new Thread(new DateTimeRunner());
         myDateTimeThread.start();
     }
@@ -122,32 +121,38 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         textView.setTypeface(Typeface.DEFAULT_BOLD);
     }
 
-    private void initButton(int resId, boolean ifGreen) {
+    private void initButton(int resId, String color) {
         Button button = (Button) findViewById(resId);
-        Util.makeGreen(button, this);
+        switch (color) {
+            case Constants.COLOR_GREEN:
+                Util.makeGreen(button, this);
+                break;
+        }
         button.setOnClickListener(this);
     }
 
     @Override
     public void onDestroy() {
         unregisterReceiver();
-        S3PhotoIntentService.clearMap();
+        S3PhotoIntentService.clearPhotos();
         myDateTimeThread.interrupt();
         super.onDestroy();
     }
 
     public void addPhoto(Bitmap bitmap, String imageName) {
-        ImageView imageView = new ImageView(this);
-        imageView.setTag(imageCounter);
-        counterToImageNameMap.put(imageCounter, imageName);
-        imageView.setImageBitmap(bitmap);
-        myFlipper.addView(imageView);
-        imageCounter++;
+        if (!counterToImageNameMap.containsValue(imageName)) {
+            ImageView imageView = new ImageView(this);
+            imageView.setTag(imageCounter);
+            counterToImageNameMap.put(imageCounter, imageName);
+            imageView.setImageBitmap(bitmap);
+            myFlipper.addView(imageView);
+            imageCounter++;
+        }
     }
 
     private void dispatchTakePhotoIntent() {
         if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA)) {
-            Log.w("PhotoShowActivity", "The current app has no camera");
+            Log.w(this.getClass().getName(), "The current app has no camera");
             showInfoDialog(R.string.dialog_alert_title, R.string.no_camera_message, R.string.dialog_ok_button_text);
             return;
         }
@@ -157,7 +162,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
             try {
                 imageFilePath = createImageFile();
             } catch (IOException e) {
-                Log.w("PhotoShowActivity", "IOException occurs while dispatching take photo intent!");
+                Log.w(this.getClass().getName(), "IOException occurs while dispatching take photo intent!");
                 showInfoDialog(R.string.dialog_alert_title, R.string.fail_create_image_file, R.string.dialog_ok_button_text);
                 return;
             }
@@ -171,6 +176,10 @@ public class SlideShowActivity extends Activity implements OnClickListener {
                 sendBroadcast(mediaScanIntent);
             }
         }
+    }
+
+    private void showToast(String text, int duration) {
+        Toast.makeText(getApplicationContext(), text, duration).show();
     }
 
     private void showInfoDialog(int title, int inputText, int buttonText) {
@@ -193,6 +202,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
     protected void onStop() {
         unregisterReceiver();
         stopFlipping();
+        S3PhotoIntentService.clearPhotos();
         myDateTimeThread.interrupt();
         super.onStop();
     }
@@ -206,10 +216,11 @@ public class SlideShowActivity extends Activity implements OnClickListener {
 
     @Override
     protected void onResume() {
-        startFlipping();
         myDateTimeThread = new Thread(new DateTimeRunner());
         myDateTimeThread.start();
         registerReceiver();
+        S3PhotoIntentService.startActionFetchS3(this);
+        startFlipping();
         super.onResume();
     }
 
@@ -225,6 +236,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         switch (item.getItemId()) {
             case R.id.update_slide_show:
                 S3PhotoIntentService.startActionFetchS3(this);
+                showToast("Start loading pictures", Toast.LENGTH_SHORT);
                 return true;
             case android.R.id.home:
                 NavUtils.navigateUpFromSameTask(this);
@@ -288,7 +300,10 @@ public class SlideShowActivity extends Activity implements OnClickListener {
                 Bundle extras = data.getExtras();
                 Bitmap bitmap = (Bitmap) extras.get("data");
                 addPhoto(bitmap, myCurrentPhotoName);
-                //TODO: startActionUploadS3
+                //TODO: upload photo
+//                Map<String, String> imageMap = new HashMap<String, String>();
+//                imageMap.put(myCurrentPhotoName, bit)
+//                S3PhotoIntentService.startActionDeleteS3(this, );
             }
         }
     }
@@ -324,6 +339,17 @@ public class SlideShowActivity extends Activity implements OnClickListener {
             case R.id.slide_show_weather_change_city:
                 showChangeCityDialog();
                 break;
+            case R.id.temperature_convert_button:
+                WeatherFragment weatherFragment = (WeatherFragment) getFragmentManager()
+                        .findFragmentById(R.id.slide_show_weather_display);
+                String unit = weatherFragment.changeUnit();
+                Button changeUnitButton = (Button) findViewById(R.id.temperature_convert_button);
+                if (unit.equals(WeatherFragment.CELSIUS_DEGREE)) {
+                    changeUnitButton.setText(R.string.fahren_unit);
+                } else {
+                    changeUnitButton.setText(R.string.celsius_unit);
+                }
+                break;
             case R.id.deletePhotoButton:
                 ImageView currentView = (ImageView) myFlipper.getCurrentView();
                 int counter = ((Integer) currentView.getTag()).intValue();
@@ -336,7 +362,8 @@ public class SlideShowActivity extends Activity implements OnClickListener {
     }
 
     private void stopFlipping() {
-        Log.w("PhotoShowActivity", "ViewFlipper stops flipping");
+        Log.w(this.getClass().getName(), "ViewFlipper stops flipping");
+        showToast("Slideshow stops flipping", Toast.LENGTH_SHORT);
         myFlipper.stopFlipping();
         myFlipper.setAutoStart(false);
     }
@@ -345,7 +372,8 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         myFlipper.setAutoStart(true);
         myFlipper.setFlipInterval(FLIP_INTERVAL);
         if (myFlipper.isAutoStart() && !myFlipper.isFlipping()) {
-            Log.w("PhotoShowActivity", "ViewFlipper starts to flip");
+            Log.w(this.getClass().getName(), "ViewFlipper starts to flip");
+            showToast("Slideshow starts to flip", Toast.LENGTH_SHORT);
             myFlipper.setInAnimation(slide_in_right);
             myFlipper.setOutAnimation(slide_out_left);
             myFlipper.startFlipping();
@@ -353,7 +381,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
     }
 
     private void showPreviousInFlipper() {
-        Log.w("PhotoShowActivity", "ViewFlipper shows previous");
+        Log.w(this.getClass().getName(), "ViewFlipper shows previous");
         stopFlipping();
         myFlipper.setInAnimation(slide_in_left);
         myFlipper.setOutAnimation(slide_out_right);
@@ -361,7 +389,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
     }
 
     private void showNextInFlipper() {
-        Log.w("PhotoShowActivity", "ViewFlipper shows next");
+        Log.w(this.getClass().getName(), "ViewFlipper shows next");
         stopFlipping();
         myFlipper.setInAnimation(slide_in_right);
         myFlipper.setOutAnimation(slide_out_left);
@@ -397,10 +425,10 @@ public class SlideShowActivity extends Activity implements OnClickListener {
                     doUpdateTimeWork(formatted.substring(0, 10), formatted.substring(11));
                     Thread.sleep(TIME_UPDATE_INTERVAL);
                 } catch (InterruptedException e) {
-                    Log.w("DateTimeRunner", "DateTimeThread is interrupted");
+                    Log.w(this.getClass().getName(), "DateTimeThread is interrupted");
                     Thread.currentThread().interrupt();
                 } catch (Exception e) {
-                    Log.w("DateTimeRunner", "Unchecked exception in DateTimeThread");
+                    Log.w(this.getClass().getName(), "Unchecked exception in DateTimeThread");
                 }
             }
         }

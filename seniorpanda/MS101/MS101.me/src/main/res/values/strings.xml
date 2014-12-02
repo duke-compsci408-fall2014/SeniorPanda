@@ -87,6 +87,8 @@
     <string name="dialog_alert_title">Alert</string>
     <!-- Put your own APP ID here -->
     <string name="open_weather_maps_app_id"></string>
+    <string name="celsius_unit">℃</string>
+    <string name="fahren_unit">℉</string>
     <string name="weather_sunny"></string>
     <string name="weather_clear_night"></string>
     <string name="weather_foggy"></string>
