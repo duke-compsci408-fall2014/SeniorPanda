@@ -1,0 +1,10 @@
+Current Functionality:
+  Photosharing: 
+  Record Sympton:
+  Data visualization webview:
+  Database login/logout
+  Notififies patient to take medication at certain time intervals based on the medications they are taking
+
+
+Platform it is testedd on:
+  Android Studio, built with Java Android API 16, simulated on tablet VM.
