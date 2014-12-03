@@ -202,7 +202,6 @@ public class S3PhotoIntentService extends IntentService {
                             String name = myPicNames.remove();
                             myBitmapMap.remove(name);
                             Log.w(this.getClass().getName(), "remove picture with name " + name);
-
                         }
                         Bitmap bitmap = fetchImageAsBitMap(BUCKET_NAME, picName);
                         myBitmapMap.put(picName, bitmap);
