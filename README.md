@@ -5,10 +5,10 @@ This app aims to facilitate communication among patients and doctors. The app ta
 
 The primary usability goals would be simplicity and “hands off” orientation. We expect users to put their devices as kitchen countertop installation. We will primarily focus on two areas. The first one is consumer content delivery. We will incorporate family photo streaming service and daily weather updates, and possibly other forms of entertainment for seniors. By doing so, we encourage seniors to use the app consistently. The second one is medical query delivery and response capture to populate a server side database related to medication and symptom information.
 
-Dependencies
+<h1>Dependencies<h1>
 Database: Amazon AWS/EC2, DreamFactory Rest APIs
 Weather Data: the OpenWeatherMap APIs
 Device: Android Tablet 
 
-How to deploy
+<h1>How to deploy<h1>
 Pull the repository, run with Android Studio and deploy to device in debugging mode for future enhancements
