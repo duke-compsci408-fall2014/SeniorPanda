@@ -5,3 +5,5 @@ Future Enhancements
 3. Show progress bars and/or circles while loading weather and photo data
 4. Update database to fire notifications directly from the database itself (in progress).
 5. Update UI for the review logs
+6. Streamline the login/lock page
+7. Improve the memory efficiency in photo-downloading
