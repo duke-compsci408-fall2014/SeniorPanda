@@ -1,0 +1,5 @@
+Future Enhancements
+
+1. Show multi-day weather instead of just today, depending on the size of device screens.
+2. Typeahead in the change city dialog so that the user is provided with auto filling text suggestions
+3. Show progress bars and/or circles while loading weather and photo data
