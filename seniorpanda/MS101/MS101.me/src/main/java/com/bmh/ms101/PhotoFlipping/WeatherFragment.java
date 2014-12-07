@@ -24,7 +24,6 @@ public class WeatherFragment extends Fragment {
 
     public static final String CELSIUS_DEGREE = "℃";
     public static final String FAHREN_DEGREE = "℉";
-    private static final double CELSIUS_TO_FAHREN_MULTIPLIER = 33.8;
 
     private Typeface weatherFont;
     private TextView cityField;
@@ -88,6 +87,10 @@ public class WeatherFragment extends Fragment {
         }.start();
     }
 
+    private double convertFromCelsiusToFahren(double celsius) {
+        return celsius * 9 / 5 + 32;
+    }
+
     private void renderWeather(JSONObject json) {
         try {
             cityField.setText(json.getString("name").toUpperCase(Locale.US) +
@@ -103,7 +106,7 @@ public class WeatherFragment extends Fragment {
 
             double tempCelsius = main.getDouble("temp");
             formattedCalcius = String.format("%.2f", tempCelsius) + CELSIUS_DEGREE;
-            double tempFahren = tempCelsius * CELSIUS_TO_FAHREN_MULTIPLIER;
+            double tempFahren = convertFromCelsiusToFahren(tempCelsius);
             formattedFahren = String.format("%.2f", tempFahren) + FAHREN_DEGREE;
             currentTemperatureField.setText(formattedFahren);
 

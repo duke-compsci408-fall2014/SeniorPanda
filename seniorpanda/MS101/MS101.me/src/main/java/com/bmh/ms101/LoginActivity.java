@@ -96,6 +96,7 @@ public class LoginActivity extends Activity {
                     finish();
                     break;
                 case "Success":
+                    finish();
                 case "Already Logged In":
                     setResult(RESULT_OK);
                     finish();

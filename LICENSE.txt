@@ -1,5 +1,6 @@
 The MIT License (MIT)
 
+Copyright (c) 2014 Bamboo Mobile Health, Duke Senior Panda Dev Team, and jointly
 Copyright (c) 2014 duke-compsci408-fall2014
 
 Permission is hereby granted, free of charge, to any person obtaining a copy

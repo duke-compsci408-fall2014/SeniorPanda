@@ -1,0 +1,13 @@
+Current Functionality:
+  Photo sharing among family members, photo slide show
+  Record Sympton:
+  Data visualization webview:
+  Database login/logout
+  Notififies patient to take medication at certain time intervals based on the medications they are taking
+
+
+Platform and Versions:
+  Android Studio, built with Java Android API 16, simulated on tablet VM.
+  Dreamfactory: 
+  Amazon AWS: 
+  Amazon COGNITO: 
