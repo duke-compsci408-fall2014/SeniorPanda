@@ -13,7 +13,7 @@ import android.widget.Toast;
 import de.greenrobot.event.EventBus;
 
 
-public class WebCalendarVisualization extends Activity {
+public class WebCalendarVisualizationActivity extends Activity {
     private final EventBus eventBus = EventBus.getDefault();
 
     @Override

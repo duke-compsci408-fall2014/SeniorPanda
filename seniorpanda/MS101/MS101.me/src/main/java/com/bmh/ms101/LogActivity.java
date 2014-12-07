@@ -20,19 +20,13 @@ import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 
-import com.bmh.ms101.PhotoFlipping.SlideShowActivity;
 import com.bmh.ms101.events.DFLoginResponseEvent;
-import com.bmh.ms101.events.GetDataDFEvent;
 import com.bmh.ms101.events.GetLogsDFEvent;
 import com.bmh.ms101.ex.DFCredentialsInvalidException;
 import com.bmh.ms101.jobs.DreamFactoryGetJob;
 import com.bmh.ms101.jobs.DreamFactoryLoginJob;
-import com.bmh.ms101.models.BaseRecordModel;
 import com.bmh.ms101.models.LogDataModel;
-import com.bmh.ms101.models.MedRecordModel;
-import com.bmh.ms101.models.StressFactorRecordModel;
 import com.bmh.ms101.models.SymptomDataModel;
-import com.bmh.ms101.models.SymptomRecordModel;
 import com.bmh.ms101.models.TakenDataModel;
 import com.path.android.jobqueue.JobManager;
 
@@ -140,7 +134,7 @@ public class LogActivity extends Activity {
             @Override
             public void onClick(View v) {
                 Util.trackUiEvent("click_visualization_button_calendar", LogActivity.this);
-                startActivity(new Intent(LogActivity.this, WebCalendarVisualization.class));
+                startActivity(new Intent(LogActivity.this, WebCalendarVisualizationActivity.class));
             }
         });
     }
