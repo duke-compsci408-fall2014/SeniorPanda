@@ -240,7 +240,6 @@ public class S3PhotoIntentService extends IntentService {
 
     /**
      * Fetch Image from S3 in the format of Bitmap to be displayed
-     *
      * @return
      */
     private Bitmap fetchImageAsBitMap(String bucketName, String picName) throws IOException {

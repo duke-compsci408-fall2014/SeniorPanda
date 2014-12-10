@@ -156,7 +156,7 @@
             android:exported="false" />
 
         <activity
-            android:name=".WebCalendarVisualization"
+            android:name=".WebCalendarVisualizationActivity"
             android:label="@string/title_activity_web_calendar_visualization"
             android:parentActivityName=".LogActivity">
             <meta-data

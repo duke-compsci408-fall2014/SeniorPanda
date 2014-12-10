@@ -6,5 +6,8 @@ Current Functionality:
   Notififies patient to take medication at certain time intervals based on the medications they are taking
 
 
-Platform it is testedd on:
+Platform and Versions:
   Android Studio, built with Java Android API 16, simulated on tablet VM.
+  Dreamfactory: 
+  Amazon AWS: 
+  Amazon COGNITO: 
