@@ -30,6 +30,7 @@ import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ViewFlipper;
@@ -63,12 +64,14 @@ public class SlideShowActivity extends Activity implements OnClickListener {
     private TextView myDateTextView;
     private TextView myTimeTextView;
     private Thread myDateTimeThread;
+    private Thread myDeletePhotoThread;
     private ResponseReceiver myResponseReceiver;
     private GestureDetector myTouchDetector;
     private Animation slide_in_left, slide_in_right, slide_out_left, slide_out_right;
     private Map<Integer, String> counterToImageNameMap;
     private int imageCounter = 0;
     private String myCurrentPhotoName = null;
+    private Integer deleteTimes = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -105,8 +108,13 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         myTimeTextView = (TextView) findViewById(R.id.slide_show_display_time);
         initTextView(myDateTextView);
         initTextView(myTimeTextView);
-        myDateTimeThread = new Thread(new DateTimeRunner());
-        myDateTimeThread.start();
+        initDateTimeThread();
+        initDeletePhotoThread();
+    }
+
+    private void initDeletePhotoThread() {
+        myDeletePhotoThread = new Thread(new DeletePhotoFromFlipperRunner());
+        myDeletePhotoThread.start();
     }
 
     private void registerReceiver() {
@@ -139,6 +147,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         unregisterReceiver();
         S3PhotoIntentService.clearPhotos();
         myDateTimeThread.interrupt();
+        myDeletePhotoThread.interrupt();
         super.onDestroy();
     }
 
@@ -207,6 +216,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         stopFlipping();
         S3PhotoIntentService.clearPhotos();
         myDateTimeThread.interrupt();
+        myDeletePhotoThread.interrupt();
         super.onStop();
     }
 
@@ -219,12 +229,17 @@ public class SlideShowActivity extends Activity implements OnClickListener {
 
     @Override
     protected void onResume() {
-        myDateTimeThread = new Thread(new DateTimeRunner());
-        myDateTimeThread.start();
+        initDateTimeThread();
+        initDeletePhotoThread();
         registerReceiver();
         S3PhotoIntentService.startActionFetchS3(this);
         startFlipping();
         super.onResume();
+    }
+
+    private void initDateTimeThread() {
+        myDateTimeThread = new Thread(new DateTimeRunner());
+        myDateTimeThread.start();
     }
 
     @Override
@@ -251,13 +266,22 @@ public class SlideShowActivity extends Activity implements OnClickListener {
     private void showChangeCityDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(R.string.dialog_change_city_title);
-        final EditText input = new EditText(this);
-        input.setInputType(InputType.TYPE_CLASS_TEXT);
-        builder.setView(input);
+        final EditText cityField = new EditText(this);
+        final EditText countryField = new EditText(this);
+        cityField.setHint(R.string.city_field_hint);
+        countryField.setHint(R.string.country_field_hint);
+        cityField.setInputType(InputType.TYPE_CLASS_TEXT);
+        countryField.setInputType(InputType.TYPE_CLASS_TEXT);
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.HORIZONTAL);
+        layout.addView(cityField);
+        layout.addView(countryField);
+        builder.setView(layout);
         builder.setPositiveButton("Go", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                changeCity(input.getText().toString().trim());
+                String text = cityField.getText().toString().trim() + "," + countryField.getText().toString().trim();
+                changeCity(text);
             }
         });
         builder.show();
@@ -418,6 +442,25 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         });
     }
 
+    public class DeletePhotoFromFlipperRunner implements Runnable {
+        public void run() {
+            while (!Thread.currentThread().isInterrupted()) {
+                synchronized (deleteTimes) {
+                    while (deleteTimes > 0 && myFlipper.getChildCount() > 0) {
+                        myFlipper.removeViewAt(0);
+                        deleteTimes--;
+                    }
+                    try {
+                        Thread.sleep(TIME_UPDATE_INTERVAL);
+                    } catch (InterruptedException e) {
+                        Log.w(this.getClass().getName(), "DeletePhotoFromFlipperThread is interrupted");
+                        Thread.currentThread().interrupt();
+                    }
+                }
+            }
+        }
+    }
+
     public class DateTimeRunner implements Runnable {
         public void run() {
             while (!Thread.currentThread().isInterrupted()) {
@@ -451,9 +494,18 @@ public class SlideShowActivity extends Activity implements OnClickListener {
                     doFetchPhotoWork(bitmap, imageName);
                 case Constants.ACTION_DELETED_PHOTO:
                     String name = (String) intent.getExtras().get(Constants.INTENT_PHOTO_NAME);
-                    //TODO: use asynchronous task to implement deleter threads
-                    if (myFlipper.getChildCount() > 0) {
-                        myFlipper.removeViewAt(0);
+                    int counter = -1;
+                    for (Integer i : counterToImageNameMap.keySet()) {
+                        if (counterToImageNameMap.get(i).equals(name)) {
+                            counter = i;
+                            break;
+                        }
+                    }
+                    if (counter != -1) {
+                        counterToImageNameMap.remove(counter);
+                    }
+                    synchronized (deleteTimes) {
+                        deleteTimes++;
                     }
             }
         }
