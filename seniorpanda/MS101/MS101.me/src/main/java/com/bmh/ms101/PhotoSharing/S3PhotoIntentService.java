@@ -207,6 +207,7 @@ public class S3PhotoIntentService extends IntentService {
                             String name = myPicNames.remove();
                             myBitmapMap.remove(name);
                             Log.w(this.getClass().getName(), "remove picture with name " + name);
+                            sendRemovePictureIntent(name);
                         }
                         Bitmap bitmap = fetchImageAsBitMap(BUCKET_NAME, picName);
                         myBitmapMap.put(picName, bitmap);
@@ -224,6 +225,12 @@ public class S3PhotoIntentService extends IntentService {
                 }
             }
         }
+    }
+
+    private void sendRemovePictureIntent(String imageName) {
+        Intent removeIntent = new Intent(Constants.ACTION_DELETED_PHOTO);
+        removeIntent.putExtra(Constants.INTENT_PHOTO_NAME, imageName);
+        LocalBroadcastManager.getInstance(this).sendBroadcast(removeIntent);
     }
 
     // check if it is the empty directory with /

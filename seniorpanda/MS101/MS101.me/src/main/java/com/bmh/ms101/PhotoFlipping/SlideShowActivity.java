@@ -110,10 +110,13 @@ public class SlideShowActivity extends Activity implements OnClickListener {
     }
 
     private void registerReceiver() {
-        IntentFilter statusIntentFilter = new IntentFilter(Constants.ACTION_FETCHED_PHOTO);
-        statusIntentFilter.addCategory(Intent.CATEGORY_DEFAULT);
+        IntentFilter actionFetchedIntentFilter = new IntentFilter(Constants.ACTION_FETCHED_PHOTO);
+        actionFetchedIntentFilter.addCategory(Intent.CATEGORY_DEFAULT);
+        IntentFilter actionDeletedIntentFilter = new IntentFilter(Constants.ACTION_DELETED_PHOTO);
+        actionDeletedIntentFilter.addCategory(Intent.CATEGORY_DEFAULT);
         myResponseReceiver = new ResponseReceiver();
-        LocalBroadcastManager.getInstance(this).registerReceiver(myResponseReceiver, statusIntentFilter);
+        LocalBroadcastManager.getInstance(this).registerReceiver(myResponseReceiver, actionFetchedIntentFilter);
+        LocalBroadcastManager.getInstance(this).registerReceiver(myResponseReceiver, actionDeletedIntentFilter);
     }
 
     private void initTextView(TextView textView) {
@@ -268,10 +271,9 @@ public class SlideShowActivity extends Activity implements OnClickListener {
     }
 
     private void uploadPhotoFromGallery() {
-        Intent intent = new Intent();
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.setType("image/*");
-        intent.setAction(Intent.ACTION_GET_CONTENT);
-        startActivityForResult(Intent.createChooser(intent, "Select Picture"), SELECT_PHOTO_FROM_GALLERY_REQUEST);
+        startActivityForResult(intent, SELECT_PHOTO_FROM_GALLERY_REQUEST);
     }
 
     private ImageFilePath createImageFile() throws IOException {
@@ -292,6 +294,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
             if (resultCode == RESULT_OK) {
                 Uri imageURL = data.getData();
                 Map<String, String> imageMap = new HashMap<String, String>();
+                //Bitmap mBitmap = Media.getBitmap(this.getContentResolver(), chosenImageUri);
                 imageMap.put(imageURL.toString().substring(imageURL.toString().lastIndexOf("/") + 1), imageURL.toString());
                 S3PhotoIntentService.startActionUploadS3(this, imageMap);
             }
@@ -446,6 +449,12 @@ public class SlideShowActivity extends Activity implements OnClickListener {
                     Bitmap bitmap = (Bitmap) extras.get(Constants.INTENT_FETCHED_PHOTO);
                     String imageName = (String) extras.get(Constants.INTENT_PHOTO_NAME);
                     doFetchPhotoWork(bitmap, imageName);
+                case Constants.ACTION_DELETED_PHOTO:
+                    String name = (String) intent.getExtras().get(Constants.INTENT_PHOTO_NAME);
+                    //TODO: use asynchronous task to implement deleter threads
+                    if (myFlipper.getChildCount() > 0) {
+                        myFlipper.removeViewAt(0);
+                    }
             }
         }
     }
