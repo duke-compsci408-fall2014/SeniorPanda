@@ -1,5 +1,6 @@
 package com.bmh.ms101;
 
+import com.bmh.ms101.models.DeviceDataModel;
 import com.bmh.ms101.models.LogDataModel;
 import com.bmh.ms101.models.ModelConstants;
 import com.bmh.ms101.models.SubscribeDataModel;
@@ -70,6 +71,25 @@ public class DataUtil {
         }
         System.out.println("logDataList " + logDataList);
         return logDataList;
+    }
+
+    public static List<DeviceDataModel> getDeviceData(JSONObject deviceData) {
+        List<DeviceDataModel> deviceDataList = new ArrayList<DeviceDataModel>();
+        JSONArray deviceDataObjectsJson = null;
+        try {
+            deviceDataObjectsJson = deviceData.getJSONArray("record");
+            JSONObject deviceDataObjectJson = null;
+            for (int i = 0; i < deviceDataObjectsJson.length(); i++) {
+                JSONObject json = deviceDataObjectsJson.getJSONObject(i);
+                DeviceDataModel deviceDataModel = DeviceDataModel.fromJson(json);
+                deviceDataList.add(deviceDataModel);
+            }
+            System.out.println("deviceDataList size" + deviceDataList.size());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        System.out.println("deviceData " + deviceData);
+        return deviceDataList;
     }
 
 }

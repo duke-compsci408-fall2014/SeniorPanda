@@ -41,7 +41,6 @@ public class S3PhotoIntentService extends IntentService {
     private static final String ACTION_DELETE_S3 = "com.bmh.ms101.jobs.action.DELETE_S3";
 
     private static final String IMAGE_NAME = "com.bmh.ms101.jobs.extra.IMAGE_NAME";
-    private static final String IMAGE_URI = "com.bmh.ms101.jobs.extra.IMAGE_URI";
     private static final String UPLOAD_MAP = "com.bmh.ms101.jobs.extra.UPLOAD_MAP";
     private static final String USER_NAME = "com.bmh.ms101.jobs.extra.USER_NAME";
 
@@ -52,9 +51,6 @@ public class S3PhotoIntentService extends IntentService {
     private static Map<String, Bitmap> myBitmapMap = new ConcurrentHashMap<String, Bitmap>();
     private Queue<String> myPicNames = new LinkedList<>();
     private static Context myContext = null;
-
-//    private static int bitmapWidth = 300;
-//    private static int bitmapHeight = 300;
 
     private static CognitoCachingCredentialsProvider credentialsProvider;
     // creating credential using COGNITO
@@ -74,11 +70,6 @@ public class S3PhotoIntentService extends IntentService {
         }
         return s3Client;
     }
-
-//    public static void setBitmapSize(int width, int height) {
-//        bitmapWidth = width;
-//        bitmapHeight = height;
-//    }
 
     //purpose
     public S3PhotoIntentService() {
@@ -104,15 +95,9 @@ public class S3PhotoIntentService extends IntentService {
     public static void startActionUploadS3(Context context, Map<String, String> imageMap) {
         Intent intent = new Intent(context, S3PhotoIntentService.class);
         intent.setAction(ACTION_UPLOAD_S3);
-        for (Map.Entry<String, String> entry: imageMap.entrySet()){
-            intent.putExtra(IMAGE_NAME, entry.getKey());
-            intent.putExtra(IMAGE_URI, entry.getValue());
-
-            // fires intent for each image entry
-            setContext(context);
-            context.startService(intent);
-        }
-//        intent.putExtra(UPLOAD_MAP, ConcurrentUtils.SerializeHashMap(imageMap));
+        intent.putExtra(UPLOAD_MAP, ConcurrentUtils.SerializeHashMap(imageMap));
+        setContext(context);
+        context.startService(intent);
     }
 
     public static void startActionDeleteS3(Context context, String imageName) {
@@ -136,32 +121,27 @@ public class S3PhotoIntentService extends IntentService {
             final String bucketName = BUCKET_NAME;
             final String folderName = FOLDER_NAME;
 
-            String famShareName = mUser.getStoredFamShareName();
-            if (famShareName == null || famShareName.isEmpty() || famShareName.length() == 0)
-                famShareName = mUser.getStoredUserName();
-
+            final String userName = mUser.getStoredUserName();
             switch (action) {
                 case ACTION_FETCH_S3:
-                    handleActionFetchS3(famShareName);
+                    handleActionFetchS3(userName);
                     break;
                 case ACTION_UPLOAD_S3:
-                    String fileName = (String) intent.getExtras().get(IMAGE_NAME);
-                    String fileURI = (String) intent.getExtras().get(IMAGE_URI);
-
-//                    Map<String, String> uploadImgMap = ConcurrentUtils.DeserializeHashMap(intent.getSerializableExtra(UPLOAD_MAP));
-//                    handleActionUploadS3(uploadImgMap, bucketName, famShareName);
-                    handleActionUploadS3(bucketName, famShareName, fileName, fileURI);
+                    // TODO: automate this information fetching from DB
+                    Map<String, String> uploadImgMap =
+                            ConcurrentUtils.DeserializeHashMap(intent.getSerializableExtra(UPLOAD_MAP));
+                    handleActionUploadS3(uploadImgMap, bucketName, userName);
                     break;
                 case ACTION_DELETE_S3:
                     String imageName = (String) intent.getExtras().get(IMAGE_NAME);
 
                     final String nameKey = imageName;  // the image name contains the folder name already
-                    Log.w(this.getClass().getName(), "Delete photo " + imageName);
+                    Log.w("Delete photo", imageName);
 
 //                    final String nameKey = folderName + Constants.SLASH + imageName;
 //                    Log.w(this.getClass().getName(), "Delete photo " + imageName);
 
-                    handleActionDeleteS3(nameKey, bucketName);
+                    handleActionDeleteS3(nameKey, userName);
                     break;
             }
         }
@@ -169,14 +149,12 @@ public class S3PhotoIntentService extends IntentService {
 
     private void handleActionDeleteS3(String nameKey, String bucketName) {
         try {
-            Log.w(this.getClass().getName(), "bName: " + bucketName + " and nameKey is " + nameKey);
-
             AmazonS3Client s3Client = getS3ClientInstance();
             s3Client.deleteObject(new DeleteObjectRequest(bucketName, nameKey));
-
+            Log.w(this.getClass().getName(), "bName: " + bucketName + " and nameKey is " + nameKey);
         } catch (Throwable T) {
-            T.printStackTrace();
-            throw new UnsupportedOperationException("Cannot handle Delete S3 Action");
+            //T.printStackTrace();
+            //throw new UnsupportedOperationException("Cannot handle Delete S3 Action");
         }
     }
 
@@ -188,19 +166,14 @@ public class S3PhotoIntentService extends IntentService {
     /**
      * Handle action UploadS3 in the provided background thread with the provided parameters.
      */
-//    private void handleActionUploadS3(Map<String, String> uploadImageMap, String bucketName, String folderName) {
-    private void handleActionUploadS3(String bucketName, String folderName, String imageName, String imageURI){
+    private void handleActionUploadS3(Map<String, String> uploadImageMap, String bucketName, String folderName) {
         try {
             AmazonS3Client s3Client = getS3ClientInstance();
             s3Client.listBuckets();
-//            for (Map.Entry<String, String> entry : uploadImageMap.entrySet()) {
-            Log.w(this.getClass().getName(), "FilePath name " + imageName);
-            Log.w(this.getClass().getName(), "FilePath name " + imageURI);
-            PutObjectRequest por = new PutObjectRequest(
-                        bucketName, folderName + Constants.SLASH + imageName, new java.io.File(imageURI));
-            s3Client.putObject(por);
-            startActionFetchS3(this);
-//            }
+            for (Map.Entry<String, String> entry : uploadImageMap.entrySet()) {
+                PutObjectRequest por = new PutObjectRequest(bucketName, folderName + Constants.SLASH + entry.getKey(), new java.io.File(entry.getValue()));
+                s3Client.putObject(por);
+            }
         } catch (Exception T) {
             throw new UnsupportedOperationException("Cannot handle Upload S3 Action");
         }
@@ -233,15 +206,15 @@ public class S3PhotoIntentService extends IntentService {
                         if (myBitmapMap.size() > CACHE_SIZE) {
                             String name = myPicNames.remove();
                             myBitmapMap.remove(name);
-                            sendRemovePictureIntent(name);
+                            Log.w(this.getClass().getName(), "remove picture with name " + name);
                         }
                         Bitmap bitmap = fetchImageAsBitMap(BUCKET_NAME, picName);
                         myBitmapMap.put(picName, bitmap);
-                        Log.w(this.getClass().getName(), "put in picture with name " + picName);
                         Intent fetchedIntent = new Intent(Constants.ACTION_FETCHED_PHOTO);
                         fetchedIntent.putExtra(Constants.INTENT_FETCHED_PHOTO, bitmap);
                         fetchedIntent.putExtra(Constants.INTENT_PHOTO_NAME, picName);
                         LocalBroadcastManager.getInstance(this).sendBroadcast(fetchedIntent);
+                        Log.w(this.getClass().getName(), "put in picture with name " + picName);
                     } else {
                         Log.w(this.getClass().getName(), "already contains picture with name " + picName);
                     }
@@ -251,13 +224,6 @@ public class S3PhotoIntentService extends IntentService {
                 }
             }
         }
-    }
-
-    private void sendRemovePictureIntent(String imageName) {
-        Log.w(this.getClass().getName(), "remove picture with name " + imageName);
-        Intent removeIntent = new Intent(Constants.ACTION_DELETED_PHOTO);
-        removeIntent.putExtra(Constants.INTENT_PHOTO_NAME, imageName);
-        LocalBroadcastManager.getInstance(this).sendBroadcast(removeIntent);
     }
 
     // check if it is the empty directory with /
@@ -273,10 +239,7 @@ public class S3PhotoIntentService extends IntentService {
     private Bitmap fetchImageAsBitMap(String bucketName, String picName) throws IOException {
         S3ObjectInputStream content = s3Client.getObject(bucketName, picName).getObjectContent();
         byte[] bytes = IOUtils.toByteArray(content);
-        BitmapFactory.Options options = new BitmapFactory.Options();
-        options.inPurgeable = true;
-        Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length, options);
-//        Bitmap scaledBitmap = Bitmap.createScaledBitmap(bitmap, bitmapWidth, 200, true);// convert decoded bitmap into well scalled Bitmap format.
+        Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
         return bitmap;
     }
 

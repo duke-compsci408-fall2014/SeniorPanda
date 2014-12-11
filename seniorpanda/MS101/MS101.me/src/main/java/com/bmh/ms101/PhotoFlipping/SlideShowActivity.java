@@ -1,12 +1,9 @@
 package com.bmh.ms101.PhotoFlipping;
 
-import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
-import android.content.ContentUris;
 import android.content.Context;
-import android.content.CursorLoader;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -15,17 +12,14 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Typeface;
 import android.net.Uri;
-import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.provider.DocumentsContract;
 import android.provider.MediaStore;
+import android.support.v4.app.NavUtils;
 import android.support.v4.content.LocalBroadcastManager;
 import android.text.InputType;
 import android.util.Log;
 import android.view.GestureDetector;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -36,18 +30,13 @@ import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ViewFlipper;
 
 import com.bmh.ms101.Constants;
-import com.bmh.ms101.MS101;
-import com.bmh.ms101.MainActivity;
 import com.bmh.ms101.PhotoSharing.S3PhotoIntentService;
 import com.bmh.ms101.R;
-import com.bmh.ms101.User;
 import com.bmh.ms101.Util;
 
 import java.io.File;
@@ -66,28 +55,20 @@ public class SlideShowActivity extends Activity implements OnClickListener {
     private static final int SWIPE_MIN_DISTANCE = 120;
     private static final int SWIPE_THRESHOLD_VELOCITY = 200;
     private static final int TIME_UPDATE_INTERVAL = 10000;
-    private static final int DELETE_PHOTO_INTERVAL = 100000;
     private static final String JPEG_FILE_PREFIX = "IMG_";
     private static final String JPEG_FILE_SUFFIX = ".jpg";
     private static final String DATE_TIME_FORMAT = "EEE, MMM dd yyy HH:mm a";
 
-    private ProgressBar myProgressBar;
     private ViewFlipper myFlipper;
     private TextView myDateTextView;
     private TextView myTimeTextView;
-    private FetchReceiver myFetchReceiver;
-    private DeleteReceiver myDeleteReceiver;
+    private Thread myDateTimeThread;
+    private ResponseReceiver myResponseReceiver;
     private GestureDetector myTouchDetector;
     private Animation slide_in_left, slide_in_right, slide_out_left, slide_out_right;
     private Map<Integer, String> counterToImageNameMap;
     private int imageCounter = 0;
     private String myCurrentPhotoName = null;
-    private String myCurrentPhotoPath = null;
-    private Integer deleteTimes = 0;
-    private boolean deletingPhoto = false;
-    private boolean updatingTime = false;
-
-    private String defaultFamShareName = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -110,32 +91,29 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         initButton(R.id.slide_show_weather_change_city, Constants.COLOR_GREEN);
         initButton(R.id.temperature_convert_button, Constants.COLOR_GREEN);
         counterToImageNameMap = new HashMap<Integer, String>();
+        registerReceiver();
+        S3PhotoIntentService.startActionFetchS3(this);
+        showToast("Start loading pictures", Toast.LENGTH_SHORT);
+
         slide_in_left = AnimationUtils.loadAnimation(this, R.anim.slide_in_left);
         slide_in_right = AnimationUtils.loadAnimation(this, R.anim.silde_in_right);
         slide_out_left = AnimationUtils.loadAnimation(this, R.anim.slide_out_left);
         slide_out_right = AnimationUtils.loadAnimation(this, R.anim.slide_out_right);
         myTouchDetector = new GestureDetector(myFlipper.getContext(), new SwipeGestureDetector());
+
         myDateTextView = (TextView) findViewById(R.id.slide_show_display_date);
         myTimeTextView = (TextView) findViewById(R.id.slide_show_display_time);
         initTextView(myDateTextView);
         initTextView(myTimeTextView);
-
-        defaultFamShareName = getIntent().getExtras().getString(MainActivity.DEFAULT_FAMSHARENAME);
-    }
-
-    private void initDeletePhotoThread() {
-        new DeletePhotoAsync().execute();
+        myDateTimeThread = new Thread(new DateTimeRunner());
+        myDateTimeThread.start();
     }
 
     private void registerReceiver() {
-        IntentFilter actionFetchedIntentFilter = new IntentFilter(Constants.ACTION_FETCHED_PHOTO);
-        actionFetchedIntentFilter.addCategory(Intent.CATEGORY_DEFAULT);
-        IntentFilter actionDeletedIntentFilter = new IntentFilter(Constants.ACTION_DELETED_PHOTO);
-        actionDeletedIntentFilter.addCategory(Intent.CATEGORY_DEFAULT);
-        myFetchReceiver = new FetchReceiver();
-        myDeleteReceiver = new DeleteReceiver();
-        LocalBroadcastManager.getInstance(this).registerReceiver(myFetchReceiver, actionFetchedIntentFilter);
-        LocalBroadcastManager.getInstance(this).registerReceiver(myDeleteReceiver, actionDeletedIntentFilter);
+        IntentFilter statusIntentFilter = new IntentFilter(Constants.ACTION_FETCHED_PHOTO);
+        statusIntentFilter.addCategory(Intent.CATEGORY_DEFAULT);
+        myResponseReceiver = new ResponseReceiver();
+        LocalBroadcastManager.getInstance(this).registerReceiver(myResponseReceiver, statusIntentFilter);
     }
 
     private void initTextView(TextView textView) {
@@ -157,8 +135,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
     public void onDestroy() {
         unregisterReceiver();
         S3PhotoIntentService.clearPhotos();
-        deletingPhoto = false;
-        updatingTime = false;
+        myDateTimeThread.interrupt();
         super.onDestroy();
     }
 
@@ -226,43 +203,25 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         unregisterReceiver();
         stopFlipping();
         S3PhotoIntentService.clearPhotos();
-        deletingPhoto = false;
-        updatingTime = false;
+        myDateTimeThread.interrupt();
         super.onStop();
     }
 
     private void unregisterReceiver() {
-        if (myFetchReceiver != null) {
-            LocalBroadcastManager.getInstance(this).unregisterReceiver(myFetchReceiver);
-            myFetchReceiver = null;
-        }
-        if (myDeleteReceiver != null) {
-            LocalBroadcastManager.getInstance(this).unregisterReceiver(myDeleteReceiver);
-            myDeleteReceiver = null;
+        if (myResponseReceiver != null) {
+            LocalBroadcastManager.getInstance(this).unregisterReceiver(myResponseReceiver);
+            myResponseReceiver = null;
         }
     }
 
     @Override
     protected void onResume() {
-        deletingPhoto = true;
-        updatingTime = true;
-        initDateTimeThread();
-        initDeletePhotoThread();
+        myDateTimeThread = new Thread(new DateTimeRunner());
+        myDateTimeThread.start();
         registerReceiver();
         S3PhotoIntentService.startActionFetchS3(this);
-        showToast("Start loading pictures", Toast.LENGTH_SHORT);
         startFlipping();
-        if (myFlipper.getChildCount() == 0) {
-            myProgressBar = (ProgressBar) findViewById(R.id.slide_show_progress_bar);
-            myProgressBar.setIndeterminate(true);
-            myProgressBar.setBackgroundColor(getResources().getColor(R.color.app_green));
-            myProgressBar.setVisibility(View.VISIBLE);
-        }
         super.onResume();
-    }
-
-    private void initDateTimeThread() {
-        new DateTimeAsync().execute();
     }
 
     @Override
@@ -279,78 +238,29 @@ public class SlideShowActivity extends Activity implements OnClickListener {
                 S3PhotoIntentService.startActionFetchS3(this);
                 showToast("Start loading pictures", Toast.LENGTH_SHORT);
                 return true;
-            case R.id.change_family_sharing: // change the bucket for family sharing
-                S3PhotoIntentService.clearPhotos();
-                // Create and show the dialog
-                // Get our views that will be used in the dialog
-                LinearLayout dialogView = (LinearLayout) ((LayoutInflater) this.getSystemService(
-                        Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.dialog_bucket_change, null);
-                final EditText famShareName = (EditText) dialogView.findViewById(R.id.current_bucket);
-                famShareName.setText(defaultFamShareName);
-                AlertDialog.Builder builder = new AlertDialog.Builder(SlideShowActivity.this);
-                builder.setTitle(R.string.change_bucket_message)
-                        .setView(dialogView)
-                        .setPositiveButton(R.string.change, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                // Record the email and password that the user provided
-                                User innerUser = new User(MS101.getInstance());
-                                innerUser.recordFamShareName(famShareName.getText().toString());
-                                deleteAllPhotos();
-                            }
-                        })
-                        .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.dismiss();
-                            }
-                        })
-                        .show();
-                S3PhotoIntentService.startActionFetchS3(this);
-                showToast("Family photo sharing bucket changed", Toast.LENGTH_LONG);
+            case android.R.id.home:
+                NavUtils.navigateUpFromSameTask(this);
                 return true;
         }
         return super.onOptionsItemSelected(item);
     }
 
-    private void deleteAllPhotos() {
-        myFlipper.removeAllViews();
-        counterToImageNameMap.clear();
-        deleteTimes = 0;
-        imageCounter = 0;
-    }
-
     private void showChangeCityDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(R.string.dialog_change_city_title);
-        final EditText cityField = new EditText(this);
-        final EditText countryField = new EditText(this);
-        cityField.setHint(R.string.city_field_hint);
-        countryField.setHint(R.string.country_field_hint);
-        cityField.setInputType(InputType.TYPE_CLASS_TEXT);
-        countryField.setInputType(InputType.TYPE_CLASS_TEXT);
-        LinearLayout layout = new LinearLayout(this);
-        layout.setOrientation(LinearLayout.HORIZONTAL);
-        layout.addView(cityField);
-        layout.addView(countryField);
-        builder.setView(layout);
+        final EditText input = new EditText(this);
+        input.setInputType(InputType.TYPE_CLASS_TEXT);
+        builder.setView(input);
         builder.setPositiveButton("Go", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                String text = cityField.getText().toString().trim() + "," + countryField.getText().toString().trim();
-                changeCity(text);
-            }
-        });
-        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                dialogInterface.dismiss();
+                changeCity(input.getText().toString().trim());
             }
         });
         builder.show();
     }
 
-    private void changeCity(String city) {
+    public void changeCity(String city) {
         WeatherFragment weatherFragment = (WeatherFragment) getFragmentManager()
                 .findFragmentById(R.id.slide_show_weather_display);
         weatherFragment.changeCity(city);
@@ -358,8 +268,9 @@ public class SlideShowActivity extends Activity implements OnClickListener {
     }
 
     private void uploadPhotoFromGallery() {
-        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        Intent intent = new Intent();
         intent.setType("image/*");
+        intent.setAction(Intent.ACTION_GET_CONTENT);
         startActivityForResult(Intent.createChooser(intent, "Select Picture"), SELECT_PHOTO_FROM_GALLERY_REQUEST);
     }
 
@@ -369,38 +280,19 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         File storageDir = Environment.getExternalStoragePublicDirectory(
                 Environment.DIRECTORY_PICTURES);
         File image = File.createTempFile(myCurrentPhotoName, JPEG_FILE_SUFFIX, storageDir);
-//        String path = "file:" + image.getAbsolutePath();
-        String path = image.getAbsolutePath();
+        // Save a file: path for use with ACTION_VIEW intents
+        String path = "file:" + image.getAbsolutePath();
         ImageFilePath imageFilePath = new ImageFilePath(image, path);
-        myCurrentPhotoPath = image.getAbsolutePath();
-        Log.w(this.getClass().getName(), "Create image path for camera photo: " + myCurrentPhotoPath);
         return imageFilePath;
     }
 
-    @TargetApi(Build.VERSION_CODES.KITKAT)
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == SELECT_PHOTO_FROM_GALLERY_REQUEST) {
             if (resultCode == RESULT_OK) {
-                Uri imageUri = data.getData();
-                Log.w(this.getClass().getName(), "Uri from gallery: " + imageUri.toString());
+                Uri imageURL = data.getData();
                 Map<String, String> imageMap = new HashMap<String, String>();
-
-                String imagePath = null;
-                if (isMediaDocument(imageUri)) {
-                    imagePath = getPathFromURI(imageUri);
-                } else if (isExternalStorageDocument(imageUri)) {
-                    imagePath = getRealPathFromURI(imageUri);
-                } else if (isDownloadsDocument(imageUri)) {
-                    final String id = DocumentsContract.getDocumentId(imageUri);
-                    final Uri contentUri = ContentUris.withAppendedId(
-                            Uri.parse("content://downloads/public_downloads"), Long.valueOf(id));
-                    imagePath = getDataColumn(this, contentUri, null, null);
-                }
-                Log.w(this.getClass().getName(), "Received image path from gallery: " + imagePath);
-                String imageName = imagePath.substring(imagePath.lastIndexOf("/") + 1);
-                imageMap.put(imageName, imagePath);
-
+                imageMap.put(imageURL.toString().substring(imageURL.toString().lastIndexOf("/") + 1), imageURL.toString());
                 S3PhotoIntentService.startActionUploadS3(this, imageMap);
             }
         } else if (requestCode == TAKE_PHOTO_REQUEST) {
@@ -408,72 +300,22 @@ public class SlideShowActivity extends Activity implements OnClickListener {
                 Bundle extras = data.getExtras();
                 Bitmap bitmap = (Bitmap) extras.get("data");
                 addPhoto(bitmap, myCurrentPhotoName);
-                Map<String, String> imageMap = new HashMap<String, String>();
-                imageMap.put(myCurrentPhotoName, myCurrentPhotoPath);
-                S3PhotoIntentService.startActionUploadS3(this, imageMap);
+                //TODO: upload photo
+//                Map<String, String> imageMap = new HashMap<String, String>();
+//                imageMap.put(myCurrentPhotoName, bit)
+//                S3PhotoIntentService.startActionDeleteS3(this, );
             }
         }
     }
 
-    @TargetApi(Build.VERSION_CODES.KITKAT)
-    private String getPathFromURI(Uri uri) {
-        final String docId = DocumentsContract.getDocumentId(uri);
-        final String[] split = docId.split(":");
-        final String type = split[0];
-        Uri contentUri = null;
-        if ("image".equals(type)) {
-            contentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
-        }
-        final String selection = "_id=?";
-        final String[] selectionArgs = new String[]{
-                split[1]
-        };
-        return getDataColumn(this, contentUri, selection, selectionArgs);
-    }
-
-    private String getDataColumn(Context context, Uri uri, String selection,
-                                 String[] selectionArgs) {
-        Cursor cursor = null;
-        final String column = "_data";
-        final String[] projection = {
-                column
-        };
-        try {
-            cursor = context.getContentResolver().query(uri, projection, selection, selectionArgs,
-                    null);
-            if (cursor != null && cursor.moveToFirst()) {
-                final int column_index = cursor.getColumnIndexOrThrow(column);
-                return cursor.getString(column_index);
-            }
-        } finally {
-            if (cursor != null)
-                cursor.close();
-        }
-        return null;
-    }
-
-    private boolean isMediaDocument(Uri uri) {
-        return "com.android.providers.media.documents".equals(uri.getAuthority());
-    }
-
-    private boolean isExternalStorageDocument(Uri uri) {
-        return "com.android.externalstorage.documents".equals(uri.getAuthority());
-    }
-
-    private boolean isDownloadsDocument(Uri uri) {
-        return "com.android.providers.downloads.documents".equals(uri.getAuthority());
-    }
-
-    private String getRealPathFromURI(Uri uri) {
+    //Convert the image URI to the direct file system path of the image file
+    public String getRealPathFromURI(Uri contentUri) {
         String res = null;
-        String[] projection = {MediaStore.Images.Media.DATA};
-        CursorLoader loader = new CursorLoader(this, uri, projection, null, null, null);
-        Cursor cursor = loader.loadInBackground();
-        if (cursor != null) {
-            cursor.moveToFirst();
+        String[] proj = {MediaStore.Images.Media.DATA};
+        Cursor cursor = getContentResolver().query(contentUri, proj, null, null, null);
+        if (cursor.moveToFirst()) {
             int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
-            Log.w(this.getClass().getName(), "column index is " + column_index);
-            return cursor.getString(column_index);
+            res = cursor.getString(column_index);
         }
         cursor.close();
         return res;
@@ -569,61 +411,31 @@ public class SlideShowActivity extends Activity implements OnClickListener {
             public void run() {
                 addPhoto(bitmap, imageName);
                 startFlipping();
-                if (myProgressBar.isShown()) {
-                    myProgressBar.setVisibility(View.INVISIBLE);
-                }
             }
         });
     }
 
-    private void sleep(int ms) {
-        try {
-            Thread.sleep(ms);
-        } catch (Exception e) {
-
-        }
-    }
-
-    public class DeletePhotoAsync extends AsyncTask<Void, Void, Void> {
-
-        @Override
-        protected Void doInBackground(Void... voids) {
-            while (deletingPhoto) {
-                sleep(DELETE_PHOTO_INTERVAL);
-                synchronized (deleteTimes) {
-                    while (deleteTimes > 0 && myFlipper.getChildCount() > 0) {
-                        myFlipper.removeViewAt(0);
-                        deleteTimes--;
-                    }
-                    try {
-                        Thread.sleep(TIME_UPDATE_INTERVAL);
-                    } catch (InterruptedException e) {
-                        Log.w(this.getClass().getName(), "DeletePhotoFromFlipperThread is interrupted");
-                        Thread.currentThread().interrupt();
-                    }
+    public class DateTimeRunner implements Runnable {
+        public void run() {
+            while (!Thread.currentThread().isInterrupted()) {
+                try {
+                    Calendar c = Calendar.getInstance();
+                    SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_TIME_FORMAT);
+                    String formatted = dateFormat.format(c.getTime());
+                    doUpdateTimeWork(formatted.substring(0, 10), formatted.substring(11));
+                    Thread.sleep(TIME_UPDATE_INTERVAL);
+                } catch (InterruptedException e) {
+                    Log.w(this.getClass().getName(), "DateTimeThread is interrupted");
+                    Thread.currentThread().interrupt();
+                } catch (Exception e) {
+                    Log.w(this.getClass().getName(), "Unchecked exception in DateTimeThread");
                 }
             }
-            return null;
         }
     }
 
-    public class DateTimeAsync extends AsyncTask<Void, Void, Void> {
-
-        @Override
-        protected Void doInBackground(Void... voids) {
-            while (updatingTime) {
-                Calendar c = Calendar.getInstance();
-                SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_TIME_FORMAT);
-                String formatted = dateFormat.format(c.getTime());
-                doUpdateTimeWork(formatted.substring(0, 10), formatted.substring(11));
-                sleep(TIME_UPDATE_INTERVAL);
-            }
-            return null;
-        }
-    }
-
-    public class FetchReceiver extends BroadcastReceiver {
-        private FetchReceiver() {
+    public class ResponseReceiver extends BroadcastReceiver {
+        private ResponseReceiver() {
         }
 
         @Override
@@ -633,35 +445,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
                     Bundle extras = intent.getExtras();
                     Bitmap bitmap = (Bitmap) extras.get(Constants.INTENT_FETCHED_PHOTO);
                     String imageName = (String) extras.get(Constants.INTENT_PHOTO_NAME);
-                    Log.w(this.getClass().getName(), "Received photo from Intent Service " + imageName);
                     doFetchPhotoWork(bitmap, imageName);
-            }
-        }
-    }
-
-    public class DeleteReceiver extends BroadcastReceiver {
-        private DeleteReceiver() {
-        }
-
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            switch (intent.getAction()) {
-                case Constants.ACTION_DELETED_PHOTO:
-                    String name = (String) intent.getExtras().get(Constants.INTENT_PHOTO_NAME);
-                    Log.w(this.getClass().getName(), "Deleted photo from Intent Service " + name);
-                    int counter = -1;
-                    for (Integer i : counterToImageNameMap.keySet()) {
-                        if (counterToImageNameMap.get(i).equals(name)) {
-                            counter = i;
-                            break;
-                        }
-                    }
-                    if (counter != -1) {
-                        counterToImageNameMap.remove(counter);
-                    }
-                    synchronized (deleteTimes) {
-                        deleteTimes++;
-                    }
             }
         }
     }

@@ -6,12 +6,14 @@ import com.bmh.ms101.Backend;
 import com.bmh.ms101.DataUtil;
 import com.bmh.ms101.MS101;
 import com.bmh.ms101.User;
+import com.bmh.ms101.events.SendDeviceRegDFEvent;
 import com.bmh.ms101.events.SendMedsDFEvent;
 import com.bmh.ms101.events.SendStressDFEvent;
 import com.bmh.ms101.events.SendSubscribeDFEvent;
 import com.bmh.ms101.events.SendSympDFEvent;
 import com.bmh.ms101.events.SendTakenDFEvent;
 import com.bmh.ms101.models.BaseDataModel;
+import com.bmh.ms101.models.DeviceDataModel;
 import com.bmh.ms101.models.SubscribeDataModel;
 import com.path.android.jobqueue.Job;
 import com.path.android.jobqueue.Params;
@@ -85,6 +87,9 @@ public class DreamFactorySendJob extends Job {
                 System.out.println("send data size : " + data.size());
                 EventBus.getDefault().post(new SendSubscribeDFEvent(true, data));
              //   EventBus.getDefault().post(new SendSubscribeDFEvent(true, ""));
+                break;
+            case User.DEVICE_DATA_TYPE:
+                EventBus.getDefault().post(new SendDeviceRegDFEvent(true, ""));
                 break;
             default:
                 break;

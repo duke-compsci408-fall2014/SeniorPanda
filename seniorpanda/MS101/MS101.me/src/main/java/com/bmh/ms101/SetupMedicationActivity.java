@@ -6,7 +6,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
-import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -34,6 +33,7 @@ import com.bmh.ms101.models.StressFactorRecordModel;
 import com.bmh.ms101.models.SubscribeDataModel;
 import com.bmh.ms101.models.SymptomRecordModel;
 import com.bmh.ms101.models.TakenDataModel;
+import com.bmh.ms101.push.PushActivity;
 import com.path.android.jobqueue.JobManager;
 
 import org.json.JSONArray;
@@ -107,8 +107,6 @@ public class SetupMedicationActivity extends Activity {
     protected void onStop() {
         super.onStop();
         eventBus.unregister(this);
-//        if (this.getCallingActivity() != null)
-//            startActivity(new Intent(SetupMedicationActivity.this, MainActivity.class));
     }
 
     /**
@@ -146,6 +144,7 @@ public class SetupMedicationActivity extends Activity {
             mUser.setSubscriptionAlarms();
             jobsRunning.remove("SUBSCRIBE_SEND_DF");
             if (jobsRunning.isEmpty()) finishedSending();
+            startActivity(new Intent(this, PushActivity.class));
         } else {
             if (event.response instanceof DFCredentialsInvalidException) {
                 mJobManager.addJobInBackground(new DreamFactoryLoginJob());
@@ -384,8 +383,8 @@ public class SetupMedicationActivity extends Activity {
                     Util.toast(SetupMedicationActivity.this, R.string.toast_changes_saved);
                     //  }
                     //      }
-                    setResult(RESULT_OK);
-//                       finish();
+                    //   setResult(RESULT_OK);
+                    //   finish();
                 } else {
                     Util.toast(ctx, R.string.toast_must_select_med);
                 }
@@ -507,15 +506,10 @@ public class SetupMedicationActivity extends Activity {
         setProgressBarIndeterminateVisibility(false);
         next.setText(getString(R.string.send));
         next.setEnabled(true);
-        //   mMedsList.setEnabled(true);
         // Toast
         Util.toast(SetupMedicationActivity.this, R.string.toast_changes_saved);
         setResult(RESULT_OK);
         finish();
-       /* // Dismiss notification if needed then finish
-        NotificationManager notifManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        notifManager.cancel(MS101Receiver.Notif.MEDS.ordinal());
-        finish();*/
     }
 
 }

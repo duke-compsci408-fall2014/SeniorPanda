@@ -12,7 +12,19 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="com.google.android.providers.gsf.permission.READ_GSERVICES" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <!--
+     Creates a custom permission so only this app can receive its messages.
+
+     NOTE: the permission *must* be called PACKAGE.permission.C2D_MESSAGE,
+           where PACKAGE is the application's package name.
+    -->
+    <permission android:name="com.bmh.ms101.permission.C2D_MESSAGE"
+        android:protectionLevel="signature" />
+    <uses-permission android:name="com.bmh.ms101.permission.C2D_MESSAGE" />
+
+    <!-- This app has permission to register and receive data message. -->
+    <uses-permission
+        android:name="com.google.android.c2dm.permission.RECEIVE" />
 
     <uses-feature
         android:name="android:hardware.camera"
@@ -157,13 +169,39 @@
             android:exported="false" />
 
         <activity
-            android:name=".WebCalendarVisualizationActivity"
+            android:name=".WebCalendarVisualization"
             android:label="@string/title_activity_web_calendar_visualization"
             android:parentActivityName=".LogActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.bmh.ms101.LogActivity" />
         </activity>
+
+        <receiver
+            android:name=".push.GcmBroadcastReceiver"
+            android:permission="com.google.android.c2dm.permission.SEND" >
+            <intent-filter>
+                <!-- Receives the actual messages. -->
+                <action android:name="com.google.android.c2dm.intent.RECEIVE" />
+                <action android:name="com.google.android.c2dm.intent.REGISTRATION" />
+                <category android:name="com.google.android.gcm.demo.app" />
+            </intent-filter>
+        </receiver>
+        <service android:name=".push.GcmIntentService" />
+
+        <activity
+            android:name=".push.PushActivity"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
+            android:noHistory="true"
+            android:excludeFromRecents="true"
+            android:configChanges="orientation|keyboardHidden|screenSize">
+            <!--<intent-filter>
+                &lt;!&ndash;<action android:name="android.intent.action.MAIN" />
+&ndash;&gt;
+                &lt;!&ndash;<category android:name="android.intent.category.LAUNCHER" />&ndash;&gt;
+            </intent-filter>-->
+        </activity>
+
     </application>
 
 </manifest>

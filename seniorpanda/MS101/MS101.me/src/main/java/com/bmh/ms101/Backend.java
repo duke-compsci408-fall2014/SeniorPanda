@@ -11,6 +11,7 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 
 import com.bmh.ms101.ex.DFCredentialsInvalidException;
+import com.bmh.ms101.models.DeviceDataModel;
 import com.bmh.ms101.models.LogDataModel;
 import com.bmh.ms101.models.BaseDataModel;
 import com.bmh.ms101.models.BaseRecordModel;
@@ -72,7 +73,7 @@ public class Backend {
     public static final String DF_TAKEN_TABLE = "taken";
     public static final String DF_HAS_TABLE = "has";
     public static final String DF_AUDIO_RECORD_TABLE = "audio_record";
-    public static final String DF_FAMILY_SHARE_TABLE = "family_sharing";
+    public static final String DF_DEVICE_TABLE = "device";
 
     public static final String DF_MEDS_TABLE = "ms_medication";
     public static final String DF_SYMP_TABLE = "ms_symptom";
@@ -233,6 +234,43 @@ public class Backend {
         }
     }
 
+    /**
+     * CALLED ONLY FROM NON-UI THREADS
+     * Tries to log in using stored credentials. Won't ask user for credentials upon error.
+     * @return True if we were able to login successfully
+     */
+    public boolean sendDeviceRegId(String data) {
+        // Init a new rest client
+        mDFRestClient = new RESTClient2(mCtx);
+        mDFRestClient.setHeader("Accept", "text/plain,application/json");
+        mDFRestClient.setHeader("X-DreamFactory-Application-Name", Backend.DF_APP_NAME);
+
+
+        try {
+            System.out.println("calling put");
+            String putURL = DF_URL;
+            putURL += String.format(DF_PUT_DATA_SUFIX, DF_DEVICE_TABLE);
+            putURL +="?filter=id=2";
+            System.out.println("sendDeviceRegId : putURL" + putURL);
+            System.out.println("sendDeviceRegId : data" + data);
+            JSONObject recordToCreate = new JSONObject(data);
+            HTTPResponse httpResponse = mDFRestClient.put(putURL, recordToCreate);
+           // HTTPResponse httpResponse = mDFRestClient.post(DF_URL + DF_SESSION_SUFIX, login);
+            System.out.println("sendDeviceRegId : response code " + httpResponse.code);
+            return true;
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return false;
+        } catch (HTTPException e) {
+            // Thrown if we had trouble logging in
+            e.printStackTrace();
+            return false;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     public List<BaseDataModel> getFromDF(int dataType) throws HTTPException, JSONException {
         if (mUser.getDFSessionId().equals("") || !mUser.isDFSessionIdValid()) {
             if (!tryDFQuickLogin()) return null; // Don't do this if we aren't logged in
@@ -240,20 +278,6 @@ public class Backend {
 
         List<BaseDataModel> data = null;
         switch (dataType) {
-
-            // TODO: REFINE THE FAMILY DATA MODEL
-            case User.FAMILY_SHARE_DATA_TYPE:
-                data = new ArrayList<BaseDataModel>();
-
-                String getFamShareURL = DF_URL + DF_DB_SUFIX + "/" + DF_FAMILY_SHARE_TABLE + "?related=*";
-                System.out.println("getURL :: " + getFamShareURL);
-                JSONObject familySharingData = mDFRestClient.getJSONObject(getFamShareURL);
-                List<LogDataModel> familyData = DataUtil.getLogsFromUserData(familySharingData, mUser.getUserId());
-                for (int i = 0; i < familyData.size(); i++) {
-                    data.add(familyData.get(i));
-                }
-                break;
-
             case User.MEDICATION_DATA_TYPE:
                 data = new ArrayList<BaseDataModel>();
                 String getMedsURL = DF_URL + DF_DB_SUFIX + "/" + DF_MEDICATION_TABLE + "?related=*";
@@ -280,6 +304,7 @@ public class Backend {
                 break;
             case User.LOGS_DATA_TYPE:
                 data = new ArrayList<BaseDataModel>();
+
                 String getLogsURL = DF_URL + DF_DB_SUFIX + "/" + DF_USER_TABLE + "?related="
                         + DF_RELATED_TAKEN_BY_UID + "," + DF_RELATED_SYMPTOM_BY_UID + ","
                         + DF_RELATED_MEDS_BY_TAKEN;
@@ -290,7 +315,17 @@ public class Backend {
                     data.add(logsData.get(i));
                 }
                 break;
+            case User.DEVICE_DATA_TYPE:
+                data = new ArrayList<BaseDataModel>();
 
+                String getDeviceURL = DF_URL + DF_DB_SUFIX + "/" + DF_DEVICE_TABLE;
+                System.out.println("getURL :: " + getDeviceURL);
+                JSONObject deviceData = mDFRestClient.getJSONObject(getDeviceURL);
+                List<DeviceDataModel> deviceDataList = DataUtil.getDeviceData(deviceData);
+                for (int i = 0; i < deviceDataList.size(); i++) {
+                    data.add(deviceDataList.get(i));
+                }
+                break;
         }
 
         return data;
@@ -401,40 +436,26 @@ public class Backend {
                     break;
                 case User.SYMP_DATA_TYPE:
                     postURL += String.format(DF_POST_DATA_SUFIX, DF_SYMPTOM_TABLE);
-
-                    /*SymptomDataModel symptomDataModel = new SymptomDataModel();
-
-                    JSONObject json = symptomDataModel.getJsonData(SymptomDataModel.SYMPTOM_TYPE_RIGIDITY,
-                                                       "right foot", "55", 1, time);
-                    recordToCreate = json;
-*/
                     recordToCreate = new JSONObject(data);
-                    //  recordToCreate = new JSONSerializer<>(SymptomRecordModel.class, mCtx).serialize(symptomRecordRequest);
-                    break;
+                  break;
                 case User.TAKEN_DATA_TYPE:
                     postURL += String.format(DF_POST_DATA_SUFIX, DF_TAKEN_TABLE);
-
-                    /*SymptomDataModel symptomDataModel = new SymptomDataModel();
-
-                    JSONObject json = symptomDataModel.getJsonData(SymptomDataModel.SYMPTOM_TYPE_RIGIDITY,
-                                                       "right foot", "55", 1, time);
-                    recordToCreate = json;
-*/
                     recordToCreate = new JSONObject(data);
-                    //  recordToCreate = new JSONSerializer<>(SymptomRecordModel.class, mCtx).serialize(symptomRecordRequest);
                     break;
                 case User.SUBSCRIBE_DATA_TYPE:
                     postURL += String.format(DF_PUT_DATA_SUFIX, DF_USER_TABLE);
-
-                    /*SymptomDataModel symptomDataModel = new SymptomDataModel();
-
-                    JSONObject json = symptomDataModel.getJsonData(SymptomDataModel.SYMPTOM_TYPE_RIGIDITY,
-                                                       "right foot", "55", 1, time);
-                    recordToCreate = json;
-*/
                     recordToCreate = new JSONObject(data);
-                    //  recordToCreate = new JSONSerializer<>(SymptomRecordModel.class, mCtx).serialize(symptomRecordRequest);
                     System.out.println("Subscribe send json : " + recordToCreate);
+                    break;
+                case User.DEVICE_DATA_TYPE:
+                    System.out.println("calling put device reg");
+                    postURL += DF_DB_SUFIX;
+                    postURL += "/" + DF_DEVICE_TABLE + "?filter=id=2";
+                    System.out.println("sendDeviceRegId : posttURL" + postURL);
+                    System.out.println("sendDeviceRegId : data" + data);
+                    recordToCreate = new JSONObject(data);
+                    HTTPResponse httpResponse1 = mDFRestClient.put(postURL, recordToCreate);
+                    System.out.println("sendDeviceRegId : response code " + httpResponse1.code);
                     break;
             }
         } catch (Exception e) {
@@ -449,6 +470,9 @@ public class Backend {
         System.out.println("Calling server");
         if (type ==  User.SUBSCRIBE_DATA_TYPE) {
             System.out.println("calling put");
+            httpResponse = mDFRestClient.put(postURL, recordToCreate);
+        } else if (type ==  User.DEVICE_DATA_TYPE) {
+            System.out.println("calling put on device");
             httpResponse = mDFRestClient.put(postURL, recordToCreate);
         } else {
             System.out.println("post");

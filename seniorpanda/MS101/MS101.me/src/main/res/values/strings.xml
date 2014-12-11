@@ -81,11 +81,6 @@
     <string name="no_camera_message">You do not have the camera support</string>
     <string name="dialog_ok_button_text">OK</string>
     <string name="fail_create_image_file">Failed to create image file. Please check file name and storage directory.</string>
-    <string name="change_bucket_message">Change Family Sharing Bucket</string>
-    <string name="bucket_name">Family Sharing Bucket Name</string>
-    <string name="change_bucket_direction">Your current family sharing bucket is listed below.
-        Input the new family sharing name if you want to change it</string>
-    <string name="change">Change</string>
     <!-- Weather Fragment -->
     <string name="dialog_change_city_title">Change City</string>
     <string name="dialog_change_city_button">Go</string>
@@ -104,8 +99,6 @@
     <string name="weather_drizzle"></string>
     <string name="place_not_found">Sorry, no weather data found.</string>
     <string name="hello_blank_fragment">Hello blank fragment</string>
-    <string name="city_field_hint">City Here (example: New York)</string>
-    <string name="country_field_hint">Country Here (example: US)</string>
 
     <!-- Lock Activity -->
     <string name="title_activity_unlock">Enter PIN</string>
@@ -130,7 +123,7 @@
     <string name="df_login_prompt">Please Login</string>
     <string name="account_must_be">Must be YOUR_ID@pd101.me</string>
     <string name="toast_added_account">Will use account: %1$s</string>
-    <string name="toast_no_credentials">Please visit http://pd101.me to get onboarded</string>
+    <string name="toast_no_credentials">Please visit http://pd101.me</string>
     <string name="toast_add_account">You need to add @%1$s account.</string>
     <string name="toast_login_cancelled">Login Cancelled</string>
 

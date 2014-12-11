@@ -63,14 +63,25 @@ public class LockActivity extends Activity {
         }
 
         // We only want the button to be enabled if : 1. there are 4 digits in the pin field 2. The userName field is entered
+        mEtPin.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (s.length() == 4) {
+                    mHasPin = true;
+                    mBtnConfirm.setEnabled(mHasName && mHasPin);
+                }
+                else mBtnConfirm.setEnabled(false);
+            }
+            @Override
+            public void afterTextChanged(Editable s) {
+            }
+        });
         mEtUserName.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-                if (mEtUserName.getText().length()!=0) mHasName = true;
-                if(s.length() != 0){
-                    mHasName = true;
-                    mBtnConfirm.setEnabled(mHasName && mHasPin);
-                }
             }
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
@@ -84,25 +95,6 @@ public class LockActivity extends Activity {
             public void afterTextChanged(Editable s) {
             }
         });
-
-        mEtPin.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-            }
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if (mEtUserName.getText().length()!=0) mHasName = true;
-                if (s.length() == 4) {
-                    mHasPin = true;
-                    mBtnConfirm.setEnabled(mHasName && mHasPin);
-                }
-                else mBtnConfirm.setEnabled(false);
-            }
-            @Override
-            public void afterTextChanged(Editable s) {
-            }
-        });
-
 
         // Set the pin edittext's focus change listener so that the keypad will pop up automatically
         mEtPin.setOnFocusChangeListener(new View.OnFocusChangeListener() {

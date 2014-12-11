@@ -5,6 +5,7 @@ import android.util.Log;
 import com.bmh.ms101.Backend;
 import com.bmh.ms101.MS101;
 import com.bmh.ms101.events.GetDataDFEvent;
+import com.bmh.ms101.events.GetDeviceDFEvent;
 import com.bmh.ms101.events.GetLogsDFEvent;
 import com.bmh.ms101.events.GetMedsDFEvent;
 import com.bmh.ms101.events.GetSubscribeDFEvent;
@@ -85,6 +86,13 @@ public class DreamFactoryGetJob extends Job {
             List<BaseDataModel> data = backend.getFromDF(dataType);
             if (data != null) {
                 EventBus.getDefault().post(new GetLogsDFEvent(true, data));
+            } else {
+                throw new DFCredentialsInvalidException();
+            }
+        } else if (dataType == User.DEVICE_DATA_TYPE) {
+            List<BaseDataModel> data = backend.getFromDF(dataType);
+            if (data != null) {
+                EventBus.getDefault().post(new GetDeviceDFEvent(true, data));
             } else {
                 throw new DFCredentialsInvalidException();
             }

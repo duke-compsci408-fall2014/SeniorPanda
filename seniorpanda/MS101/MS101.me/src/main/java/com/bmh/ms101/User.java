@@ -13,6 +13,7 @@ import com.bmh.ms101.ex.DFNotAddedException;
 import com.bmh.ms101.ex.UserMedsNotAddedException;
 import com.bmh.ms101.models.MedicationDataModel;
 import com.bmh.ms101.models.SubscribeDataModel;
+import com.google.android.gms.gcm.GoogleCloudMessaging;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -43,7 +44,7 @@ public class User {
     public static final int SUBSCRIBE_DATA_TYPE = 14;
     public static final int TAKEN_DATA_TYPE = 15;
     public static final int LOGS_DATA_TYPE = 16;
-    public static final int FAMILY_SHARE_DATA_TYPE = 17;
+    public static final int DEVICE_DATA_TYPE = 17;
 
     // Key strings to get values from the pref file
     private static final String PREF_MEDS = "key_meds";
@@ -59,7 +60,6 @@ public class User {
     public static final String DF_PREF_SESSION_ID_EXPIRES = "session_id_expires";
 
     public static final String PREF_USER_NAME = "key_userName"; /// added to specify bucket
-    public static final String PREF_FAMSHARE_NAME = "key_bucketName";
 
     // (Duration is in seconds) Sessions may not be valid after 24 minutes.
     public static final int DF_SESSION_DURATION = 1440;
@@ -80,7 +80,12 @@ public class User {
     private int userId = 1;
     // userNameInfo used to 1. Verify with DF 2.
     private String USER_NAME = "";
-    private String BUCKET_NAME = "";
+
+    private int deviceId = 2;
+
+    private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
+    static final String TAG = "GCM Demo";
+    GoogleCloudMessaging gcm;
 
     /**
      * Create new User object using the given context
@@ -91,7 +96,7 @@ public class User {
         mPrefsUtil = new PrefsUtil(mCtx);
         mDevList.add("9076224588@ms101.me");
         mDevList.add("8284541964@ms101.me");
-        //mDevList.add("test1@pd101.me");
+        mDevList.add("test1@pd101.me");
         // Populate an array with the list of meds at indices corresponding to their ID numbers
         if (MED_NAMES == null) {
             String[] meds = mCtx.getResources().getStringArray(R.array.medications);
@@ -481,14 +486,6 @@ public class User {
         mPrefsUtil.getPrefs().edit().putString(PREF_USER_NAME, userName).commit();
     }
 
-    public void recordFamShareName(String famShareName){
-        mPrefsUtil.getPrefs().edit().putString(PREF_FAMSHARE_NAME, famShareName).commit();
-    }
-
-    public String getStoredFamShareName(){
-        return mPrefsUtil.getPrefString(PREF_FAMSHARE_NAME, null);
-    }
-
     // method purpose similar to below
     public boolean verifyUserName(String userName){
         String storedUserName = mPrefsUtil.getPrefString(PREF_USER_NAME, null);
@@ -548,6 +545,10 @@ public class User {
         return userId;
     }
 
+    public int getDeviceId() {
+        return deviceId;
+    }
+
     public void setUserId(int userId) {
         this.userId = userId;
     }
@@ -560,5 +561,4 @@ public class User {
         System.out.println("Setting subscriptions");
         this.mSubscriptions = mSubscriptions;
     }
-
 }

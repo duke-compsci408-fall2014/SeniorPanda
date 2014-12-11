@@ -232,16 +232,6 @@ public class MedicationActivity extends Activity {
                 sendMedTakenData();
             }
         });
-        //   setupListOfMeds();
-        //   setupListOfMeds(mSubscibeDataModelList);
-
-
-        /*Util.buildInfoDialog(this, R.string.help_meds_title, R.string.help_meds_content,
-                R.string.okay);*/
-     /*   if (!mIsFromMain) {
-            Util.buildInfoDialog(this, R.string.help_medication_title, R.string.help_medication_content,
-                    R.string.okay);
-        }*/
 
         if (!mIsFromMain) {
             if (morningDose) {

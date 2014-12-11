@@ -3,6 +3,7 @@ package com.bmh.ms101;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -14,10 +15,15 @@ import com.bmh.ms101.ex.DFNotAddedException;
 import com.bmh.ms101.ex.UserMedsNotAddedException;
 import com.bmh.ms101.jobs.DreamFactoryLoginJob;
 import com.bmh.ms101.jobs.DreamFactorySendJob;
+import com.bmh.ms101.push.PushActivity;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesUtil;
+import com.google.android.gms.gcm.GoogleCloudMessaging;
 import com.path.android.jobqueue.JobManager;
 
 import java.util.Calendar;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import de.greenrobot.event.EventBus;
 
@@ -25,13 +31,14 @@ import de.greenrobot.event.EventBus;
  * App's Main activity, shown from the launcher.
  */
 public class MainActivity extends Activity {
+    private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
+    static final String TAG = "GCM Demo";
 
     private final EventBus eventBus = EventBus.getDefault();
 
     public static final String IS_INITIAL_SETUP = "is_initial_setup";
     public static final String IS_UNLOCKED = "is_unlocked";
     public static final String IS_FROM_MAIN = "is_from_main";
-    public static final String DEFAULT_FAMSHARENAME = "default_famshare_name";
 
     // Use in OnActivityResult
     private static final int REQUEST_NONE = -1;
@@ -46,6 +53,9 @@ public class MainActivity extends Activity {
     private boolean mIsUnlocked = false;
     private boolean mIsForcingRelogin = false;
 
+    GoogleCloudMessaging gcm;
+    AtomicInteger msgId = new AtomicInteger();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -56,6 +66,7 @@ public class MainActivity extends Activity {
             mIsUnlocked = savedInstanceState.getBoolean(IS_UNLOCKED, false);
         eventBus.register(this, 2);
         tryInitMainScreen(false);
+     //   initGCM();
     }
 
     @Override
@@ -112,7 +123,9 @@ public class MainActivity extends Activity {
                 startActivity(new Intent(this, TestActivity.class));
                 return true;
             case R.id.action_test_notif:
-                MS101Receiver.testNotif(this);
+             //   MS101Receiver.testNotif(this);
+                startPushReg();
+              //  startActivity(new Intent(this, PushActivity.class));
                 return true;
             case R.id.action_test_jobs:
                 JobManager jobManager = MS101.getInstance().getJobManager();
@@ -139,19 +152,12 @@ public class MainActivity extends Activity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUEST_LOGIN && resultCode == RESULT_OK) {
             // If we got here after logging in, then we'll be ignoring the login check this time
-            Util.toast(this, "authentication finished");
-            tryInitMainScreen(false);
-        } else if (requestCode == REQUEST_MEDS && resultCode == RESULT_OK) {
-            Util.toast(this, "medication record entered");
             tryInitMainScreen(false);
         } else if ((requestCode == MainActivity.REQUEST_UNLOCK || requestCode == MainActivity.REQUEST_CREATE_PIN) &&
                 resultCode == RESULT_OK) {
             // Only if the result was from the PIN screen
             mIsUnlocked = true;
-            tryInitMainScreen(false);
         } else {
-//            tryInitMainScreen(false);
-//            Util.toast(this, "Authentication finished");
             finish();
         }
     }
@@ -219,9 +225,7 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View arg0) {
                 Util.trackUiEvent("click_main_button_slide_show", MainActivity.this);
-                Intent slideShowIntent = new Intent(MainActivity.this, SlideShowActivity.class);
-                slideShowIntent.putExtra(DEFAULT_FAMSHARENAME, mUser.getStoredUserName());
-                startActivity(slideShowIntent);
+                startActivity(new Intent(MainActivity.this, SlideShowActivity.class));
             }
         });
     }
@@ -268,5 +272,10 @@ public class MainActivity extends Activity {
         Intent intent = new Intent(this, act);
         if (isSetup) intent.putExtra(IS_INITIAL_SETUP, true);
         startActivityForResult(intent, requestCode);
+    }
+
+    public boolean startPushReg() {
+        startActivity(new Intent(this, PushActivity.class));
+        return true;
     }
 }
