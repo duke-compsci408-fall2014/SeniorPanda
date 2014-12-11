@@ -294,6 +294,9 @@ public class SlideShowActivity extends Activity implements OnClickListener {
                                 User innerUser = new User(MS101.getInstance());
                                 innerUser.recordFamShareName(famShareName.getText().toString());
                                 deleteAllPhotos();
+                                myProgressBar.setVisibility(View.VISIBLE);
+                                S3PhotoIntentService.startActionFetchS3(SlideShowActivity.this);
+                                showToast("Changed Family Photo Group", Toast.LENGTH_SHORT);
                             }
                         })
                         .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
@@ -303,8 +306,6 @@ public class SlideShowActivity extends Activity implements OnClickListener {
                             }
                         })
                         .show();
-                S3PhotoIntentService.startActionFetchS3(this);
-                showToast("Changed Family Photo Group", Toast.LENGTH_SHORT);
                 return true;
         }
         return super.onOptionsItemSelected(item);
