@@ -99,6 +99,8 @@
     <string name="weather_drizzle"></string>
     <string name="place_not_found">Sorry, no weather data found.</string>
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="city_field_hint">City Here (example: New York)</string>
+    <string name="country_field_hint">Country Here (example: US)</string>
 
     <!-- Lock Activity -->
     <string name="title_activity_unlock">Enter PIN</string>
