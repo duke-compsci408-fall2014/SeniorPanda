@@ -3,8 +3,10 @@ package com.bmh.ms101;
 import android.app.Activity;
 import android.app.NotificationManager;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
+import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -105,6 +107,8 @@ public class SetupMedicationActivity extends Activity {
     protected void onStop() {
         super.onStop();
         eventBus.unregister(this);
+//        if (this.getCallingActivity() != null)
+//            startActivity(new Intent(SetupMedicationActivity.this, MainActivity.class));
     }
 
     /**
@@ -380,8 +384,8 @@ public class SetupMedicationActivity extends Activity {
                     Util.toast(SetupMedicationActivity.this, R.string.toast_changes_saved);
                     //  }
                     //      }
-                    //   setResult(RESULT_OK);
-                    //   finish();
+//                       setResult(RESULT_OK);
+//                       finish();
                 } else {
                     Util.toast(ctx, R.string.toast_must_select_med);
                 }

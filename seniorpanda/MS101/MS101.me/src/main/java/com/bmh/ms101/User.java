@@ -43,6 +43,7 @@ public class User {
     public static final int SUBSCRIBE_DATA_TYPE = 14;
     public static final int TAKEN_DATA_TYPE = 15;
     public static final int LOGS_DATA_TYPE = 16;
+    public static final int FAMILY_SHARE_DATA_TYPE = 17;
 
     // Key strings to get values from the pref file
     private static final String PREF_MEDS = "key_meds";

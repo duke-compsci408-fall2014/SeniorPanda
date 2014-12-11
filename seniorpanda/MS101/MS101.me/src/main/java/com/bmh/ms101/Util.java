@@ -172,14 +172,19 @@ public class Util {
         // Get our views that will be used in the dialog
         LinearLayout dialogView = (LinearLayout) ((LayoutInflater) activity.getSystemService(
                 Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.dialog_df_login, null);
+
         final TextView tvError = (TextView) dialogView.findViewById(R.id.df_login_error_msg);
         tvError.setText(errorMessage);
+
         final EditText etEmail = (EditText) dialogView.findViewById(R.id.email_addr);
         etEmail.setText(user.getDFEmail());
+
         final EditText etPassword = (EditText) dialogView.findViewById(R.id.password);
         etPassword.setText(user.getDFPass());
+
         // Create and show the dialog
         AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+
         builder.setTitle(R.string.df_login_prompt)
                 .setView(dialogView)
                 .setPositiveButton(R.string.login, new DialogInterface.OnClickListener() {

@@ -19,6 +19,7 @@ public class WebCalendarVisualizationActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        eventBus.register(this, 2);
         // Display the progress in the activity title bar, like the browser
         getWindow().requestFeature(Window.FEATURE_PROGRESS);
 
@@ -42,6 +43,18 @@ public class WebCalendarVisualizationActivity extends Activity {
         });
 
         webview.loadUrl("http://ms101.me/data-visualiztion/index.html");
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (!eventBus.isRegistered(this)) eventBus.register(this, 2);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        eventBus.unregister(this);
     }
 
 

@@ -143,8 +143,11 @@ public class MainActivity extends Activity {
                 resultCode == RESULT_OK) {
             // Only if the result was from the PIN screen
             mIsUnlocked = true;
+            tryInitMainScreen(false);
         } else {
-            finish();
+            tryInitMainScreen(false);
+            Util.toast(this, "Authentication finished. Now select medication");
+//            finish();
         }
     }
 

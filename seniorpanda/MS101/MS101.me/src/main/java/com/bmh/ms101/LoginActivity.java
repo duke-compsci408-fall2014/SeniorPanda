@@ -1,7 +1,9 @@
 package com.bmh.ms101;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -45,6 +47,7 @@ public class LoginActivity extends Activity {
     protected void onStop() {
         super.onStop();
         eventBus.unregister(this);
+//        startActivity(new Intent(LoginActivity.this, MainActivity.class));
     }
 
     /**
@@ -59,6 +62,7 @@ public class LoginActivity extends Activity {
                 Util.showDFLoginDialog(LoginActivity.this, mUser, "");
             }
         });
+
         ImageButton noButton = (ImageButton) findViewById(R.id.credentialsNo);
         Util.makeRed(noButton, this);
         noButton.setOnClickListener(new OnClickListener() {
@@ -86,6 +90,7 @@ public class LoginActivity extends Activity {
             switch ((String) event.response) {
                 case "Retry":
                     mJobManager.addJobInBackground(new DreamFactoryLoginJob());
+                    Util.toast(this, "Login authentication processing in background");
                     break;
                 case "JSON Exception":
                     Util.toast(this, R.string.toast_json_error);
@@ -102,6 +107,7 @@ public class LoginActivity extends Activity {
                     finish();
                     break;
             }
+
         } else {
             // Handle it if it's an exception of some kind
             Util.handleDFLoginError(this, mUser, (Exception) event.response);

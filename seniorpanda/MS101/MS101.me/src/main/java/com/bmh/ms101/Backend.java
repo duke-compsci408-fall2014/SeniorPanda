@@ -72,6 +72,7 @@ public class Backend {
     public static final String DF_TAKEN_TABLE = "taken";
     public static final String DF_HAS_TABLE = "has";
     public static final String DF_AUDIO_RECORD_TABLE = "audio_record";
+    public static final String DF_FAMILY_SHARE_TABLE = "family_sharing";
 
     public static final String DF_MEDS_TABLE = "ms_medication";
     public static final String DF_SYMP_TABLE = "ms_symptom";
@@ -239,6 +240,20 @@ public class Backend {
 
         List<BaseDataModel> data = null;
         switch (dataType) {
+
+            // TODO: REFINE THE FAMILY DATA MODEL
+            case User.FAMILY_SHARE_DATA_TYPE:
+                data = new ArrayList<BaseDataModel>();
+
+                String getFamShareURL = DF_URL + DF_DB_SUFIX + "/" + DF_FAMILY_SHARE_TABLE + "?related=*";
+                System.out.println("getURL :: " + getFamShareURL);
+                JSONObject familySharingData = mDFRestClient.getJSONObject(getFamShareURL);
+                List<LogDataModel> familyData = DataUtil.getLogsFromUserData(familySharingData, mUser.getUserId());
+                for (int i = 0; i < familyData.size(); i++) {
+                    data.add(familyData.get(i));
+                }
+                break;
+
             case User.MEDICATION_DATA_TYPE:
                 data = new ArrayList<BaseDataModel>();
                 String getMedsURL = DF_URL + DF_DB_SUFIX + "/" + DF_MEDICATION_TABLE + "?related=*";
@@ -265,7 +280,6 @@ public class Backend {
                 break;
             case User.LOGS_DATA_TYPE:
                 data = new ArrayList<BaseDataModel>();
-
                 String getLogsURL = DF_URL + DF_DB_SUFIX + "/" + DF_USER_TABLE + "?related="
                         + DF_RELATED_TAKEN_BY_UID + "," + DF_RELATED_SYMPTOM_BY_UID + ","
                         + DF_RELATED_MEDS_BY_TAKEN;
@@ -276,6 +290,7 @@ public class Backend {
                     data.add(logsData.get(i));
                 }
                 break;
+
         }
 
         return data;

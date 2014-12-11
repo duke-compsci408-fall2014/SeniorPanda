@@ -123,7 +123,7 @@
     <string name="df_login_prompt">Please Login</string>
     <string name="account_must_be">Must be YOUR_ID@pd101.me</string>
     <string name="toast_added_account">Will use account: %1$s</string>
-    <string name="toast_no_credentials">Please visit http://pd101.me</string>
+    <string name="toast_no_credentials">Please visit http://pd101.me to get onboarded</string>
     <string name="toast_add_account">You need to add @%1$s account.</string>
     <string name="toast_login_cancelled">Login Cancelled</string>
 
