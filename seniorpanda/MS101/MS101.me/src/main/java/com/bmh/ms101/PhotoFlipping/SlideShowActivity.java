@@ -12,6 +12,7 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Typeface;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
@@ -56,6 +57,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
     private static final int SWIPE_MIN_DISTANCE = 120;
     private static final int SWIPE_THRESHOLD_VELOCITY = 200;
     private static final int TIME_UPDATE_INTERVAL = 10000;
+    private static final int DELETE_PHOTO_INTERVAL = 100000;
     private static final String JPEG_FILE_PREFIX = "IMG_";
     private static final String JPEG_FILE_SUFFIX = ".jpg";
     private static final String DATE_TIME_FORMAT = "EEE, MMM dd yyy HH:mm a";
@@ -63,8 +65,6 @@ public class SlideShowActivity extends Activity implements OnClickListener {
     private ViewFlipper myFlipper;
     private TextView myDateTextView;
     private TextView myTimeTextView;
-    private Thread myDateTimeThread;
-    private Thread myDeletePhotoThread;
     private ResponseReceiver myResponseReceiver;
     private GestureDetector myTouchDetector;
     private Animation slide_in_left, slide_in_right, slide_out_left, slide_out_right;
@@ -72,6 +72,8 @@ public class SlideShowActivity extends Activity implements OnClickListener {
     private int imageCounter = 0;
     private String myCurrentPhotoName = null;
     private Integer deleteTimes = 0;
+    private boolean deletingPhoto = false;
+    private boolean updatingTime = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -94,26 +96,19 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         initButton(R.id.slide_show_weather_change_city, Constants.COLOR_GREEN);
         initButton(R.id.temperature_convert_button, Constants.COLOR_GREEN);
         counterToImageNameMap = new HashMap<Integer, String>();
-        S3PhotoIntentService.startActionFetchS3(this);
-        showToast("Start loading pictures", Toast.LENGTH_SHORT);
-
         slide_in_left = AnimationUtils.loadAnimation(this, R.anim.slide_in_left);
         slide_in_right = AnimationUtils.loadAnimation(this, R.anim.silde_in_right);
         slide_out_left = AnimationUtils.loadAnimation(this, R.anim.slide_out_left);
         slide_out_right = AnimationUtils.loadAnimation(this, R.anim.slide_out_right);
         myTouchDetector = new GestureDetector(myFlipper.getContext(), new SwipeGestureDetector());
-
         myDateTextView = (TextView) findViewById(R.id.slide_show_display_date);
         myTimeTextView = (TextView) findViewById(R.id.slide_show_display_time);
         initTextView(myDateTextView);
         initTextView(myTimeTextView);
-        initDateTimeThread();
-        initDeletePhotoThread();
     }
 
     private void initDeletePhotoThread() {
-//        myDeletePhotoThread = new Thread(new DeletePhotoFromFlipperRunner());
-//        myDeletePhotoThread.start();
+        new DeletePhotoAsync().execute();
     }
 
     private void registerReceiver() {
@@ -123,7 +118,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         actionDeletedIntentFilter.addCategory(Intent.CATEGORY_DEFAULT);
         myResponseReceiver = new ResponseReceiver();
         LocalBroadcastManager.getInstance(this).registerReceiver(myResponseReceiver, actionFetchedIntentFilter);
-//        LocalBroadcastManager.getInstance(this).registerReceiver(myResponseReceiver, actionDeletedIntentFilter);
+        LocalBroadcastManager.getInstance(this).registerReceiver(myResponseReceiver, actionDeletedIntentFilter);
     }
 
     private void initTextView(TextView textView) {
@@ -145,8 +140,8 @@ public class SlideShowActivity extends Activity implements OnClickListener {
     public void onDestroy() {
         unregisterReceiver();
         S3PhotoIntentService.clearPhotos();
-        myDateTimeThread.interrupt();
-//        myDeletePhotoThread.interrupt();
+        deletingPhoto = false;
+        updatingTime = false;
         super.onDestroy();
     }
 
@@ -214,8 +209,8 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         unregisterReceiver();
         stopFlipping();
         S3PhotoIntentService.clearPhotos();
-        myDateTimeThread.interrupt();
-//        myDeletePhotoThread.interrupt();
+        deletingPhoto = false;
+        updatingTime = false;
         super.onStop();
     }
 
@@ -228,6 +223,8 @@ public class SlideShowActivity extends Activity implements OnClickListener {
 
     @Override
     protected void onResume() {
+        deletingPhoto = true;
+        updatingTime = true;
         initDateTimeThread();
         initDeletePhotoThread();
         registerReceiver();
@@ -238,8 +235,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
     }
 
     private void initDateTimeThread() {
-        myDateTimeThread = new Thread(new DateTimeRunner());
-        myDateTimeThread.start();
+        new DateTimeAsync().execute();
     }
 
     @Override
@@ -287,7 +283,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
-                dialogInterface.cancel();
+                dialogInterface.dismiss();
             }
         });
         builder.show();
@@ -323,13 +319,12 @@ public class SlideShowActivity extends Activity implements OnClickListener {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == SELECT_PHOTO_FROM_GALLERY_REQUEST) {
             if (resultCode == RESULT_OK) {
-                Log.w(this.getClass().getName(), "Received result from gallery");
-                Uri imageURL = data.getData();
+                Uri imageUri = data.getData();
+                String imagePath = getRealPathFromURI(imageUri);
                 Map<String, String> imageMap = new HashMap<String, String>();
-                //Bitmap mBitmap = Media.getBitmap(this.getContentResolver(), chosenImageUri);
-                String imageName = imageURL.toString().substring(imageURL.toString().lastIndexOf("/") + 1);
-                Log.w(this.getClass().getName(), "Received image name " + imageName);
-                imageMap.put(imageName, imageURL.toString());
+                String imageName = imagePath.substring(imagePath.lastIndexOf("/") + 1);
+                Log.w(this.getClass().getName(), "Received image path from gallery: " + imagePath);
+                imageMap.put(imageName, imagePath);
                 S3PhotoIntentService.startActionUploadS3(this, imageMap);
             }
         } else if (requestCode == TAKE_PHOTO_REQUEST) {
@@ -346,13 +341,16 @@ public class SlideShowActivity extends Activity implements OnClickListener {
     }
 
     //Convert the image URI to the direct file system path of the image file
-    public String getRealPathFromURI(Uri contentUri) {
-        String res = null;
-        String[] proj = {MediaStore.Images.Media.DATA};
-        Cursor cursor = getContentResolver().query(contentUri, proj, null, null, null);
-        if (cursor.moveToFirst()) {
+    public String getRealPathFromURI(Uri uri) {
+        String res = "";
+        String[] projection = {MediaStore.Images.Media.DATA};
+        Cursor cursor = getContentResolver().query(uri, projection, null, null, null);
+        if (cursor != null) {
             int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+            cursor.moveToFirst();
             res = cursor.getString(column_index);
+        } else {
+            res = uri.getPath();
         }
         cursor.close();
         return res;
@@ -452,9 +450,20 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         });
     }
 
-    public class DeletePhotoFromFlipperRunner implements Runnable {
-        public void run() {
-            while (!Thread.currentThread().isInterrupted()) {
+    private void sleep(int ms) {
+        try {
+            Thread.sleep(ms);
+        } catch (Exception e) {
+
+        }
+    }
+
+    public class DeletePhotoAsync extends AsyncTask<Void, Void, Void> {
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            while (deletingPhoto) {
+                sleep(DELETE_PHOTO_INTERVAL);
                 synchronized (deleteTimes) {
                     while (deleteTimes > 0 && myFlipper.getChildCount() > 0) {
                         myFlipper.removeViewAt(0);
@@ -468,25 +477,22 @@ public class SlideShowActivity extends Activity implements OnClickListener {
                     }
                 }
             }
+            return null;
         }
     }
 
-    public class DateTimeRunner implements Runnable {
-        public void run() {
-            while (!Thread.currentThread().isInterrupted()) {
-                try {
-                    Calendar c = Calendar.getInstance();
-                    SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_TIME_FORMAT);
-                    String formatted = dateFormat.format(c.getTime());
-                    doUpdateTimeWork(formatted.substring(0, 10), formatted.substring(11));
-                    Thread.sleep(TIME_UPDATE_INTERVAL);
-                } catch (InterruptedException e) {
-                    Log.w(this.getClass().getName(), "DateTimeThread is interrupted");
-                    Thread.currentThread().interrupt();
-                } catch (Exception e) {
-                    Log.w(this.getClass().getName(), "Unchecked exception in DateTimeThread");
-                }
+    public class DateTimeAsync extends AsyncTask<Void, Void, Void> {
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            while (updatingTime) {
+                Calendar c = Calendar.getInstance();
+                SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_TIME_FORMAT);
+                String formatted = dateFormat.format(c.getTime());
+                doUpdateTimeWork(formatted.substring(0, 10), formatted.substring(11));
+                sleep(TIME_UPDATE_INTERVAL);
             }
+            return null;
         }
     }
 
