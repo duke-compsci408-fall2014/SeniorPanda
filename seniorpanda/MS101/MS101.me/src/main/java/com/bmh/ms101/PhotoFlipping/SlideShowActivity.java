@@ -66,7 +66,8 @@ public class SlideShowActivity extends Activity implements OnClickListener {
     private ViewFlipper myFlipper;
     private TextView myDateTextView;
     private TextView myTimeTextView;
-    private ResponseReceiver myResponseReceiver;
+    private FetchReceiver myFetchReceiver;
+    private DeleteReceiver myDeleteReceiver;
     private GestureDetector myTouchDetector;
     private Animation slide_in_left, slide_in_right, slide_out_left, slide_out_right;
     private Map<Integer, String> counterToImageNameMap;
@@ -118,9 +119,10 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         actionFetchedIntentFilter.addCategory(Intent.CATEGORY_DEFAULT);
         IntentFilter actionDeletedIntentFilter = new IntentFilter(Constants.ACTION_DELETED_PHOTO);
         actionDeletedIntentFilter.addCategory(Intent.CATEGORY_DEFAULT);
-        myResponseReceiver = new ResponseReceiver();
-        LocalBroadcastManager.getInstance(this).registerReceiver(myResponseReceiver, actionFetchedIntentFilter);
-        LocalBroadcastManager.getInstance(this).registerReceiver(myResponseReceiver, actionDeletedIntentFilter);
+        myFetchReceiver = new FetchReceiver();
+        myDeleteReceiver = new DeleteReceiver();
+        LocalBroadcastManager.getInstance(this).registerReceiver(myFetchReceiver, actionFetchedIntentFilter);
+        LocalBroadcastManager.getInstance(this).registerReceiver(myDeleteReceiver, actionDeletedIntentFilter);
     }
 
     private void initTextView(TextView textView) {
@@ -217,9 +219,13 @@ public class SlideShowActivity extends Activity implements OnClickListener {
     }
 
     private void unregisterReceiver() {
-        if (myResponseReceiver != null) {
-            LocalBroadcastManager.getInstance(this).unregisterReceiver(myResponseReceiver);
-            myResponseReceiver = null;
+        if (myFetchReceiver != null) {
+            LocalBroadcastManager.getInstance(this).unregisterReceiver(myFetchReceiver);
+            myFetchReceiver = null;
+        }
+        if (myDeleteReceiver != null) {
+            LocalBroadcastManager.getInstance(this).unregisterReceiver(myDeleteReceiver);
+            myDeleteReceiver = null;
         }
     }
 
@@ -504,8 +510,8 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         }
     }
 
-    public class ResponseReceiver extends BroadcastReceiver {
-        private ResponseReceiver() {
+    public class FetchReceiver extends BroadcastReceiver {
+        private FetchReceiver() {
         }
 
         @Override
@@ -517,9 +523,20 @@ public class SlideShowActivity extends Activity implements OnClickListener {
                     String imageName = (String) extras.get(Constants.INTENT_PHOTO_NAME);
                     Log.w(this.getClass().getName(), "Received photo from Intent Service " + imageName);
                     doFetchPhotoWork(bitmap, imageName);
+            }
+        }
+    }
+
+    public class DeleteReceiver extends BroadcastReceiver {
+        private DeleteReceiver() {
+        }
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            switch (intent.getAction()) {
                 case Constants.ACTION_DELETED_PHOTO:
                     String name = (String) intent.getExtras().get(Constants.INTENT_PHOTO_NAME);
-                    Log.w(this.getClass().getName(), "Received photo from Intent Service " + name);
+                    Log.w(this.getClass().getName(), "Deleted photo from Intent Service " + name);
                     int counter = -1;
                     for (Integer i : counterToImageNameMap.keySet()) {
                         if (counterToImageNameMap.get(i).equals(name)) {

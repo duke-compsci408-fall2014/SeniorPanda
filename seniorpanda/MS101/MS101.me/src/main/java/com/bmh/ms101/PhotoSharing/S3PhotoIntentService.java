@@ -206,7 +206,6 @@ public class S3PhotoIntentService extends IntentService {
                         if (myBitmapMap.size() > CACHE_SIZE) {
                             String name = myPicNames.remove();
                             myBitmapMap.remove(name);
-                            Log.w(this.getClass().getName(), "remove picture with name " + name);
                             sendRemovePictureIntent(name);
                         }
                         Bitmap bitmap = fetchImageAsBitMap(BUCKET_NAME, picName);
@@ -228,6 +227,7 @@ public class S3PhotoIntentService extends IntentService {
     }
 
     private void sendRemovePictureIntent(String imageName) {
+        Log.w(this.getClass().getName(), "remove picture with name " + imageName);
         Intent removeIntent = new Intent(Constants.ACTION_DELETED_PHOTO);
         removeIntent.putExtra(Constants.INTENT_PHOTO_NAME, imageName);
         LocalBroadcastManager.getInstance(this).sendBroadcast(removeIntent);
@@ -240,6 +240,7 @@ public class S3PhotoIntentService extends IntentService {
 
     /**
      * Fetch Image from S3 in the format of Bitmap to be displayed
+     *
      * @return
      */
     private Bitmap fetchImageAsBitMap(String bucketName, String picName) throws IOException {
