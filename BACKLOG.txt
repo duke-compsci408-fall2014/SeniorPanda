@@ -7,3 +7,5 @@ Future Enhancements
 5. Update UI for the review logs
 6. Streamline the login/lock page
 7. Improve the memory efficiency in photo-downloading
+
+This app can be supported on android tablets capable of running Android 4.16 and later versions
