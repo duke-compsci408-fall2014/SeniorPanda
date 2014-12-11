@@ -94,7 +94,6 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         initButton(R.id.slide_show_weather_change_city, Constants.COLOR_GREEN);
         initButton(R.id.temperature_convert_button, Constants.COLOR_GREEN);
         counterToImageNameMap = new HashMap<Integer, String>();
-        registerReceiver();
         S3PhotoIntentService.startActionFetchS3(this);
         showToast("Start loading pictures", Toast.LENGTH_SHORT);
 
@@ -113,8 +112,8 @@ public class SlideShowActivity extends Activity implements OnClickListener {
     }
 
     private void initDeletePhotoThread() {
-        myDeletePhotoThread = new Thread(new DeletePhotoFromFlipperRunner());
-        myDeletePhotoThread.start();
+//        myDeletePhotoThread = new Thread(new DeletePhotoFromFlipperRunner());
+//        myDeletePhotoThread.start();
     }
 
     private void registerReceiver() {
@@ -124,7 +123,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         actionDeletedIntentFilter.addCategory(Intent.CATEGORY_DEFAULT);
         myResponseReceiver = new ResponseReceiver();
         LocalBroadcastManager.getInstance(this).registerReceiver(myResponseReceiver, actionFetchedIntentFilter);
-        LocalBroadcastManager.getInstance(this).registerReceiver(myResponseReceiver, actionDeletedIntentFilter);
+//        LocalBroadcastManager.getInstance(this).registerReceiver(myResponseReceiver, actionDeletedIntentFilter);
     }
 
     private void initTextView(TextView textView) {
@@ -147,7 +146,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         unregisterReceiver();
         S3PhotoIntentService.clearPhotos();
         myDateTimeThread.interrupt();
-        myDeletePhotoThread.interrupt();
+//        myDeletePhotoThread.interrupt();
         super.onDestroy();
     }
 
@@ -216,7 +215,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         stopFlipping();
         S3PhotoIntentService.clearPhotos();
         myDateTimeThread.interrupt();
-        myDeletePhotoThread.interrupt();
+//        myDeletePhotoThread.interrupt();
         super.onStop();
     }
 
@@ -233,6 +232,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         initDeletePhotoThread();
         registerReceiver();
         S3PhotoIntentService.startActionFetchS3(this);
+        showToast("Start loading pictures", Toast.LENGTH_SHORT);
         startFlipping();
         super.onResume();
     }
@@ -284,6 +284,12 @@ public class SlideShowActivity extends Activity implements OnClickListener {
                 changeCity(text);
             }
         });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                dialogInterface.cancel();
+            }
+        });
         builder.show();
     }
 
@@ -297,7 +303,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
     private void uploadPhotoFromGallery() {
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.setType("image/*");
-        startActivityForResult(intent, SELECT_PHOTO_FROM_GALLERY_REQUEST);
+        startActivityForResult(Intent.createChooser(intent, "Select Picture"), SELECT_PHOTO_FROM_GALLERY_REQUEST);
     }
 
     private ImageFilePath createImageFile() throws IOException {
@@ -308,6 +314,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         File image = File.createTempFile(myCurrentPhotoName, JPEG_FILE_SUFFIX, storageDir);
         // Save a file: path for use with ACTION_VIEW intents
         String path = "file:" + image.getAbsolutePath();
+        Log.w(this.getClass().getName(), "Create image path for camera photo: " + image.getAbsolutePath());
         ImageFilePath imageFilePath = new ImageFilePath(image, path);
         return imageFilePath;
     }
@@ -316,10 +323,13 @@ public class SlideShowActivity extends Activity implements OnClickListener {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == SELECT_PHOTO_FROM_GALLERY_REQUEST) {
             if (resultCode == RESULT_OK) {
+                Log.w(this.getClass().getName(), "Received result from gallery");
                 Uri imageURL = data.getData();
                 Map<String, String> imageMap = new HashMap<String, String>();
                 //Bitmap mBitmap = Media.getBitmap(this.getContentResolver(), chosenImageUri);
-                imageMap.put(imageURL.toString().substring(imageURL.toString().lastIndexOf("/") + 1), imageURL.toString());
+                String imageName = imageURL.toString().substring(imageURL.toString().lastIndexOf("/") + 1);
+                Log.w(this.getClass().getName(), "Received image name " + imageName);
+                imageMap.put(imageName, imageURL.toString());
                 S3PhotoIntentService.startActionUploadS3(this, imageMap);
             }
         } else if (requestCode == TAKE_PHOTO_REQUEST) {
@@ -491,9 +501,11 @@ public class SlideShowActivity extends Activity implements OnClickListener {
                     Bundle extras = intent.getExtras();
                     Bitmap bitmap = (Bitmap) extras.get(Constants.INTENT_FETCHED_PHOTO);
                     String imageName = (String) extras.get(Constants.INTENT_PHOTO_NAME);
+                    Log.w(this.getClass().getName(), "Received photo from Intent Service " + imageName);
                     doFetchPhotoWork(bitmap, imageName);
                 case Constants.ACTION_DELETED_PHOTO:
                     String name = (String) intent.getExtras().get(Constants.INTENT_PHOTO_NAME);
+                    Log.w(this.getClass().getName(), "Received photo from Intent Service " + name);
                     int counter = -1;
                     for (Integer i : counterToImageNameMap.keySet()) {
                         if (counterToImageNameMap.get(i).equals(name)) {
