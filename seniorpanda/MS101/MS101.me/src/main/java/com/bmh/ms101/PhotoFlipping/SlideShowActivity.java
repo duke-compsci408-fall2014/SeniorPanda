@@ -72,6 +72,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
     private Map<Integer, String> counterToImageNameMap;
     private int imageCounter = 0;
     private String myCurrentPhotoName = null;
+    private String myCurrentPhotoPath = null;
     private Integer deleteTimes = 0;
     private boolean deletingPhoto = false;
     private boolean updatingTime = false;
@@ -312,10 +313,11 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         File storageDir = Environment.getExternalStoragePublicDirectory(
                 Environment.DIRECTORY_PICTURES);
         File image = File.createTempFile(myCurrentPhotoName, JPEG_FILE_SUFFIX, storageDir);
-        // Save a file: path for use with ACTION_VIEW intents
-        String path = "file:" + image.getAbsolutePath();
-        Log.w(this.getClass().getName(), "Create image path for camera photo: " + image.getAbsolutePath());
+//        String path = "file:" + image.getAbsolutePath();
+        String path = image.getAbsolutePath();
         ImageFilePath imageFilePath = new ImageFilePath(image, path);
+        myCurrentPhotoPath = image.getAbsolutePath();
+        Log.w(this.getClass().getName(), "Create image path for camera photo: " + myCurrentPhotoPath);
         return imageFilePath;
     }
 
@@ -336,10 +338,9 @@ public class SlideShowActivity extends Activity implements OnClickListener {
                 Bundle extras = data.getExtras();
                 Bitmap bitmap = (Bitmap) extras.get("data");
                 addPhoto(bitmap, myCurrentPhotoName);
-                //TODO: upload photo
-//                Map<String, String> imageMap = new HashMap<String, String>();
-//                imageMap.put(myCurrentPhotoName, bit)
-//                S3PhotoIntentService.startActionDeleteS3(this, );
+                Map<String, String> imageMap = new HashMap<String, String>();
+                imageMap.put(myCurrentPhotoName, myCurrentPhotoPath);
+                S3PhotoIntentService.startActionUploadS3(this, imageMap);
             }
         }
     }

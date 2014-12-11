@@ -45,7 +45,7 @@
         android:layout_centerHorizontal="true"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:textSize="50sp"
-        android:text="Not Available" />
+        android:text="Loading..." />
 
     <TextView
         android:id="@+id/current_temperature_field"
