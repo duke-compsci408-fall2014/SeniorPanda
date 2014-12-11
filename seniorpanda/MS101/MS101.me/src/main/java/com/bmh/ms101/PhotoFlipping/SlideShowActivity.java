@@ -4,6 +4,7 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
+import android.content.ContentUris;
 import android.content.Context;
 import android.content.CursorLoader;
 import android.content.DialogInterface;
@@ -349,7 +350,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         builder.show();
     }
 
-    public void changeCity(String city) {
+    private void changeCity(String city) {
         WeatherFragment weatherFragment = (WeatherFragment) getFragmentManager()
                 .findFragmentById(R.id.slide_show_weather_display);
         weatherFragment.changeCity(city);
@@ -376,6 +377,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         return imageFilePath;
     }
 
+    @TargetApi(Build.VERSION_CODES.KITKAT)
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == SELECT_PHOTO_FROM_GALLERY_REQUEST) {
@@ -388,6 +390,11 @@ public class SlideShowActivity extends Activity implements OnClickListener {
                     imagePath = getPathFromURI(imageUri);
                 } else if (isExternalStorageDocument(imageUri)) {
                     imagePath = getRealPathFromURI(imageUri);
+                } else if (isDownloadsDocument(imageUri)) {
+                    final String id = DocumentsContract.getDocumentId(imageUri);
+                    final Uri contentUri = ContentUris.withAppendedId(
+                            Uri.parse("content://downloads/public_downloads"), Long.valueOf(id));
+                    imagePath = getDataColumn(this, contentUri, null, null);
                 }
                 Log.w(this.getClass().getName(), "Received image path from gallery: " + imagePath);
                 String imageName = imagePath.substring(imagePath.lastIndexOf("/") + 1);
@@ -422,8 +429,8 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         return getDataColumn(this, contentUri, selection, selectionArgs);
     }
 
-    public String getDataColumn(Context context, Uri uri, String selection,
-                                String[] selectionArgs) {
+    private String getDataColumn(Context context, Uri uri, String selection,
+                                 String[] selectionArgs) {
         Cursor cursor = null;
         final String column = "_data";
         final String[] projection = {
@@ -451,6 +458,9 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         return "com.android.externalstorage.documents".equals(uri.getAuthority());
     }
 
+    private boolean isDownloadsDocument(Uri uri) {
+        return "com.android.providers.downloads.documents".equals(uri.getAuthority());
+    }
 
     private String getRealPathFromURI(Uri uri) {
         String res = null;
