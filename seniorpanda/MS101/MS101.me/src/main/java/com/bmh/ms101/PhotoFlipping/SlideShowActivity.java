@@ -385,6 +385,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
                 Uri imageUri = data.getData();
                 Log.w(this.getClass().getName(), "Uri from gallery: " + imageUri.toString());
                 Map<String, String> imageMap = new HashMap<String, String>();
+
                 String imagePath = null;
                 if (isMediaDocument(imageUri)) {
                     imagePath = getPathFromURI(imageUri);
@@ -399,6 +400,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
                 Log.w(this.getClass().getName(), "Received image path from gallery: " + imagePath);
                 String imageName = imagePath.substring(imagePath.lastIndexOf("/") + 1);
                 imageMap.put(imageName, imagePath);
+
                 S3PhotoIntentService.startActionUploadS3(this, imageMap);
             }
         } else if (requestCode == TAKE_PHOTO_REQUEST) {
