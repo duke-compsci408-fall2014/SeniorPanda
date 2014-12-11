@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.CursorLoader;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -16,7 +17,6 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
-import android.support.v4.app.NavUtils;
 import android.support.v4.content.LocalBroadcastManager;
 import android.text.InputType;
 import android.util.Log;
@@ -275,15 +275,12 @@ public class SlideShowActivity extends Activity implements OnClickListener {
                 S3PhotoIntentService.startActionFetchS3(this);
                 showToast("Start loading pictures", Toast.LENGTH_SHORT);
                 return true;
-
             case R.id.change_family_sharing: // change the bucket for family sharing
-
                 S3PhotoIntentService.clearPhotos();
                 // Create and show the dialog
                 // Get our views that will be used in the dialog
                 LinearLayout dialogView = (LinearLayout) ((LayoutInflater) this.getSystemService(
                         Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.dialog_bucket_change, null);
-
                 final EditText famShareName = (EditText) dialogView.findViewById(R.id.current_bucket);
                 famShareName.setText(defaultFamShareName);
                 AlertDialog.Builder builder = new AlertDialog.Builder(SlideShowActivity.this);
@@ -298,7 +295,6 @@ public class SlideShowActivity extends Activity implements OnClickListener {
                                 deleteAllPhotos();
                             }
                         })
-
                         .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
@@ -306,7 +302,6 @@ public class SlideShowActivity extends Activity implements OnClickListener {
                             }
                         })
                         .show();
-
                 S3PhotoIntentService.startActionFetchS3(this);
                 showToast("Family photo sharing bucket changed", Toast.LENGTH_LONG);
                 return true;
@@ -314,7 +309,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         return super.onOptionsItemSelected(item);
     }
 
-    private void deleteAllPhotos(){
+    private void deleteAllPhotos() {
         myFlipper.removeAllViews();
         counterToImageNameMap.clear();
         deleteTimes = 0;
@@ -383,12 +378,20 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         if (requestCode == SELECT_PHOTO_FROM_GALLERY_REQUEST) {
             if (resultCode == RESULT_OK) {
                 Uri imageUri = data.getData();
-                String imagePath = getRealPathFromURI(imageUri);
+                String imageName = imageUri.getLastPathSegment().toString();
+                Log.w(this.getClass().getName(), "Uri from gallery: " + imageUri.toString());
                 Map<String, String> imageMap = new HashMap<String, String>();
+<<<<<<< HEAD
                 Log.w(this.getClass().getName(), "Received image path from gallery: " + imagePath);
 
                 String imageName = imagePath.substring(imagePath.lastIndexOf("/") + 1);
                 imageMap.put(imageName, imagePath);
+=======
+//                String imagePath = getRealPathFromURI(imageUri);
+//                Log.w(this.getClass().getName(), "Received image path from gallery: " + imagePath);
+//                String imageName = imagePath.substring(imagePath.lastIndexOf("/") + 1);
+                imageMap.put(imageName, imageUri.toString());
+>>>>>>> c4b49ed8d47640bea976bf347838ca4b2e0290a2
                 S3PhotoIntentService.startActionUploadS3(this, imageMap);
             }
         } else if (requestCode == TAKE_PHOTO_REQUEST) {
@@ -403,17 +406,16 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         }
     }
 
-    //Convert the image URI to the direct file system path of the image file
     public String getRealPathFromURI(Uri uri) {
-        String res = "";
+        String res = null;
         String[] projection = {MediaStore.Images.Media.DATA};
-        Cursor cursor = getContentResolver().query(uri, projection, null, null, null);
+//        Cursor cursor = getContentResolver().query(uri, projection, null, null, null);
+        CursorLoader loader = new CursorLoader(this, uri, projection, null, null, null);
+        Cursor cursor = loader.loadInBackground();
         if (cursor != null) {
-            int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
             cursor.moveToFirst();
-            res = cursor.getString(column_index);
-        } else {
-            res = uri.getPath();
+            int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+            return cursor.getString(column_index);
         }
         cursor.close();
         return res;
