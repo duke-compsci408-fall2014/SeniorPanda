@@ -41,6 +41,7 @@ public class S3PhotoIntentService extends IntentService {
     private static final String ACTION_DELETE_S3 = "com.bmh.ms101.jobs.action.DELETE_S3";
 
     private static final String IMAGE_NAME = "com.bmh.ms101.jobs.extra.IMAGE_NAME";
+    private static final String IMAGE_URI = "com.bmh.ms101.jobs.extra.IMAGE_URI";
     private static final String UPLOAD_MAP = "com.bmh.ms101.jobs.extra.UPLOAD_MAP";
     private static final String USER_NAME = "com.bmh.ms101.jobs.extra.USER_NAME";
 
@@ -103,9 +104,15 @@ public class S3PhotoIntentService extends IntentService {
     public static void startActionUploadS3(Context context, Map<String, String> imageMap) {
         Intent intent = new Intent(context, S3PhotoIntentService.class);
         intent.setAction(ACTION_UPLOAD_S3);
-        intent.putExtra(UPLOAD_MAP, ConcurrentUtils.SerializeHashMap(imageMap));
-        setContext(context);
-        context.startService(intent);
+        for (Map.Entry<String, String> entry: imageMap.entrySet()){
+            intent.putExtra(IMAGE_NAME, entry.getKey());
+            intent.putExtra(IMAGE_URI, entry.getValue());
+
+            // fires intent for each image entry
+            setContext(context);
+            context.startService(intent);
+        }
+//        intent.putExtra(UPLOAD_MAP, ConcurrentUtils.SerializeHashMap(imageMap));
     }
 
     public static void startActionDeleteS3(Context context, String imageName) {
@@ -138,21 +145,23 @@ public class S3PhotoIntentService extends IntentService {
                     handleActionFetchS3(famShareName);
                     break;
                 case ACTION_UPLOAD_S3:
-                    // TODO: automate this information fetching from DB
-                    Map<String, String> uploadImgMap =
-                            ConcurrentUtils.DeserializeHashMap(intent.getSerializableExtra(UPLOAD_MAP));
-                    handleActionUploadS3(uploadImgMap, bucketName, famShareName);
+                    String fileName = (String) intent.getExtras().get(IMAGE_NAME);
+                    String fileURI = (String) intent.getExtras().get(IMAGE_URI);
+
+//                    Map<String, String> uploadImgMap = ConcurrentUtils.DeserializeHashMap(intent.getSerializableExtra(UPLOAD_MAP));
+//                    handleActionUploadS3(uploadImgMap, bucketName, famShareName);
+                    handleActionUploadS3(bucketName, famShareName, fileName, fileURI);
                     break;
                 case ACTION_DELETE_S3:
                     String imageName = (String) intent.getExtras().get(IMAGE_NAME);
 
                     final String nameKey = imageName;  // the image name contains the folder name already
-                    Log.w("Delete photo", imageName);
+                    Log.w(this.getClass().getName(), "Delete photo " + imageName);
 
 //                    final String nameKey = folderName + Constants.SLASH + imageName;
 //                    Log.w(this.getClass().getName(), "Delete photo " + imageName);
 
-                    handleActionDeleteS3(nameKey, famShareName);
+                    handleActionDeleteS3(nameKey, bucketName);
                     break;
             }
         }
@@ -160,12 +169,14 @@ public class S3PhotoIntentService extends IntentService {
 
     private void handleActionDeleteS3(String nameKey, String bucketName) {
         try {
+            Log.w(this.getClass().getName(), "bName: " + bucketName + " and nameKey is " + nameKey);
+
             AmazonS3Client s3Client = getS3ClientInstance();
             s3Client.deleteObject(new DeleteObjectRequest(bucketName, nameKey));
-            Log.w(this.getClass().getName(), "bName: " + bucketName + " and nameKey is " + nameKey);
+
         } catch (Throwable T) {
-            //T.printStackTrace();
-            //throw new UnsupportedOperationException("Cannot handle Delete S3 Action");
+            T.printStackTrace();
+            throw new UnsupportedOperationException("Cannot handle Delete S3 Action");
         }
     }
 
@@ -177,15 +188,19 @@ public class S3PhotoIntentService extends IntentService {
     /**
      * Handle action UploadS3 in the provided background thread with the provided parameters.
      */
-    private void handleActionUploadS3(Map<String, String> uploadImageMap, String bucketName, String folderName) {
+//    private void handleActionUploadS3(Map<String, String> uploadImageMap, String bucketName, String folderName) {
+    private void handleActionUploadS3(String bucketName, String folderName, String imageName, String imageURI){
         try {
             AmazonS3Client s3Client = getS3ClientInstance();
             s3Client.listBuckets();
-            for (Map.Entry<String, String> entry : uploadImageMap.entrySet()) {
-                PutObjectRequest por = new PutObjectRequest(
-                        bucketName, folderName + Constants.SLASH + entry.getKey(), new java.io.File(entry.getValue()));
-                s3Client.putObject(por);
-            }
+//            for (Map.Entry<String, String> entry : uploadImageMap.entrySet()) {
+            Log.w(this.getClass().getName(), "FilePath name " + imageName);
+            Log.w(this.getClass().getName(), "FilePath name " + imageURI);
+            PutObjectRequest por = new PutObjectRequest(
+                        bucketName, folderName + Constants.SLASH + imageName, new java.io.File(imageURI));
+            s3Client.putObject(por);
+            startActionFetchS3(this);
+//            }
         } catch (Exception T) {
             throw new UnsupportedOperationException("Cannot handle Upload S3 Action");
         }
