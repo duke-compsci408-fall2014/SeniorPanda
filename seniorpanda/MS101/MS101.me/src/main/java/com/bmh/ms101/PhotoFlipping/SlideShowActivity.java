@@ -16,7 +16,6 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
-import android.support.v4.app.NavUtils;
 import android.support.v4.content.LocalBroadcastManager;
 import android.text.InputType;
 import android.util.Log;
@@ -32,6 +31,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ViewFlipper;
@@ -62,6 +62,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
     private static final String JPEG_FILE_SUFFIX = ".jpg";
     private static final String DATE_TIME_FORMAT = "EEE, MMM dd yyy HH:mm a";
 
+    private ProgressBar myProgressBar;
     private ViewFlipper myFlipper;
     private TextView myDateTextView;
     private TextView myTimeTextView;
@@ -231,6 +232,12 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         S3PhotoIntentService.startActionFetchS3(this);
         showToast("Start loading pictures", Toast.LENGTH_SHORT);
         startFlipping();
+        if (myFlipper.getChildCount() == 0) {
+            myProgressBar = (ProgressBar) findViewById(R.id.slide_show_progress_bar);
+            myProgressBar.setIndeterminate(true);
+            myProgressBar.setBackgroundColor(getResources().getColor(R.color.app_green));
+            myProgressBar.setVisibility(View.VISIBLE);
+        }
         super.onResume();
     }
 
@@ -251,9 +258,6 @@ public class SlideShowActivity extends Activity implements OnClickListener {
             case R.id.update_slide_show:
                 S3PhotoIntentService.startActionFetchS3(this);
                 showToast("Start loading pictures", Toast.LENGTH_SHORT);
-                return true;
-            case android.R.id.home:
-                NavUtils.navigateUpFromSameTask(this);
                 return true;
         }
         return super.onOptionsItemSelected(item);
@@ -446,6 +450,9 @@ public class SlideShowActivity extends Activity implements OnClickListener {
             public void run() {
                 addPhoto(bitmap, imageName);
                 startFlipping();
+                if (myProgressBar.isShown()) {
+                    myProgressBar.setVisibility(View.INVISIBLE);
+                }
             }
         });
     }
