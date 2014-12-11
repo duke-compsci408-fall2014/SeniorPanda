@@ -121,16 +121,19 @@ public class S3PhotoIntentService extends IntentService {
             final String bucketName = BUCKET_NAME;
             final String folderName = FOLDER_NAME;
 
-            final String userName = mUser.getStoredUserName();
+            String famShareName = mUser.getStoredFamShareName();
+            if (famShareName == null || famShareName.isEmpty() || famShareName.length() == 0)
+                famShareName = mUser.getStoredUserName();
+
             switch (action) {
                 case ACTION_FETCH_S3:
-                    handleActionFetchS3(userName);
+                    handleActionFetchS3(famShareName);
                     break;
                 case ACTION_UPLOAD_S3:
                     // TODO: automate this information fetching from DB
                     Map<String, String> uploadImgMap =
                             ConcurrentUtils.DeserializeHashMap(intent.getSerializableExtra(UPLOAD_MAP));
-                    handleActionUploadS3(uploadImgMap, bucketName, userName);
+                    handleActionUploadS3(uploadImgMap, bucketName, famShareName);
                     break;
                 case ACTION_DELETE_S3:
                     String imageName = (String) intent.getExtras().get(IMAGE_NAME);
@@ -141,7 +144,7 @@ public class S3PhotoIntentService extends IntentService {
 //                    final String nameKey = folderName + Constants.SLASH + imageName;
 //                    Log.w(this.getClass().getName(), "Delete photo " + imageName);
 
-                    handleActionDeleteS3(nameKey, userName);
+                    handleActionDeleteS3(nameKey, famShareName);
                     break;
             }
         }

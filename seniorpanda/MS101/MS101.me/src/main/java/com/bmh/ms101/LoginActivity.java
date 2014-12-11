@@ -100,9 +100,13 @@ public class LoginActivity extends Activity {
                     Util.toast(this, R.string.toast_login_cancelled);
                     finish();
                     break;
-                case "Success":
+                case "Success": //DFLogin succeeded
+                    Log.w(this.toString(), "success in DF");
+                    setResult(RESULT_OK);
                     finish();
-                case "Already Logged In":
+                    break;
+                case "Already Logged In": // DF already logged in
+                    Log.w(this.toString(), "already logged in");
                     setResult(RESULT_OK);
                     finish();
                     break;

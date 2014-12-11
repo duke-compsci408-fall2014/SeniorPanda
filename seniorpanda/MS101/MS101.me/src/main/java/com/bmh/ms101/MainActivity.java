@@ -31,6 +31,7 @@ public class MainActivity extends Activity {
     public static final String IS_INITIAL_SETUP = "is_initial_setup";
     public static final String IS_UNLOCKED = "is_unlocked";
     public static final String IS_FROM_MAIN = "is_from_main";
+    public static final String DEFAULT_FAMSHARENAME = "default_famshare_name";
 
     // Use in OnActivityResult
     private static final int REQUEST_NONE = -1;
@@ -138,6 +139,10 @@ public class MainActivity extends Activity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUEST_LOGIN && resultCode == RESULT_OK) {
             // If we got here after logging in, then we'll be ignoring the login check this time
+            Util.toast(this, "authentication finished");
+            tryInitMainScreen(false);
+        } else if (requestCode == REQUEST_MEDS && resultCode == RESULT_OK) {
+            Util.toast(this, "medication record entered");
             tryInitMainScreen(false);
         } else if ((requestCode == MainActivity.REQUEST_UNLOCK || requestCode == MainActivity.REQUEST_CREATE_PIN) &&
                 resultCode == RESULT_OK) {
@@ -145,9 +150,9 @@ public class MainActivity extends Activity {
             mIsUnlocked = true;
             tryInitMainScreen(false);
         } else {
-            tryInitMainScreen(false);
-            Util.toast(this, "Authentication finished. Now select medication");
-//            finish();
+//            tryInitMainScreen(false);
+//            Util.toast(this, "Authentication finished");
+            finish();
         }
     }
 
@@ -214,7 +219,9 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View arg0) {
                 Util.trackUiEvent("click_main_button_slide_show", MainActivity.this);
-                startActivity(new Intent(MainActivity.this, SlideShowActivity.class));
+                Intent slideShowIntent = new Intent(MainActivity.this, SlideShowActivity.class);
+                slideShowIntent.putExtra(DEFAULT_FAMSHARENAME, mUser.getStoredUserName());
+                startActivity(slideShowIntent);
             }
         });
     }

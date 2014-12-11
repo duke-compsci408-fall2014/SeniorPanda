@@ -1,11 +1,19 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    tools:context="com.bmh.ms101.PhotoFlipping.SlideShowActivity">
+xmlns:tools="http://schemas.android.com/tools"
+tools:context="com.bmh.ms101.PhotoFlipping.SlideShowActivity">
 
-    <item
-        android:id="@+id/update_slide_show"
-        android:title="Update"
-        android:orderInCategory="100"
-        android:showAsAction="never" />
+<item
+    android:id="@+id/update_slide_show"
+    android:title="Update"
+    android:orderInCategory="100"
+    android:showAsAction="never" />
+
+ <item
+   android:id="@+id/change_family_sharing"
+   android:title="Change Bucket"
+   android:orderInCategory="100"
+   android:showAsAction="never" />
+
+
 
 </menu>

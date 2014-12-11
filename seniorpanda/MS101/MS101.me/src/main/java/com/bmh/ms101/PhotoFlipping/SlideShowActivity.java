@@ -21,6 +21,7 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.text.InputType;
 import android.util.Log;
 import android.view.GestureDetector;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -37,8 +38,11 @@ import android.widget.Toast;
 import android.widget.ViewFlipper;
 
 import com.bmh.ms101.Constants;
+import com.bmh.ms101.MS101;
+import com.bmh.ms101.MainActivity;
 import com.bmh.ms101.PhotoSharing.S3PhotoIntentService;
 import com.bmh.ms101.R;
+import com.bmh.ms101.User;
 import com.bmh.ms101.Util;
 
 import java.io.File;
@@ -75,6 +79,8 @@ public class SlideShowActivity extends Activity implements OnClickListener {
     private boolean deletingPhoto = false;
     private boolean updatingTime = false;
 
+    private String defaultFamShareName = null;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -105,6 +111,8 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         myTimeTextView = (TextView) findViewById(R.id.slide_show_display_time);
         initTextView(myDateTextView);
         initTextView(myTimeTextView);
+
+        defaultFamShareName = getIntent().getExtras().getString(MainActivity.DEFAULT_FAMSHARENAME);
     }
 
     private void initDeletePhotoThread() {
@@ -252,11 +260,53 @@ public class SlideShowActivity extends Activity implements OnClickListener {
                 S3PhotoIntentService.startActionFetchS3(this);
                 showToast("Start loading pictures", Toast.LENGTH_SHORT);
                 return true;
+            case R.id.change_family_sharing: // change the bucket for family sharing
+
+                S3PhotoIntentService.clearPhotos();
+                // Create and show the dialog
+                // Get our views that will be used in the dialog
+                LinearLayout dialogView = (LinearLayout) ((LayoutInflater) this.getSystemService(
+                        Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.dialog_bucket_change, null);
+
+                final EditText famShareName = (EditText) dialogView.findViewById(R.id.current_bucket);
+                famShareName.setText(defaultFamShareName);
+                AlertDialog.Builder builder = new AlertDialog.Builder(SlideShowActivity.this);
+                builder.setTitle(R.string.change_bucket_message)
+                        .setView(dialogView)
+                        .setPositiveButton(R.string.change, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                // Record the email and password that the user provided
+                                User innerUser = new User(MS101.getInstance());
+                                innerUser.recordFamShareName(famShareName.getText().toString());
+                                deleteAllPhotos();
+                            }
+                        })
+
+                        .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                            }
+                        })
+                        .show();
+
+                S3PhotoIntentService.startActionFetchS3(this);
+                showToast("Family photo sharing bucket changed", Toast.LENGTH_LONG);
+                return true;
+
             case android.R.id.home:
                 NavUtils.navigateUpFromSameTask(this);
                 return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void deleteAllPhotos(){
+        myFlipper.removeAllViews();
+        counterToImageNameMap.clear();
+        deleteTimes = 0;
+        imageCounter = 0;
     }
 
     private void showChangeCityDialog() {

@@ -59,6 +59,7 @@ public class User {
     public static final String DF_PREF_SESSION_ID_EXPIRES = "session_id_expires";
 
     public static final String PREF_USER_NAME = "key_userName"; /// added to specify bucket
+    public static final String PREF_FAMSHARE_NAME = "key_bucketName";
 
     // (Duration is in seconds) Sessions may not be valid after 24 minutes.
     public static final int DF_SESSION_DURATION = 1440;
@@ -79,6 +80,7 @@ public class User {
     private int userId = 1;
     // userNameInfo used to 1. Verify with DF 2.
     private String USER_NAME = "";
+    private String BUCKET_NAME = "";
 
     /**
      * Create new User object using the given context
@@ -477,6 +479,14 @@ public class User {
     ///
     public void recordUserName(String userName){
         mPrefsUtil.getPrefs().edit().putString(PREF_USER_NAME, userName).commit();
+    }
+
+    public void recordFamShareName(String famShareName){
+        mPrefsUtil.getPrefs().edit().putString(PREF_FAMSHARE_NAME, famShareName).commit();
+    }
+
+    public String getStoredFamShareName(){
+        return mPrefsUtil.getPrefString(PREF_FAMSHARE_NAME, null);
     }
 
     // method purpose similar to below

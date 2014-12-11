@@ -384,7 +384,7 @@ public class SetupMedicationActivity extends Activity {
                     Util.toast(SetupMedicationActivity.this, R.string.toast_changes_saved);
                     //  }
                     //      }
-//                       setResult(RESULT_OK);
+                    setResult(RESULT_OK);
 //                       finish();
                 } else {
                     Util.toast(ctx, R.string.toast_must_select_med);

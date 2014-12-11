@@ -81,6 +81,11 @@
     <string name="no_camera_message">You do not have the camera support</string>
     <string name="dialog_ok_button_text">OK</string>
     <string name="fail_create_image_file">Failed to create image file. Please check file name and storage directory.</string>
+    <string name="change_bucket_message">Change Family Sharing Bucket</string>
+    <string name="bucket_name">Family Sharing Bucket Name</string>
+    <string name="change_bucket_direction">Your current family sharing bucket is listed below.
+        Input the new family sharing name if you want to change it</string>
+    <string name="change">Change</string>
     <!-- Weather Fragment -->
     <string name="dialog_change_city_title">Change City</string>
     <string name="dialog_change_city_button">Go</string>
