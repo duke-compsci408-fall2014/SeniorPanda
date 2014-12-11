@@ -182,7 +182,8 @@ public class S3PhotoIntentService extends IntentService {
             AmazonS3Client s3Client = getS3ClientInstance();
             s3Client.listBuckets();
             for (Map.Entry<String, String> entry : uploadImageMap.entrySet()) {
-                PutObjectRequest por = new PutObjectRequest(bucketName, folderName + Constants.SLASH + entry.getKey(), new java.io.File(entry.getValue()));
+                PutObjectRequest por = new PutObjectRequest(
+                        bucketName, folderName + Constants.SLASH + entry.getKey(), new java.io.File(entry.getValue()));
                 s3Client.putObject(por);
             }
         } catch (Exception T) {
