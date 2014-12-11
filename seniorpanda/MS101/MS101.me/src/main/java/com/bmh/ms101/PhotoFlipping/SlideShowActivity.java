@@ -385,8 +385,9 @@ public class SlideShowActivity extends Activity implements OnClickListener {
                 Uri imageUri = data.getData();
                 String imagePath = getRealPathFromURI(imageUri);
                 Map<String, String> imageMap = new HashMap<String, String>();
-                String imageName = imagePath.substring(imagePath.lastIndexOf("/") + 1);
                 Log.w(this.getClass().getName(), "Received image path from gallery: " + imagePath);
+
+                String imageName = imagePath.substring(imagePath.lastIndexOf("/") + 1);
                 imageMap.put(imageName, imagePath);
                 S3PhotoIntentService.startActionUploadS3(this, imageMap);
             }
