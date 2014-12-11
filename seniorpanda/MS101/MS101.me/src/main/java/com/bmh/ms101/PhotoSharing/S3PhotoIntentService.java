@@ -52,6 +52,9 @@ public class S3PhotoIntentService extends IntentService {
     private Queue<String> myPicNames = new LinkedList<>();
     private static Context myContext = null;
 
+//    private static int bitmapWidth = 300;
+//    private static int bitmapHeight = 300;
+
     private static CognitoCachingCredentialsProvider credentialsProvider;
     // creating credential using COGNITO
     private static AmazonS3Client s3Client = null;
@@ -70,6 +73,11 @@ public class S3PhotoIntentService extends IntentService {
         }
         return s3Client;
     }
+
+//    public static void setBitmapSize(int width, int height) {
+//        bitmapWidth = width;
+//        bitmapHeight = height;
+//    }
 
     //purpose
     public S3PhotoIntentService() {
@@ -209,16 +217,15 @@ public class S3PhotoIntentService extends IntentService {
                         if (myBitmapMap.size() > CACHE_SIZE) {
                             String name = myPicNames.remove();
                             myBitmapMap.remove(name);
-                            Log.w(this.getClass().getName(), "remove picture with name " + name);
                             sendRemovePictureIntent(name);
                         }
                         Bitmap bitmap = fetchImageAsBitMap(BUCKET_NAME, picName);
                         myBitmapMap.put(picName, bitmap);
+                        Log.w(this.getClass().getName(), "put in picture with name " + picName);
                         Intent fetchedIntent = new Intent(Constants.ACTION_FETCHED_PHOTO);
                         fetchedIntent.putExtra(Constants.INTENT_FETCHED_PHOTO, bitmap);
                         fetchedIntent.putExtra(Constants.INTENT_PHOTO_NAME, picName);
                         LocalBroadcastManager.getInstance(this).sendBroadcast(fetchedIntent);
-                        Log.w(this.getClass().getName(), "put in picture with name " + picName);
                     } else {
                         Log.w(this.getClass().getName(), "already contains picture with name " + picName);
                     }
@@ -231,6 +238,7 @@ public class S3PhotoIntentService extends IntentService {
     }
 
     private void sendRemovePictureIntent(String imageName) {
+        Log.w(this.getClass().getName(), "remove picture with name " + imageName);
         Intent removeIntent = new Intent(Constants.ACTION_DELETED_PHOTO);
         removeIntent.putExtra(Constants.INTENT_PHOTO_NAME, imageName);
         LocalBroadcastManager.getInstance(this).sendBroadcast(removeIntent);
@@ -243,12 +251,16 @@ public class S3PhotoIntentService extends IntentService {
 
     /**
      * Fetch Image from S3 in the format of Bitmap to be displayed
+     *
      * @return
      */
     private Bitmap fetchImageAsBitMap(String bucketName, String picName) throws IOException {
         S3ObjectInputStream content = s3Client.getObject(bucketName, picName).getObjectContent();
         byte[] bytes = IOUtils.toByteArray(content);
-        Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inPurgeable = true;
+        Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length, options);
+//        Bitmap scaledBitmap = Bitmap.createScaledBitmap(bitmap, bitmapWidth, 200, true);// convert decoded bitmap into well scalled Bitmap format.
         return bitmap;
     }
 

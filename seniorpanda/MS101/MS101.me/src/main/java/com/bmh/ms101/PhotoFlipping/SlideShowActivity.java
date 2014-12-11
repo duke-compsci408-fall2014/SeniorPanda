@@ -33,6 +33,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ViewFlipper;
@@ -66,15 +67,18 @@ public class SlideShowActivity extends Activity implements OnClickListener {
     private static final String JPEG_FILE_SUFFIX = ".jpg";
     private static final String DATE_TIME_FORMAT = "EEE, MMM dd yyy HH:mm a";
 
+    private ProgressBar myProgressBar;
     private ViewFlipper myFlipper;
     private TextView myDateTextView;
     private TextView myTimeTextView;
-    private ResponseReceiver myResponseReceiver;
+    private FetchReceiver myFetchReceiver;
+    private DeleteReceiver myDeleteReceiver;
     private GestureDetector myTouchDetector;
     private Animation slide_in_left, slide_in_right, slide_out_left, slide_out_right;
     private Map<Integer, String> counterToImageNameMap;
     private int imageCounter = 0;
     private String myCurrentPhotoName = null;
+    private String myCurrentPhotoPath = null;
     private Integer deleteTimes = 0;
     private boolean deletingPhoto = false;
     private boolean updatingTime = false;
@@ -124,9 +128,10 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         actionFetchedIntentFilter.addCategory(Intent.CATEGORY_DEFAULT);
         IntentFilter actionDeletedIntentFilter = new IntentFilter(Constants.ACTION_DELETED_PHOTO);
         actionDeletedIntentFilter.addCategory(Intent.CATEGORY_DEFAULT);
-        myResponseReceiver = new ResponseReceiver();
-        LocalBroadcastManager.getInstance(this).registerReceiver(myResponseReceiver, actionFetchedIntentFilter);
-        LocalBroadcastManager.getInstance(this).registerReceiver(myResponseReceiver, actionDeletedIntentFilter);
+        myFetchReceiver = new FetchReceiver();
+        myDeleteReceiver = new DeleteReceiver();
+        LocalBroadcastManager.getInstance(this).registerReceiver(myFetchReceiver, actionFetchedIntentFilter);
+        LocalBroadcastManager.getInstance(this).registerReceiver(myDeleteReceiver, actionDeletedIntentFilter);
     }
 
     private void initTextView(TextView textView) {
@@ -223,9 +228,13 @@ public class SlideShowActivity extends Activity implements OnClickListener {
     }
 
     private void unregisterReceiver() {
-        if (myResponseReceiver != null) {
-            LocalBroadcastManager.getInstance(this).unregisterReceiver(myResponseReceiver);
-            myResponseReceiver = null;
+        if (myFetchReceiver != null) {
+            LocalBroadcastManager.getInstance(this).unregisterReceiver(myFetchReceiver);
+            myFetchReceiver = null;
+        }
+        if (myDeleteReceiver != null) {
+            LocalBroadcastManager.getInstance(this).unregisterReceiver(myDeleteReceiver);
+            myDeleteReceiver = null;
         }
     }
 
@@ -239,6 +248,12 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         S3PhotoIntentService.startActionFetchS3(this);
         showToast("Start loading pictures", Toast.LENGTH_SHORT);
         startFlipping();
+        if (myFlipper.getChildCount() == 0) {
+            myProgressBar = (ProgressBar) findViewById(R.id.slide_show_progress_bar);
+            myProgressBar.setIndeterminate(true);
+            myProgressBar.setBackgroundColor(getResources().getColor(R.color.app_green));
+            myProgressBar.setVisibility(View.VISIBLE);
+        }
         super.onResume();
     }
 
@@ -260,6 +275,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
                 S3PhotoIntentService.startActionFetchS3(this);
                 showToast("Start loading pictures", Toast.LENGTH_SHORT);
                 return true;
+
             case R.id.change_family_sharing: // change the bucket for family sharing
 
                 S3PhotoIntentService.clearPhotos();
@@ -293,10 +309,6 @@ public class SlideShowActivity extends Activity implements OnClickListener {
 
                 S3PhotoIntentService.startActionFetchS3(this);
                 showToast("Family photo sharing bucket changed", Toast.LENGTH_LONG);
-                return true;
-
-            case android.R.id.home:
-                NavUtils.navigateUpFromSameTask(this);
                 return true;
         }
         return super.onOptionsItemSelected(item);
@@ -358,10 +370,11 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         File storageDir = Environment.getExternalStoragePublicDirectory(
                 Environment.DIRECTORY_PICTURES);
         File image = File.createTempFile(myCurrentPhotoName, JPEG_FILE_SUFFIX, storageDir);
-        // Save a file: path for use with ACTION_VIEW intents
-        String path = "file:" + image.getAbsolutePath();
-        Log.w(this.getClass().getName(), "Create image path for camera photo: " + image.getAbsolutePath());
+//        String path = "file:" + image.getAbsolutePath();
+        String path = image.getAbsolutePath();
         ImageFilePath imageFilePath = new ImageFilePath(image, path);
+        myCurrentPhotoPath = image.getAbsolutePath();
+        Log.w(this.getClass().getName(), "Create image path for camera photo: " + myCurrentPhotoPath);
         return imageFilePath;
     }
 
@@ -382,10 +395,9 @@ public class SlideShowActivity extends Activity implements OnClickListener {
                 Bundle extras = data.getExtras();
                 Bitmap bitmap = (Bitmap) extras.get("data");
                 addPhoto(bitmap, myCurrentPhotoName);
-                //TODO: upload photo
-//                Map<String, String> imageMap = new HashMap<String, String>();
-//                imageMap.put(myCurrentPhotoName, bit)
-//                S3PhotoIntentService.startActionDeleteS3(this, );
+                Map<String, String> imageMap = new HashMap<String, String>();
+                imageMap.put(myCurrentPhotoName, myCurrentPhotoPath);
+                S3PhotoIntentService.startActionUploadS3(this, imageMap);
             }
         }
     }
@@ -496,6 +508,9 @@ public class SlideShowActivity extends Activity implements OnClickListener {
             public void run() {
                 addPhoto(bitmap, imageName);
                 startFlipping();
+                if (myProgressBar.isShown()) {
+                    myProgressBar.setVisibility(View.INVISIBLE);
+                }
             }
         });
     }
@@ -546,8 +561,8 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         }
     }
 
-    public class ResponseReceiver extends BroadcastReceiver {
-        private ResponseReceiver() {
+    public class FetchReceiver extends BroadcastReceiver {
+        private FetchReceiver() {
         }
 
         @Override
@@ -559,9 +574,20 @@ public class SlideShowActivity extends Activity implements OnClickListener {
                     String imageName = (String) extras.get(Constants.INTENT_PHOTO_NAME);
                     Log.w(this.getClass().getName(), "Received photo from Intent Service " + imageName);
                     doFetchPhotoWork(bitmap, imageName);
+            }
+        }
+    }
+
+    public class DeleteReceiver extends BroadcastReceiver {
+        private DeleteReceiver() {
+        }
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            switch (intent.getAction()) {
                 case Constants.ACTION_DELETED_PHOTO:
                     String name = (String) intent.getExtras().get(Constants.INTENT_PHOTO_NAME);
-                    Log.w(this.getClass().getName(), "Received photo from Intent Service " + name);
+                    Log.w(this.getClass().getName(), "Deleted photo from Intent Service " + name);
                     int counter = -1;
                     for (Integer i : counterToImageNameMap.keySet()) {
                         if (counterToImageNameMap.get(i).equals(name)) {
