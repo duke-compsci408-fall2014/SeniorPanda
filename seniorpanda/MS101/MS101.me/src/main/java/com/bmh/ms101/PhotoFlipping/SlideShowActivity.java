@@ -86,7 +86,6 @@ public class SlideShowActivity extends Activity implements OnClickListener {
     private Integer deleteTimes = 0;
     private boolean deletingPhoto = false;
     private boolean updatingTime = false;
-
     private String defaultFamShareName = null;
 
     @Override
@@ -223,8 +222,8 @@ public class SlideShowActivity extends Activity implements OnClickListener {
 
     @Override
     protected void onStop() {
-        unregisterReceiver();
         stopFlipping();
+        unregisterReceiver();
         S3PhotoIntentService.clearPhotos();
         deletingPhoto = false;
         updatingTime = false;
@@ -279,10 +278,8 @@ public class SlideShowActivity extends Activity implements OnClickListener {
                 S3PhotoIntentService.startActionFetchS3(this);
                 showToast("Start loading pictures", Toast.LENGTH_SHORT);
                 return true;
-            case R.id.change_family_sharing: // change the bucket for family sharing
+            case R.id.change_family_sharing:
                 S3PhotoIntentService.clearPhotos();
-                // Create and show the dialog
-                // Get our views that will be used in the dialog
                 LinearLayout dialogView = (LinearLayout) ((LayoutInflater) this.getSystemService(
                         Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.dialog_bucket_change, null);
                 final EditText famShareName = (EditText) dialogView.findViewById(R.id.current_bucket);
@@ -297,6 +294,9 @@ public class SlideShowActivity extends Activity implements OnClickListener {
                                 User innerUser = new User(MS101.getInstance());
                                 innerUser.recordFamShareName(famShareName.getText().toString());
                                 deleteAllPhotos();
+                                myProgressBar.setVisibility(View.VISIBLE);
+                                S3PhotoIntentService.startActionFetchS3(SlideShowActivity.this);
+                                showToast("Changed Family Photo Group", Toast.LENGTH_SHORT);
                             }
                         })
                         .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
@@ -306,8 +306,6 @@ public class SlideShowActivity extends Activity implements OnClickListener {
                             }
                         })
                         .show();
-                S3PhotoIntentService.startActionFetchS3(this);
-                showToast("Family photo sharing bucket changed", Toast.LENGTH_LONG);
                 return true;
         }
         return super.onOptionsItemSelected(item);
@@ -316,8 +314,11 @@ public class SlideShowActivity extends Activity implements OnClickListener {
     private void deleteAllPhotos() {
         myFlipper.removeAllViews();
         counterToImageNameMap.clear();
-        deleteTimes = 0;
         imageCounter = 0;
+        synchronized (deleteTimes) {
+            deleteTimes = 0;
+        }
+        Log.w(this.getClass().getName(), "deleted all photos in activity");
     }
 
     private void showChangeCityDialog() {

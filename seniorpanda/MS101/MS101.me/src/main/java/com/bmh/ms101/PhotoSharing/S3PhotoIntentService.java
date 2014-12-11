@@ -104,7 +104,7 @@ public class S3PhotoIntentService extends IntentService {
     public static void startActionUploadS3(Context context, Map<String, String> imageMap) {
         Intent intent = new Intent(context, S3PhotoIntentService.class);
         intent.setAction(ACTION_UPLOAD_S3);
-        for (Map.Entry<String, String> entry: imageMap.entrySet()){
+        for (Map.Entry<String, String> entry : imageMap.entrySet()) {
             intent.putExtra(IMAGE_NAME, entry.getKey());
             intent.putExtra(IMAGE_URI, entry.getValue());
 
@@ -189,7 +189,7 @@ public class S3PhotoIntentService extends IntentService {
      * Handle action UploadS3 in the provided background thread with the provided parameters.
      */
 //    private void handleActionUploadS3(Map<String, String> uploadImageMap, String bucketName, String folderName) {
-    private void handleActionUploadS3(String bucketName, String folderName, String imageName, String imageURI){
+    private void handleActionUploadS3(String bucketName, String folderName, String imageName, String imageURI) {
         try {
             AmazonS3Client s3Client = getS3ClientInstance();
             s3Client.listBuckets();
@@ -197,7 +197,7 @@ public class S3PhotoIntentService extends IntentService {
             Log.w(this.getClass().getName(), "FilePath name " + imageName);
             Log.w(this.getClass().getName(), "FilePath name " + imageURI);
             PutObjectRequest por = new PutObjectRequest(
-                        bucketName, folderName + Constants.SLASH + imageName, new java.io.File(imageURI));
+                    bucketName, folderName + Constants.SLASH + imageName, new java.io.File(imageURI));
             s3Client.putObject(por);
             startActionFetchS3(this);
 //            }
@@ -251,6 +251,7 @@ public class S3PhotoIntentService extends IntentService {
                 }
             }
         }
+        Log.w(this.getClass().getName(), "finished fetching all photos");
     }
 
     private void sendRemovePictureIntent(String imageName) {
