@@ -1,5 +1,6 @@
 package com.bmh.ms101.PhotoFlipping;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
@@ -14,8 +15,10 @@ import android.graphics.Bitmap;
 import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.support.v4.content.LocalBroadcastManager;
 import android.text.InputType;
@@ -378,17 +381,18 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         if (requestCode == SELECT_PHOTO_FROM_GALLERY_REQUEST) {
             if (resultCode == RESULT_OK) {
                 Uri imageUri = data.getData();
-                String imageName = imageUri.getLastPathSegment().toString();
                 Log.w(this.getClass().getName(), "Uri from gallery: " + imageUri.toString());
                 Map<String, String> imageMap = new HashMap<String, String>();
 
-//                String imagePath = getRealPathFromURI(imageUri);
-//                Log.w(this.getClass().getName(), "Received image path from gallery: " + imagePath);
-//                String imageName = imagePath.substring(imagePath.lastIndexOf("/") + 1);
-
-                imageMap.put(imageName, imageUri.toString());
-                Log.w(this.getClass().getName(), "imageName is : " + imageName);
-                Log.w(this.getClass().getName(), "URI is : " + imageUri.toString());
+                String imagePath = null;
+                if (isMediaDocument(imageUri)) {
+                    imagePath = getPathFromURI(imageUri);
+                } else if (isExternalStorageDocument(imageUri)) {
+                    imagePath = getRealPathFromURI(imageUri);
+                }
+                Log.w(this.getClass().getName(), "Received image path from gallery: " + imagePath);
+                String imageName = imagePath.substring(imagePath.lastIndexOf("/") + 1);
+                imageMap.put(imageName, imagePath);
 
                 S3PhotoIntentService.startActionUploadS3(this, imageMap);
             }
@@ -404,15 +408,61 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         }
     }
 
-    public String getRealPathFromURI(Uri uri) {
+    @TargetApi(Build.VERSION_CODES.KITKAT)
+    private String getPathFromURI(Uri uri) {
+        final String docId = DocumentsContract.getDocumentId(uri);
+        final String[] split = docId.split(":");
+        final String type = split[0];
+        Uri contentUri = null;
+        if ("image".equals(type)) {
+            contentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+        }
+        final String selection = "_id=?";
+        final String[] selectionArgs = new String[]{
+                split[1]
+        };
+        return getDataColumn(this, contentUri, selection, selectionArgs);
+    }
+
+    public String getDataColumn(Context context, Uri uri, String selection,
+                                String[] selectionArgs) {
+        Cursor cursor = null;
+        final String column = "_data";
+        final String[] projection = {
+                column
+        };
+        try {
+            cursor = context.getContentResolver().query(uri, projection, selection, selectionArgs,
+                    null);
+            if (cursor != null && cursor.moveToFirst()) {
+                final int column_index = cursor.getColumnIndexOrThrow(column);
+                return cursor.getString(column_index);
+            }
+        } finally {
+            if (cursor != null)
+                cursor.close();
+        }
+        return null;
+    }
+
+    private boolean isMediaDocument(Uri uri) {
+        return "com.android.providers.media.documents".equals(uri.getAuthority());
+    }
+
+    private boolean isExternalStorageDocument(Uri uri) {
+        return "com.android.externalstorage.documents".equals(uri.getAuthority());
+    }
+
+
+    private String getRealPathFromURI(Uri uri) {
         String res = null;
         String[] projection = {MediaStore.Images.Media.DATA};
-//        Cursor cursor = getContentResolver().query(uri, projection, null, null, null);
         CursorLoader loader = new CursorLoader(this, uri, projection, null, null, null);
         Cursor cursor = loader.loadInBackground();
         if (cursor != null) {
             cursor.moveToFirst();
             int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+            Log.w(this.getClass().getName(), "column index is " + column_index);
             return cursor.getString(column_index);
         }
         cursor.close();
