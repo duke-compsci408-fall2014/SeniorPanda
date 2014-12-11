@@ -10,16 +10,14 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
 
-import de.greenrobot.event.EventBus;
-
 
 public class WebCalendarVisualizationActivity extends Activity {
-    private final EventBus eventBus = EventBus.getDefault();
+//    private final EventBus eventBus = EventBus.getDefault();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        eventBus.register(this, 2);
+        //eventBus.register(this, 2);
         // Display the progress in the activity title bar, like the browser
         getWindow().requestFeature(Window.FEATURE_PROGRESS);
 
@@ -48,13 +46,13 @@ public class WebCalendarVisualizationActivity extends Activity {
     @Override
     protected void onStart() {
         super.onStart();
-        if (!eventBus.isRegistered(this)) eventBus.register(this, 2);
+//        if (!eventBus.isRegistered(this)) eventBus.register(this, 2);
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        eventBus.unregister(this);
+//        eventBus.unregister(this);
     }
 
 

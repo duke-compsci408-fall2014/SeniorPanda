@@ -52,6 +52,7 @@ public class S3PhotoIntentService extends IntentService {
     private static Map<String, Bitmap> myBitmapMap = new ConcurrentHashMap<String, Bitmap>();
     private Queue<String> myPicNames = new LinkedList<>();
     private static Context myContext = null;
+    private static String famShareName = null;
 
 //    private static int bitmapWidth = 300;
 //    private static int bitmapHeight = 300;
@@ -127,6 +128,10 @@ public class S3PhotoIntentService extends IntentService {
         myContext = context;
     }
 
+    public static String getFamilyGroupName(){
+        return famShareName;
+    }
+
     @Override
     protected void onHandleIntent(Intent intent) {
         if (intent != null) {
@@ -136,7 +141,7 @@ public class S3PhotoIntentService extends IntentService {
             final String bucketName = BUCKET_NAME;
             final String folderName = FOLDER_NAME;
 
-            String famShareName = mUser.getStoredFamShareName();
+            famShareName = mUser.getStoredFamShareName();
             if (famShareName == null || famShareName.isEmpty() || famShareName.length() == 0)
                 famShareName = mUser.getStoredUserName();
 
