@@ -1,3 +1,6 @@
+Team SeniorPanda: Steve Siyang Wang, Justin Zhang, Sanmay Jain 
+Client: Ray ZwycewiczAppName: SeniorPanda (PD101)Data Last Updated: Dec 11, 2014
+
 The MIT License (MIT)
 
 Copyright (c) 2014 Bamboo Mobile Health, Duke Senior Panda Dev Team, and jointly
