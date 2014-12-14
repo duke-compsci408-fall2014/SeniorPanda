@@ -283,7 +283,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
                 LinearLayout dialogView = (LinearLayout) ((LayoutInflater) this.getSystemService(
                         Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.dialog_bucket_change, null);
                 final EditText famShareName = (EditText) dialogView.findViewById(R.id.current_bucket);
-                famShareName.setText(defaultFamShareName);
+                famShareName.setHint("Current family group: " + S3PhotoIntentService.getFamilyGroupName());
                 AlertDialog.Builder builder = new AlertDialog.Builder(SlideShowActivity.this);
                 builder.setTitle(R.string.change_bucket_message)
                         .setView(dialogView)
@@ -335,7 +335,7 @@ public class SlideShowActivity extends Activity implements OnClickListener {
         layout.addView(cityField);
         layout.addView(countryField);
         builder.setView(layout);
-        builder.setPositiveButton("Go", new DialogInterface.OnClickListener() {
+        builder.setPositiveButton(R.string.dialog_change_city_button, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 String text = cityField.getText().toString().trim() + "," + countryField.getText().toString().trim();
